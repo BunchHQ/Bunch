@@ -59,7 +59,7 @@ class User(AbstractUser):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
-    avatar = models.ImageField(upload_to="avatars/", blank=True, null=False, help_text="User's profile picture")
+    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True, help_text="User's profile picture")
     status = models.CharField(blank=True, null=True, max_length=30, help_text="User's status")
     bio = models.TextField(blank=True, null=True, help_text="User's bio")
 
@@ -68,8 +68,11 @@ class User(AbstractUser):
         help_text="User's theme preference",
         choices=ThemePreferenceChoices.choices,
         default=ThemePreferenceChoices.SYSTEM,
+        blank=True,
     )
-    color = models.CharField(max_length=7, help_text="User's color preference", choices=ColorChoices.choices)
+    color = models.CharField(
+        max_length=7, help_text="User's color preference", choices=ColorChoices.choices, blank=True
+    )
     pronoun = models.CharField(blank=True, null=True, max_length=12, help_text="User's pronoun")
 
     @override

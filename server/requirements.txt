@@ -2,6 +2,8 @@ asgiref==3.8.1
 django==5.1.7
 django-types==0.20.0
 djangorestframework==3.15.2
+djangorestframework-simplejwt==5.5.0
 pillow==11.1.0
+pyjwt==2.9.0
 sqlparse==0.5.3
 types-psycopg2==2.9.21.20250121
