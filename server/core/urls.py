@@ -6,6 +6,7 @@ https://docs.djangoproject.com/en/5.1/topics/http/urls/
 """
 
 from django.urls import path
+
 from . import views
 
 urlpatterns = [
