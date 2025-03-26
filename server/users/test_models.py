@@ -1,3 +1,5 @@
+from typing import override
+
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase
@@ -5,7 +7,8 @@ from django.test import TestCase
 from users.models import ColorChoices, ThemePreferenceChoices, User
 
 
-class CustomUserTest(TestCase):
+class UserModelTest(TestCase):
+    @override
     def setUp(self):
         User.objects.create_user(username="test", email="test@bunch.io", password="testpassword")
         User.objects.create_superuser(username="root", email="root@bunch.io", password="rootpassword")
