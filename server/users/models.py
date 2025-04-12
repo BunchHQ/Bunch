@@ -53,7 +53,7 @@ def get_random_color_choice(user: "User") -> str:
 
 class User(AbstractUser):
     """
-    Custom User Model for bunch.
+    Custom User Model for orchard.
     Adds additional properties like avatar, status, bio etc..
     """
 

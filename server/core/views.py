@@ -4,4 +4,4 @@ from django.http import HttpResponse, HttpRequest
 
 
 def home(request: HttpRequest) -> HttpResponse:
-    return HttpResponse("<h1>Welcome to Bunch</h1>")
+    return HttpResponse("<h1>Welcome to Orchard</h1>")
