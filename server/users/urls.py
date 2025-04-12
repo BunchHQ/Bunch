@@ -1,10 +1,13 @@
-from rest_framework import routers
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
-from users.views import UserViewSet
+from .views import UserViewSet
 
-app_name = "users"
+router = DefaultRouter()
+router.register(r'', UserViewSet, basename='user')
+# groups not needed rn
+# router.register(r"group", GroupViewSet, basename="group")
 
-router = routers.DefaultRouter()
-router.register(r"user", UserViewSet, basename="user")
-# unload groups for now
-# router.register(r"group", GroupViewSet, basename='group')
+urlpatterns = [
+    path('', include(router.urls)),
+]
