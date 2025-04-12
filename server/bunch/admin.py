@@ -1,3 +1,7 @@
 from django.contrib import admin
 
-# Register your models here.
+from bunch.models import Bunch, Member, Channel
+
+admin.register(Bunch)
+admin.register(Member)
+admin.register(Channel)

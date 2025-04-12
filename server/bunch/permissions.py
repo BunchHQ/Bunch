@@ -1,0 +1,53 @@
+from rest_framework import permissions
+
+
+class IsBunchOwner(permissions.BasePermission):
+    """
+    Custom permission to only allow owners of a bunch to edit it.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        return obj.owner == request.user
+
+
+class IsBunchMember(permissions.BasePermission):
+    """
+    Custom permission to only allow members of a bunch to access it.
+    """
+
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        bunch_id = view.kwargs.get("bunch_id")
+        if bunch_id:
+            return request.user.bunch_memberships.filter(bunch_id=bunch_id).exists()
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        return request.user.bunch_memberships.filter(bunch=obj.bunch).exists()
+
+
+class IsBunchAdmin(permissions.BasePermission):
+    """
+    Custom permission to only allow admins of a bunch to perform certain actions.
+    """
+
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        bunch_id = view.kwargs.get("bunch_id")
+        if bunch_id:
+            return request.user.bunch_memberships.filter(
+                bunch_id=bunch_id, role__in=["owner", "admin"]
+            ).exists()
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        return request.user.bunch_memberships.filter(
+            bunch=obj.bunch, role__in=["owner", "admin"]
+        ).exists()
