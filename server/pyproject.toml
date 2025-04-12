@@ -1,7 +1,7 @@
 [project]
-name = "bunch"
+name = "orchard"
 version = "0.1.0"
-description = "Add your description here"
+description = "Server for bunch. Written in django"
 readme = "README.md"
 requires-python = ">=3.12.5"
 dependencies = [

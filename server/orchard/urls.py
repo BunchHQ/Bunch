@@ -1,5 +1,5 @@
 """
-URL configuration for bunch project.
+URL configuration for orchard project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.1/topics/http/urls/
@@ -17,9 +17,7 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework_simplejwt.views import (TokenObtainPairView,
-                                            TokenRefreshView)
-
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from users.urls import router as users_router
 
 urlpatterns = [
