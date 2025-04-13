@@ -4,7 +4,13 @@ from typing import override
 from django.db.utils import IntegrityError
 from django.test import TestCase
 
-from bunch.models import Bunch, Channel, Member
+from bunch.models import (
+    Bunch,
+    Channel,
+    ChannelTypes,
+    Member,
+    RoleChoices,
+)
 from users.models import User
 
 
@@ -84,7 +90,7 @@ class BunchModelTest(TestCase):
         member = Member.objects.create(
             bunch=self.bunch,
             user=self.user,
-            role="member",
+            role=RoleChoices.MEMBER,
             nickname="TestNick",
         )
         self.assertEqual(
@@ -105,7 +111,7 @@ class BunchModelTest(TestCase):
             Member.objects.create(
                 bunch=self.bunch,
                 user=self.user,
-                role="member",
+                role=RoleChoices.MEMBER,
             )
 
     def test_bunch_channel_creation(self):
@@ -113,7 +119,7 @@ class BunchModelTest(TestCase):
         channel1 = Channel.objects.create(
             bunch=self.bunch,
             name="Channel 1",
-            type="text",
+            type=ChannelTypes.TEXT,
             description="Test Description",
             position=1,
             is_private=False,
@@ -121,7 +127,7 @@ class BunchModelTest(TestCase):
         channel2 = Channel.objects.create(
             bunch=self.bunch,
             name="Channel 2",
-            type="voice",
+            type=ChannelTypes.VOICE,
             description="Voice Channel",
             position=2,
             is_private=True,
@@ -134,12 +140,12 @@ class BunchModelTest(TestCase):
         )
         self.assertEqual(
             channel1.type,
-            "text",
+            ChannelTypes.TEXT,
             "Channel type is not correct",
         )
         self.assertEqual(
             channel2.type,
-            "voice",
+            ChannelTypes.VOICE,
             "Channel type is not correct",
         )
         self.assertEqual(
@@ -176,7 +182,7 @@ class MemberModelTest(TestCase):
         self.member1 = Member.objects.create(
             bunch=self.bunch,
             user=self.user1,
-            role="owner",
+            role=RoleChoices.OWNER,
             nickname="Owner",
         )
 
@@ -189,7 +195,7 @@ class MemberModelTest(TestCase):
         )
         self.assertEqual(
             self.member1.role,
-            "owner",
+            RoleChoices.OWNER,
             "Member role is not correct",
         )
         self.assertEqual(
@@ -217,7 +223,7 @@ class MemberModelTest(TestCase):
             Member.objects.create(
                 bunch=self.bunch,
                 user=self.user1,
-                role="member",
+                role=RoleChoices.MEMBER,
             )
 
     def test_multiple_members_per_bunch(self):
@@ -225,7 +231,7 @@ class MemberModelTest(TestCase):
         Member.objects.create(
             bunch=self.bunch,
             user=self.user2,
-            role="member",
+            role=RoleChoices.MEMBER,
             nickname="Member",
         )
 
@@ -241,24 +247,24 @@ class MemberModelTest(TestCase):
         member2 = Member.objects.create(
             bunch=self.bunch,
             user=self.user2,
-            role="admin",
+            role=RoleChoices.ADMIN,
             nickname="Admin",
         )
 
         self.assertEqual(
             member2.role,
-            "admin",
+            RoleChoices.ADMIN,
             "Member role should be 'admin'",
         )
 
         # update to member role
-        member2.role = "member"
+        member2.role = RoleChoices.MEMBER
         member2.save()
         member2.refresh_from_db()
 
         self.assertEqual(
             member2.role,
-            "member",
+            RoleChoices.MEMBER,
             "Member role should be updated to 'member'",
         )
 
@@ -325,34 +331,34 @@ class ChannelModelTest(TestCase):
         text_channel = Channel.objects.create(
             bunch=self.bunch,
             name="Text Channel",
-            type="text",
+            type=ChannelTypes.TEXT,
         )
 
         voice_channel = Channel.objects.create(
             bunch=self.bunch,
             name="Voice Channel",
-            type="voice",
+            type=ChannelTypes.VOICE,
         )
 
         announcement_channel = Channel.objects.create(
             bunch=self.bunch,
             name="Announcement Channel",
-            type="announcement",
+            type=ChannelTypes.ANNOUNCEMENT,
         )
 
         self.assertEqual(
             text_channel.type,
-            "text",
+            ChannelTypes.TEXT,
             "Channel type should be 'text'",
         )
         self.assertEqual(
             voice_channel.type,
-            "voice",
+            ChannelTypes.VOICE,
             "Channel type should be 'voice'",
         )
         self.assertEqual(
             announcement_channel.type,
-            "announcement",
+            ChannelTypes.ANNOUNCEMENT,
             "Channel type should be 'announcement'",
         )
 
