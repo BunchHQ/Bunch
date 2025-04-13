@@ -6,7 +6,9 @@ from rest_framework import serializers
 from users.models import User
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(
+    serializers.HyperlinkedModelSerializer
+):
     password = serializers.CharField(write_only=True)
 
     class Meta:
@@ -39,7 +41,9 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         return user
 
 
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
+class GroupSerializer(
+    serializers.HyperlinkedModelSerializer
+):
     class Meta:
         model = Group
         fields = ["url", "name"]

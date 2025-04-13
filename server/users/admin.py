@@ -1,5 +1,7 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.admin import (
+    UserAdmin as BaseUserAdmin,
+)
 
 from users.models import User
 
@@ -8,8 +10,14 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = tuple(
         (name, data)
         if name != "Personal info"
-        else (name, {"fields": data["fields"] + ("avatar", "status", "bio")})  # type: ignore
-        for name, data in BaseUserAdmin.fieldsets
+        else (
+            name,
+            {
+                "fields": data["fields"]
+                + ("avatar", "status", "bio")  # type: ignore
+            },
+        )
+        for name, data in BaseUserAdmin.fieldsets or []
     )
     list_display: tuple = (
         "email",
