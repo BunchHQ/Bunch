@@ -1,14 +1,14 @@
 from typing import override
 
 from django.contrib.auth.models import Group
+from django.urls import reverse
 from rest_framework import serializers
 
 from users.models import User
 
 
-class UserSerializer(
-    serializers.HyperlinkedModelSerializer
-):
+class UserSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
     password = serializers.CharField(write_only=True)
 
     class Meta:
@@ -33,6 +33,16 @@ class UserSerializer(
             "groups",
         ]
 
+    def get_url(self, obj):
+        request = self.context.get("request")
+        if request is None:
+            return None
+        return request.build_absolute_uri(
+            reverse(
+                "user:user-detail", kwargs={"pk": obj.id}
+            )
+        )
+
     @override
     def create(self, validated_data: dict):
         groups_data = validated_data.pop("groups")
@@ -41,9 +51,19 @@ class UserSerializer(
         return user
 
 
-class GroupSerializer(
-    serializers.HyperlinkedModelSerializer
-):
+class GroupSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
     class Meta:
         model = Group
         fields = ["url", "name"]
+
+    def get_url(self, obj):
+        request = self.context.get("request")
+        if request is None:
+            return None
+        return request.build_absolute_uri(
+            reverse(
+                "user:group-detail", kwargs={"pk": obj.id}
+            )
+        )

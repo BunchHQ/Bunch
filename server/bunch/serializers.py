@@ -1,19 +1,21 @@
-from django.contrib.auth import get_user_model
+from typing import override
+
+from django.urls import reverse
 from rest_framework import serializers
 
 from bunch.models import Bunch, Channel, Member
 from users.serializers import UserSerializer
 
-User = get_user_model()
-
 
 class BunchSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
     owner = UserSerializer(read_only=True)
     members_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Bunch
         fields = [
+            "url",
             "id",
             "name",
             "description",
@@ -33,6 +35,17 @@ class BunchSerializer(serializers.ModelSerializer):
     def get_members_count(self, obj):
         return obj.members.count()
 
+    def get_url(self, obj):
+        request = self.context.get("request")
+        if request is None:
+            return None
+        return request.build_absolute_uri(
+            reverse(
+                "bunch:bunch-detail", kwargs={"id": obj.id}
+            )
+        )
+
+    @override
     def create(self, validated_data):
         validated_data["owner"] = self.context[
             "request"
@@ -41,9 +54,12 @@ class BunchSerializer(serializers.ModelSerializer):
 
 
 class ChannelSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
     class Meta:
         model = Channel
         fields = [
+            "url",
             "id",
             "name",
             "type",
@@ -55,8 +71,23 @@ class ChannelSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "bunch", "created_at"]
 
+    def get_url(self, obj):
+        request = self.context.get("request")
+        if request is None:
+            return None
+        return request.build_absolute_uri(
+            reverse(
+                "bunch:bunch-channel-detail",
+                kwargs={
+                    "bunch_id": obj.bunch.id,
+                    "id": obj.id,
+                },
+            )
+        )
+
 
 class MemberSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
     user = UserSerializer(read_only=True)
     username = serializers.CharField(
         source="user.username", read_only=True
@@ -65,6 +96,7 @@ class MemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Member
         fields = [
+            "url",
             "id",
             "user",
             "username",
@@ -79,3 +111,17 @@ class MemberSerializer(serializers.ModelSerializer):
             "bunch",
             "joined_at",
         ]
+
+    def get_url(self, obj):
+        request = self.context.get("request")
+        if request is None:
+            return None
+        return request.build_absolute_uri(
+            reverse(
+                "bunch:bunch-member-detail",
+                kwargs={
+                    "bunch_id": obj.bunch.id,
+                    "id": obj.id,
+                },
+            )
+        )
