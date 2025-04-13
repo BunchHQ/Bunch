@@ -28,7 +28,14 @@ class IsBunchMember(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
-        return request.user.bunch_memberships.filter(bunch=obj.bunch).exists()
+        if hasattr(obj, "bunch"):
+            # for Member and Channel
+            return request.user.bunch_memberships.filter(bunch=obj.bunch).exists()
+        elif type(obj).__name__ == "Bunch":
+            # for Bunch
+            return request.user.bunch_memberships.filter(bunch=obj).exists()
+
+        return False
 
 
 class IsBunchAdmin(permissions.BasePermission):
