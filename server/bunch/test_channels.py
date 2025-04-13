@@ -22,6 +22,13 @@ class ChannelsTest(APITestCase):
             first_name="Owner",
             last_name="User",
         )
+        self.admin = User.objects.create_user(
+            username="admin",
+            email="admin@example.com",
+            password="testpass123",
+            first_name="Admin",
+            last_name="User",
+        )
         self.member = User.objects.create_user(
             username="member",
             email="member@example.com",
@@ -34,13 +41,16 @@ class ChannelsTest(APITestCase):
         self.bunch = Bunch.objects.create(name="Test Bunch", owner=self.owner)
         # owner member
         Member.objects.create(bunch=self.bunch, user=self.owner, role="owner")
+        # admin member
+        Member.objects.filter(bunch=self.bunch, user=self.admin).delete()
+        Member.objects.create(bunch=self.bunch, user=self.admin, role="admin")
         # regular member
         Member.objects.filter(bunch=self.bunch, user=self.member).delete()
         Member.objects.create(bunch=self.bunch, user=self.member, role="member")
 
         self.channels_url = f"/api/v1/bunch/{self.bunch.id}/channels/"
 
-    def test_create_channel_with_owner_auth_201(self):
+    def test_create_channel_with_owner_auth(self):
         """Test creating a channel with owner authentication"""
         self.client.force_authenticate(user=self.owner)
         channel_data = {
@@ -60,10 +70,10 @@ class ChannelsTest(APITestCase):
         self.assertEqual(channel.type, "text", "Channel type should be set")
         # TODO: position should be defaulted to 0
 
-    def test_create_channel_with_member_auth(self):
-        """Test creating a channel with member authentication"""
-        # members can create channels
-        self.client.force_authenticate(user=self.member)
+    def test_create_channel_with_admin_auth(self):
+        """Test creating a channel with admin authentication"""
+        # admins can create channels
+        self.client.force_authenticate(user=self.admin)
         channel_data = {
             "name": "Test Channel",
             "type": "text",
@@ -75,12 +85,30 @@ class ChannelsTest(APITestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED,
-            "Members should be able to create channels",
+            "Admins should be able to create channels",
         )
 
-    def test_list_channels_with_member_auth_200(self):
+    def test_create_channel_with_member_auth_fail(self):
+        """Test creating a channel with member authentication fails"""
+        # members can't create channels
+        self.client.force_authenticate(user=self.member)
+        channel_data = {
+            "name": "Test Channel",
+            "type": "text",
+            "description": "Test Description",
+            "is_private": False,
+            "position": 1,
+        }
+        response = self.client.post(self.channels_url, channel_data)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
+            "Members shouldn't be able to create channels",
+        )
+
+    def test_list_channels_with_member_auth(self):
         """Test listing channels with member authentication"""
-        channel = Channel.objects.create(
+        Channel.objects.create(
             bunch=self.bunch, name="Test Channel", type="text", position=1
         )
 

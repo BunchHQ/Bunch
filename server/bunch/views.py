@@ -42,7 +42,7 @@ class BunchViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         bunch = serializer.save(owner=self.request.user)
-        Member.objects.create(user=self.request.user, bunch=bunch, role="owner")
+        Member.objects.get_or_create(user=self.request.user, bunch=bunch, role="owner")
 
     @action(detail=True, methods=["post"])
     def join(self, request, id=None):
@@ -67,7 +67,7 @@ class BunchViewSet(viewsets.ModelViewSet):
     def leave(self, request, id=None):
         bunch = self.get_object()
         member = get_object_or_404(Member, user=request.user, bunch=bunch)
-
+        # owner cannot leave their own bunch
         if member.role == "owner":
             return Response(
                 {"error": "Owner cannot leave the bunch"},
