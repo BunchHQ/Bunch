@@ -3,7 +3,7 @@ from typing import override
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from bunch.models import Bunch, Member
+from bunch.models import Bunch, Member, RoleChoices
 from users.models import User
 
 
@@ -86,7 +86,7 @@ class BunchTest(APITestCase):
         assert member is not None
         self.assertEqual(
             member.role,
-            "owner",
+            RoleChoices.OWNER,
             "First member should be owner",
         )
 
@@ -110,7 +110,9 @@ class BunchTest(APITestCase):
 
         self.assertTrue(
             Member.objects.filter(
-                bunch=bunch, user=self.user, role="owner"
+                bunch=bunch,
+                user=self.user,
+                role=RoleChoices.OWNER,
             ).exists(),
             "Owner should be automatically added as a member with role 'owner'",
         )
@@ -211,7 +213,9 @@ class BunchTest(APITestCase):
 
         self.client.force_authenticate(user=self.other_user)
         Member.objects.create(
-            bunch=bunch, user=self.other_user, role="member"
+            bunch=bunch,
+            user=self.other_user,
+            role=RoleChoices.MEMBER,
         )
 
         leave_url = f"/api/v1/bunch/{bunch.id}/leave/"
@@ -248,7 +252,9 @@ class BunchTest(APITestCase):
 
         self.assertTrue(
             Member.objects.filter(
-                bunch=bunch, user=self.user
+                bunch=bunch,
+                user=self.user,
+                role=RoleChoices.OWNER,
             ).exists(),
-            "Owner should still be in the bunch",
+            "Owner should still be a member",
         )

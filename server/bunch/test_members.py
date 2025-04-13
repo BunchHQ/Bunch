@@ -3,7 +3,7 @@ from typing import override
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from bunch.models import Bunch, Member
+from bunch.models import Bunch, Member, RoleChoices
 from users.models import User
 
 
@@ -30,7 +30,9 @@ class MembersTest(APITestCase):
         )
         # the owner member - this is needed
         Member.objects.create(
-            bunch=self.bunch, user=self.owner, role="owner"
+            bunch=self.bunch,
+            user=self.owner,
+            role=RoleChoices.OWNER,
         )
         Member.objects.filter(
             bunch=self.bunch, user=self.member
@@ -56,7 +58,7 @@ class MembersTest(APITestCase):
             {
                 "user": self.member.id,
                 "nickname": "TestNick",
-                "role": "member",
+                "role": RoleChoices.MEMBER,
             },
         )
         self.assertEqual(
@@ -94,7 +96,7 @@ class MembersTest(APITestCase):
         member = Member.objects.create(
             bunch=self.bunch,
             user=self.member,
-            role="member",
+            role=RoleChoices.MEMBER,
         )
 
         self.client.force_authenticate(user=self.member)
@@ -103,7 +105,7 @@ class MembersTest(APITestCase):
             f"{self.members_url}{member.id}/update_role/"
         )
         response = self.client.post(
-            update_role_url, {"role": "admin"}
+            update_role_url, {"role": RoleChoices.ADMIN}
         )
         self.assertEqual(
             response.status_code,
@@ -116,7 +118,7 @@ class MembersTest(APITestCase):
         member = Member.objects.create(
             bunch=self.bunch,
             user=self.member,
-            role="member",
+            role=RoleChoices.MEMBER,
         )
 
         self.client.force_authenticate(user=self.owner)
@@ -125,7 +127,7 @@ class MembersTest(APITestCase):
             f"{self.members_url}{member.id}/update_role/"
         )
         response = self.client.post(
-            update_role_url, {"role": "admin"}
+            update_role_url, {"role": RoleChoices.ADMIN}
         )
         self.assertEqual(
             response.status_code,
@@ -135,6 +137,6 @@ class MembersTest(APITestCase):
         member.refresh_from_db()
         self.assertEqual(
             member.role,
-            "admin",
+            RoleChoices.ADMIN,
             "Member role should be updated",
         )

@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from bunch.models import Bunch, Channel, Member
+from bunch.models import Bunch, Channel, Member, RoleChoices
 from bunch.permissions import (
     AuthedHttpRequest,
     IsBunchAdmin,
@@ -189,7 +189,7 @@ class MemberViewSet(viewsets.ModelViewSet):
             )
 
         new_role = request.data.get("role")
-        if new_role not in dict(Member.ROLE_CHOICES):
+        if new_role not in RoleChoices.values:
             return Response(
                 {"error": "Invalid role"},
                 status=status.HTTP_400_BAD_REQUEST,

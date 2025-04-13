@@ -3,7 +3,13 @@ from typing import override
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from bunch.models import Bunch, Channel, Member
+from bunch.models import (
+    Bunch,
+    Channel,
+    ChannelTypes,
+    Member,
+    RoleChoices,
+)
 from users.models import User
 
 
@@ -37,14 +43,18 @@ class ChannelsTest(APITestCase):
         )
         # owner member
         Member.objects.create(
-            bunch=self.bunch, user=self.owner, role="owner"
+            bunch=self.bunch,
+            user=self.owner,
+            role=RoleChoices.OWNER,
         )
         # admin member
         Member.objects.filter(
             bunch=self.bunch, user=self.admin
         ).delete()
         Member.objects.create(
-            bunch=self.bunch, user=self.admin, role="admin"
+            bunch=self.bunch,
+            user=self.admin,
+            role=RoleChoices.ADMIN,
         )
         # regular member
         Member.objects.filter(
@@ -53,7 +63,7 @@ class ChannelsTest(APITestCase):
         Member.objects.create(
             bunch=self.bunch,
             user=self.member,
-            role="member",
+            role=RoleChoices.MEMBER,
         )
 
         self.channels_url = (
@@ -65,7 +75,7 @@ class ChannelsTest(APITestCase):
         self.client.force_authenticate(user=self.owner)
         channel_data = {
             "name": "Test Channel",
-            "type": "text",
+            "type": ChannelTypes.TEXT,
             "description": "Test Description",
             "is_private": False,
             "position": 1,
@@ -83,7 +93,7 @@ class ChannelsTest(APITestCase):
         )
         self.assertEqual(
             channel.type,
-            "text",
+            ChannelTypes.TEXT,
             "Channel type should be set",
         )
         # TODO: position should be defaulted to 0
@@ -94,7 +104,7 @@ class ChannelsTest(APITestCase):
         self.client.force_authenticate(user=self.admin)
         channel_data = {
             "name": "Test Channel",
-            "type": "text",
+            "type": ChannelTypes.TEXT,
             "description": "Test Description",
             "is_private": False,
             "position": 1,
@@ -114,7 +124,7 @@ class ChannelsTest(APITestCase):
         self.client.force_authenticate(user=self.member)
         channel_data = {
             "name": "Test Channel",
-            "type": "text",
+            "type": ChannelTypes.TEXT,
             "description": "Test Description",
             "is_private": False,
             "position": 1,
@@ -133,7 +143,7 @@ class ChannelsTest(APITestCase):
         Channel.objects.create(
             bunch=self.bunch,
             name="Test Channel",
-            type="text",
+            type=ChannelTypes.TEXT,
             position=1,
         )
 
@@ -164,4 +174,6 @@ class ChannelsTest(APITestCase):
         self.assertEqual(
             channel_data["name"], "Test Channel"
         )
-        self.assertEqual(channel_data["type"], "text")
+        self.assertEqual(
+            channel_data["type"], ChannelTypes.TEXT
+        )
