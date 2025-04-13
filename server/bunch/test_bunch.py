@@ -1,18 +1,18 @@
-import uuid
 from typing import override
 
-from django.contrib.auth import get_user_model
-from django.test import TestCase
-from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from .models import Bunch, Channel, Member
-
-User = get_user_model()
+from bunch.models import Bunch, Member
+from users.models import User
 
 
 class BunchTest(APITestCase):
+    @override
+    def __init__(self, methodName: str = "runTest") -> None:
+        super().__init__(methodName)
+        self.client: APIClient = APIClient()
+
     @override
     def setUp(self):
         self.user = User.objects.create_user(
@@ -30,8 +30,6 @@ class BunchTest(APITestCase):
             last_name="User",
         )
 
-        self.client = APIClient()
-
         self.bunch_data = {
             "name": "Test Bunch",
             "description": "Test Description",
@@ -42,31 +40,55 @@ class BunchTest(APITestCase):
     def test_create_bunch_no_auth(self):
         """Test bunch creation without authentication"""
         self.client.force_authenticate(user=None)
-        response = self.client.post(self.bunch_list_url, self.bunch_data)
+        response = self.client.post(
+            self.bunch_list_url, self.bunch_data
+        )
         self.assertEqual(
             response.status_code,
             status.HTTP_401_UNAUTHORIZED,
             "Unauthenticated request should fail",
         )
-        self.assertEqual(Bunch.objects.count(), 0, "Bunch should not be created")
+        self.assertEqual(
+            Bunch.objects.count(),
+            0,
+            "Bunch should not be created",
+        )
 
     def test_create_bunch_with_auth(self):
         """Test bunch creation with authentication"""
-        self.client.force_authenticate(user=self.user)
-        response = self.client.post(self.bunch_list_url, self.bunch_data)
+        self.client.force_login(user=self.user)
+        response = self.client.post(
+            self.bunch_list_url, self.bunch_data
+        )
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED,
             "Bunch creation should succeed",
         )
-        self.assertEqual(Bunch.objects.count(), 1, "Bunch count should be 1")
+        self.assertEqual(
+            Bunch.objects.count(),
+            1,
+            "Bunch count should be 1",
+        )
 
         bunch = Bunch.objects.first()
+
+        # just to make type hints happy below
+        assert bunch is not None
+
         self.assertEqual(
-            bunch.owner, self.user, "Bunch owner should be the authenticated user"
+            bunch.owner,
+            self.user,
+            "Bunch owner should be the authenticated user",
         )
         member = Member.objects.first()
-        self.assertEqual(member.role, "owner", "First member should be owner")
+
+        assert member is not None
+        self.assertEqual(
+            member.role,
+            "owner",
+            "First member should be owner",
+        )
 
     def test_list_bunches_no_auth(self):
         """Test listing bunches without authentication"""
@@ -81,17 +103,23 @@ class BunchTest(APITestCase):
     def test_list_bunches_with_auth(self):
         """Test listing bunches with authentication"""
         self.client.force_authenticate(user=self.user)
-        response = self.client.post(self.bunch_list_url, self.bunch_data)
+        response = self.client.post(
+            self.bunch_list_url, self.bunch_data
+        )
         bunch = Bunch.objects.first()
 
         self.assertTrue(
-            Member.objects.filter(bunch=bunch, user=self.user, role="owner").exists(),
+            Member.objects.filter(
+                bunch=bunch, user=self.user, role="owner"
+            ).exists(),
             "Owner should be automatically added as a member with role 'owner'",
         )
 
         response = self.client.get(self.bunch_list_url)
         self.assertEqual(
-            response.status_code, status.HTTP_200_OK, "List request should succeed"
+            response.status_code,
+            status.HTTP_200_OK,
+            "List request should succeed",
         )
 
         # paginated
@@ -102,19 +130,25 @@ class BunchTest(APITestCase):
             )
         else:
             self.assertTrue(
-                len(response.data) >= 1, "Response should contain at least one bunch"
+                len(response.data) >= 1,
+                "Response should contain at least one bunch",
             )
 
     def test_join_private_bunch_with_400(self):
         """Test joining private bunch with invalid invite code"""
         self.client.force_authenticate(user=self.user)
         bunch = Bunch.objects.create(
-            name="Test Bunch", owner=self.user, is_private=True, invite_code="TEST123"
+            name="Test Bunch",
+            owner=self.user,
+            is_private=True,
+            invite_code="TEST123",
         )
 
         self.client.force_authenticate(user=self.other_user)
         join_url = f"/api/v1/bunch/{bunch.id}/join/"
-        response = self.client.post(join_url, {"invite_code": "WRONG"})
+        response = self.client.post(
+            join_url, {"invite_code": "WRONG"}
+        )
 
         # debug
         if response.status_code == 404:
@@ -128,7 +162,9 @@ class BunchTest(APITestCase):
             "Invalid invite code should fail",
         )
         self.assertFalse(
-            Member.objects.filter(bunch=bunch, user=self.other_user).exists(),
+            Member.objects.filter(
+                bunch=bunch, user=self.other_user
+            ).exists(),
             "User should not be a member",
         )
 
@@ -136,12 +172,17 @@ class BunchTest(APITestCase):
         """Test joining private bunch with valid invite code"""
         self.client.force_authenticate(user=self.user)
         bunch = Bunch.objects.create(
-            name="Test Bunch", owner=self.user, is_private=True, invite_code="TEST123"
+            name="Test Bunch",
+            owner=self.user,
+            is_private=True,
+            invite_code="TEST123",
         )
 
         self.client.force_authenticate(user=self.other_user)
         join_url = f"/api/v1/bunch/{bunch.id}/join/"
-        response = self.client.post(join_url, {"invite_code": "TEST123"})
+        response = self.client.post(
+            join_url, {"invite_code": "TEST123"}
+        )
 
         # debug
         if response.status_code == 404:
@@ -155,17 +196,23 @@ class BunchTest(APITestCase):
             "Valid invite code should succeed",
         )
         self.assertTrue(
-            Member.objects.filter(bunch=bunch, user=self.other_user).exists(),
+            Member.objects.filter(
+                bunch=bunch, user=self.other_user
+            ).exists(),
             "User should be a member",
         )
 
     def test_member_can_leave_bunch(self):
         """Test leaving a bunch"""
         self.client.force_authenticate(user=self.user)
-        bunch = Bunch.objects.create(name="Test Bunch", owner=self.user)
+        bunch = Bunch.objects.create(
+            name="Test Bunch", owner=self.user
+        )
 
         self.client.force_authenticate(user=self.other_user)
-        Member.objects.create(bunch=bunch, user=self.other_user, role="member")
+        Member.objects.create(
+            bunch=bunch, user=self.other_user, role="member"
+        )
 
         leave_url = f"/api/v1/bunch/{bunch.id}/leave/"
         response = self.client.post(leave_url)
@@ -175,15 +222,21 @@ class BunchTest(APITestCase):
             "Leave request should succeed",
         )
         self.assertFalse(
-            Member.objects.filter(bunch=bunch, user=self.other_user).exists(),
+            Member.objects.filter(
+                bunch=bunch, user=self.other_user
+            ).exists(),
             "User should not be a member after leaving",
         )
 
     def test_owner_cannot_leave_bunch(self):
         """Test that an owner cannot leave their own bunch"""
         self.client.force_authenticate(user=self.user)
-        response = self.client.post(self.bunch_list_url, self.bunch_data)
+        response = self.client.post(
+            self.bunch_list_url, self.bunch_data
+        )
         bunch = Bunch.objects.first()
+
+        assert bunch is not None
 
         leave_url = f"/api/v1/bunch/{bunch.id}/leave/"
         response = self.client.post(leave_url)
@@ -194,6 +247,8 @@ class BunchTest(APITestCase):
         )
 
         self.assertTrue(
-            Member.objects.filter(bunch=bunch, user=self.user).exists(),
+            Member.objects.filter(
+                bunch=bunch, user=self.user
+            ).exists(),
             "Owner should still be in the bunch",
         )

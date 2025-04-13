@@ -1,10 +1,13 @@
 import random
 import uuid
-from typing import override
+from typing import TYPE_CHECKING, override
 
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
+
+if TYPE_CHECKING:
+    from bunch.models import Bunch, Member
 
 
 class ThemePreferenceChoices(models.TextChoices):
@@ -57,15 +60,25 @@ class User(AbstractUser):
     Adds additional properties like avatar, status, bio etc..
     """
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False
+    )
     email = models.EmailField(unique=True)
     avatar = models.ImageField(
-        upload_to="avatars/", blank=True, null=True, help_text="User's profile picture"
+        upload_to="avatars/",
+        blank=True,
+        null=True,
+        help_text="User's profile picture",
     )
     status = models.CharField(
-        blank=True, null=True, max_length=30, help_text="User's status"
+        blank=True,
+        null=True,
+        max_length=30,
+        help_text="User's status",
     )
-    bio = models.TextField(blank=True, null=True, help_text="User's bio")
+    bio = models.TextField(
+        blank=True, null=True, help_text="User's bio"
+    )
 
     theme_preference = models.CharField(
         max_length=6,
@@ -81,7 +94,10 @@ class User(AbstractUser):
         blank=True,
     )
     pronoun = models.CharField(
-        blank=True, null=True, max_length=12, help_text="User's pronoun"
+        blank=True,
+        null=True,
+        max_length=12,
+        help_text="User's pronoun",
     )
 
     @override
@@ -111,3 +127,7 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "User"
         verbose_name_plural = "Users"
+
+    if TYPE_CHECKING:
+        owned_bunches: models.QuerySet["Bunch"]
+        bunch_memberships: models.QuerySet["Member"]

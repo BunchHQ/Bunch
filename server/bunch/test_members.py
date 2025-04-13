@@ -1,15 +1,10 @@
-import uuid
 from typing import override
 
-from django.contrib.auth import get_user_model
-from django.test import TestCase
-from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APITestCase
 
-from .models import Bunch, Channel, Member
-
-User = get_user_model()
+from bunch.models import Bunch, Member
+from users.models import User
 
 
 class MembersTest(APITestCase):
@@ -29,41 +24,64 @@ class MembersTest(APITestCase):
             first_name="Member",
             last_name="User",
         )
-        self.client = APIClient()
 
-        self.bunch = Bunch.objects.create(name="Test Bunch", owner=self.owner)
+        self.bunch = Bunch.objects.create(
+            name="Test Bunch", owner=self.owner
+        )
         # the owner member - this is needed
-        Member.objects.create(bunch=self.bunch, user=self.owner, role="owner")
-        Member.objects.filter(bunch=self.bunch, user=self.member).delete()
+        Member.objects.create(
+            bunch=self.bunch, user=self.owner, role="owner"
+        )
+        Member.objects.filter(
+            bunch=self.bunch, user=self.member
+        ).delete()
 
         # URL for member operations
-        self.members_url = f"/api/v1/bunch/{self.bunch.id}/members/"
+        self.members_url = (
+            f"/api/v1/bunch/{self.bunch.id}/members/"
+        )
 
     def test_add_member_with_owner(self):
         """Test adding a member with owner authentication"""
         self.client.force_authenticate(user=self.owner)
         self.assertFalse(
-            Member.objects.filter(bunch=self.bunch, user=self.member).exists(),
+            Member.objects.filter(
+                bunch=self.bunch, user=self.member
+            ).exists(),
             "Member should not exist before test",
         )
 
         response = self.client.post(
             self.members_url,
-            {"user": self.member.id, "nickname": "TestNick", "role": "member"},
+            {
+                "user": self.member.id,
+                "nickname": "TestNick",
+                "role": "member",
+            },
         )
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED,
             "Member creation should succeed",
         )
-        member = Member.objects.get(bunch=self.bunch, user=self.member)
-        self.assertEqual(member.nickname, "TestNick", "Member nickname should be set")
+        member = Member.objects.get(
+            bunch=self.bunch, user=self.member
+        )
+        self.assertEqual(
+            member.nickname,
+            "TestNick",
+            "Member nickname should be set",
+        )
 
     def test_add_member_with_member_auth_403(self):
         """Test adding a member with member authentication"""
         self.client.force_authenticate(user=self.member)
         response = self.client.post(
-            self.members_url, {"user": self.member.id, "nickname": "TestNick"}
+            self.members_url,
+            {
+                "user": self.member.id,
+                "nickname": "TestNick",
+            },
         )
         self.assertEqual(
             response.status_code,
@@ -74,13 +92,19 @@ class MembersTest(APITestCase):
     def test_update_member_role_with_member_auth_403(self):
         """Test updating member role with member authentication"""
         member = Member.objects.create(
-            bunch=self.bunch, user=self.member, role="member"
+            bunch=self.bunch,
+            user=self.member,
+            role="member",
         )
 
         self.client.force_authenticate(user=self.member)
         # Use DRF's URL pattern for detail actions
-        update_role_url = f"{self.members_url}{member.id}/update_role/"
-        response = self.client.post(update_role_url, {"role": "admin"})
+        update_role_url = (
+            f"{self.members_url}{member.id}/update_role/"
+        )
+        response = self.client.post(
+            update_role_url, {"role": "admin"}
+        )
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN,
@@ -90,15 +114,27 @@ class MembersTest(APITestCase):
     def test_update_member_role_with_owner_auth_200(self):
         """Test updating member role with owner authentication"""
         member = Member.objects.create(
-            bunch=self.bunch, user=self.member, role="member"
+            bunch=self.bunch,
+            user=self.member,
+            role="member",
         )
 
         self.client.force_authenticate(user=self.owner)
         # Use DRF's URL pattern for detail actions
-        update_role_url = f"{self.members_url}{member.id}/update_role/"
-        response = self.client.post(update_role_url, {"role": "admin"})
+        update_role_url = (
+            f"{self.members_url}{member.id}/update_role/"
+        )
+        response = self.client.post(
+            update_role_url, {"role": "admin"}
+        )
         self.assertEqual(
-            response.status_code, status.HTTP_200_OK, "Role update should succeed"
+            response.status_code,
+            status.HTTP_200_OK,
+            "Role update should succeed",
         )
         member.refresh_from_db()
-        self.assertEqual(member.role, "admin", "Member role should be updated")
+        self.assertEqual(
+            member.role,
+            "admin",
+            "Member role should be updated",
+        )

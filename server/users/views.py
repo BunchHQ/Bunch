@@ -4,7 +4,10 @@ from django.contrib.auth.models import Group
 from rest_framework import permissions, viewsets
 
 from users.models import User
-from users.serializers import GroupSerializer, UserSerializer
+from users.serializers import (
+    GroupSerializer,
+    UserSerializer,
+)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -19,9 +22,13 @@ class UserViewSet(viewsets.ModelViewSet):
     @override
     def get_permissions(self):
         if self.action == "create":
-            self.permission_classes = [permissions.IsAdminUser]
+            self.permission_classes = [
+                permissions.IsAdminUser
+            ]
         else:
-            self.permission_classes = [permissions.IsAuthenticated]
+            self.permission_classes = [
+                permissions.IsAuthenticated
+            ]
 
         return super().get_permissions()
 
