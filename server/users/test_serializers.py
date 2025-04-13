@@ -16,9 +16,21 @@ class UserSerializerTest(APITestCase):
         url = reverse("token-obtain-pair")
         response = self.client.post(url, data)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Getting token pair for user {email} failed!")
-        self.assertNotEqual(response.json().get("access", None), None, "response does not contain `access` or None")
-        self.assertNotEqual(response.json().get("refresh", None), None, "response does not contain `refresh` or None")
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            f"Getting token pair for user {email} failed!",
+        )
+        self.assertNotEqual(
+            response.json().get("access", None),
+            None,
+            "response does not contain `access` or None",
+        )
+        self.assertNotEqual(
+            response.json().get("refresh", None),
+            None,
+            "response does not contain `refresh` or None",
+        )
 
         data = response.json()
         return data["access"], data["refresh"]
@@ -27,16 +39,26 @@ class UserSerializerTest(APITestCase):
     def setUp(self) -> None:
         # create a root user
         self.root_user = User.objects.create_superuser(
-            username="root", email="root@bunch.io", password="testpassword", first_name="Root", last_name="R"
+            username="root",
+            email="root@bunch.io",
+            password="testpassword",
+            first_name="Root",
+            last_name="R",
         )
-        self.root_access_token, self.root_refresh_token = self.__generate_token_pair("root@bunch.io", "testpassword")
+        self.root_access_token, self.root_refresh_token = self.__generate_token_pair(
+            "root@bunch.io", "testpassword"
+        )
 
         # create a normal user
         self.normal_user = User.objects.create_user(
-            username="normal", email="normal@bunch.io", password="testpassword", first_name="Normal", last_name="User"
+            username="normal",
+            email="normal@bunch.io",
+            password="testpassword",
+            first_name="Normal",
+            last_name="User",
         )
-        self.normal_access_token, self.normal_refresh_token = self.__generate_token_pair(
-            "normal@bunch.io", "testpassword"
+        self.normal_access_token, self.normal_refresh_token = (
+            self.__generate_token_pair("normal@bunch.io", "testpassword")
         )
 
     def test_create_user_no_auth_401(self):

@@ -6,12 +6,28 @@ from users.models import User
 
 class UserAdmin(BaseUserAdmin):
     fieldsets = tuple(
-        (name, data) if name != "Personal info" else (name, {"fields": data["fields"] + ("avatar", "status", "bio")})  # type: ignore
+        (name, data)
+        if name != "Personal info"
+        else (name, {"fields": data["fields"] + ("avatar", "status", "bio")})  # type: ignore
         for name, data in BaseUserAdmin.fieldsets
     )
-    list_display: tuple = ("email", "username", "first_name", "last_name", "is_staff", "is_active")
+    list_display: tuple = (
+        "email",
+        "username",
+        "first_name",
+        "last_name",
+        "is_staff",
+        "is_active",
+    )
     list_filter: tuple = ("is_staff", "is_active")
-    search_fields: tuple = ("email", "first_name", "last_name", "username", "bio", "status")
+    search_fields: tuple = (
+        "email",
+        "first_name",
+        "last_name",
+        "username",
+        "bio",
+        "status",
+    )
     ordering: tuple = ("date_joined",)
 
 
