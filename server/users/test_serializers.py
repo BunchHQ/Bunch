@@ -76,7 +76,7 @@ class UserSerializerTest(APITestCase):
             "first_name": "Test",
             "last_name": "User",
         }
-        url = reverse("user-list")
+        url = reverse("users:user-list")
 
         response = self.client.post(path=url, data=data)
 
@@ -97,7 +97,7 @@ class UserSerializerTest(APITestCase):
         headers = {
             "Authorization": f"Bearer {self.normal_access_token}"
         }
-        url = reverse("user-list")
+        url = reverse("users:user-list")
 
         response = self.client.post(
             path=url, data=data, headers=headers
@@ -119,7 +119,7 @@ class UserSerializerTest(APITestCase):
         headers = {
             "Authorization": f"Bearer {self.root_access_token}"
         }
-        url = reverse("user-list")
+        url = reverse("users:user-list")
 
         response = self.client.post(
             path=url, data=data, headers=headers
@@ -131,7 +131,7 @@ class UserSerializerTest(APITestCase):
         self.assertEqual(User.objects.count(), 3)
 
     def test_list_users_no_auth_401(self):
-        url = reverse("user-list")
+        url = reverse("users:user-list")
 
         response = self.client.get(path=url)
 
@@ -145,7 +145,7 @@ class UserSerializerTest(APITestCase):
         headers = {
             "Authorization": f"Bearer {self.normal_access_token}"
         }
-        url = reverse("user-list")
+        url = reverse("users:user-list")
 
         response = self.client.get(
             path=url, headers=headers
@@ -161,7 +161,7 @@ class UserSerializerTest(APITestCase):
         headers = {
             "Authorization": f"Bearer {self.root_access_token}"
         }
-        url = reverse("user-list")
+        url = reverse("users:user-list")
 
         response = self.client.get(
             path=url, headers=headers

@@ -30,7 +30,10 @@ urlpatterns = [
         "api/v1/",
         include(
             [
-                path("user/", include("users.urls")),
+                path(
+                    "user/",
+                    include("users.urls", namespace="user"),
+                ),
                 path(
                     "bunch/",
                     include(
