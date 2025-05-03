@@ -117,6 +117,9 @@ class Channel(models.Model):
     def __str__(self):
         return f"{self.name} in {self.bunch.name}"
 
+    if TYPE_CHECKING:
+        messages: models.QuerySet["Message"]
+
 
 class MessageManager(models.Manager):
     def get_queryset(self):

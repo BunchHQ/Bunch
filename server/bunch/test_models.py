@@ -9,6 +9,7 @@ from bunch.models import (
     Channel,
     ChannelTypes,
     Member,
+    Message,
     RoleChoices,
 )
 from users.models import User
@@ -418,4 +419,140 @@ class ChannelModelTest(TestCase):
             ).count(),
             0,
             "Channels should be deleted when bunch is deleted",
+        )
+
+
+class MessageModelTest(TestCase):
+    @override
+    def setUp(self):
+        self.root_user = User.objects.create_user(
+            username="root",
+            email="root@bunch.io",
+            password="root",
+        )
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@bunch.io",
+            password="testpass123",
+        )
+
+        self.bunch = Bunch.objects.create(
+            name="Test Bunch",
+            description="Test Description",
+            owner=self.user,
+        )
+
+        self.channel_general = Channel.objects.create(
+            bunch=self.bunch,
+            name="General",
+            type="text",
+        )
+        self.channel_other = Channel.objects.create(
+            bunch=self.bunch,
+            name="Other",
+            type="text",
+        )
+
+        self.root_member = Member.objects.create(
+            bunch=self.bunch,
+            user=self.root_user,
+            role=RoleChoices.OWNER,
+            nickname="Owner",
+        )
+
+        self.member = Member.objects.create(
+            bunch=self.bunch,
+            user=self.user,
+            role=RoleChoices.MEMBER,
+            nickname="Test User",
+        )
+
+    def test_message_creation(self):
+        """Test message creation and string representation"""
+        message: "Message" = Message.objects.create(
+            channel=self.channel_general,
+            author=self.member,
+            content="This is a Message",
+        )
+
+        self.assertEqual(
+            str(message),
+            f"Message by {self.member.user.username} in {self.channel_general.name}",
+            "Message string representation is not correct",
+        )
+        self.assertEqual(
+            message.edit_count,
+            0,
+            "Message edit count is not 0",
+        )
+        self.assertFalse(
+            message.deleted,
+            "Message deleted status is not False",
+        )
+        self.assertIsNone(
+            message.deleted_at,
+            "Message deleted_at is not None",
+        )
+        self.assertIsNotNone(
+            message.created_at,
+            "Channel created_at is not correct",
+        )
+        self.assertIsNotNone(
+            message.updated_at,
+            "Channel updated_at is not correct",
+        )
+        self.assertIsInstance(
+            message.id,
+            uuid.UUID,
+            "Channel ID should be a UUID",
+        )
+
+    def test_message_channel_relationship(self):
+        """Test relationship between message channel"""
+        for i in range(3):
+            Message.objects.create(
+                channel=self.channel_other,
+                author=self.member,
+                content=f"Message {i}",
+            )
+
+        self.assertEqual(
+            self.channel_other.messages.count(),
+            3,
+            "Channel should have 3 messages",
+        )
+
+        channel_id = self.channel_other.id
+        self.channel_other.delete()
+        self.assertEqual(
+            Message.objects.filter(
+                channel_id=channel_id
+            ).count(),
+            0,
+            "Messages should be deleted when channel is deleted",
+        )
+
+    def test_message_bunch_relationship(self):
+        """Test relationship between message and bunch"""
+        for i in range(3):
+            Message.objects.create(
+                channel=self.channel_other,
+                author=self.member,
+                content=f"Message {i}",
+            )
+
+        self.assertEqual(
+            self.channel_other.messages.count(),
+            3,
+            "Bunch's Channel should have 3 messages",
+        )
+
+        bunch_id = self.bunch.id
+        self.bunch.delete()
+        self.assertEqual(
+            Message.objects.filter(
+                channel__bunch_id=bunch_id
+            ).count(),
+            0,
+            "Messages should be deleted when bunch is deleted",
         )
