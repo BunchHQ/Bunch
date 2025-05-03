@@ -1,5 +1,5 @@
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from django.db import models
 
@@ -116,3 +116,77 @@ class Channel(models.Model):
 
     def __str__(self):
         return f"{self.name} in {self.bunch.name}"
+
+
+class MessageManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def active(self):
+        """Returns only non-deleted messages."""
+        return self.get_queryset().filter(deleted=False)
+
+    def deleted(self):
+        """Returns only deleted messages."""
+        return self.get_queryset().filter(deleted=True)
+
+    def for_channel(self, channel_id):
+        """Returns messages for a specific channel."""
+        return self.get_queryset().filter(
+            channel_id=channel_id
+        )
+
+    def by_author(self, author_id):
+        """Returns messages by a specific author."""
+        return self.get_queryset().filter(
+            author_id=author_id
+        )
+
+    def recent(self, limit=100):
+        """Returns most recent messages."""
+        return self.get_queryset().order_by("-created_at")[
+            :limit
+        ]
+
+
+class Message(models.Model):
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False
+    )
+    channel = models.ForeignKey(
+        Channel,
+        on_delete=models.CASCADE,
+        related_name="messages",
+    )
+    author = models.ForeignKey(
+        Member,
+        on_delete=models.CASCADE,
+        related_name="messages",
+    )
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+    edit_count = models.PositiveIntegerField(default=0)
+
+    deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = MessageManager()
+
+    class Meta:
+        verbose_name = "Message"
+        verbose_name_plural = "Messages"
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"Message by {self.author.user.username} in {self.channel.name}"
+
+    @override
+    def save(self, *args, **kwargs):
+        self.clean()
+
+        if not self.created_at != self.updated_at:
+            self.edit_count += 1
+
+        super().save(*args, **kwargs)
