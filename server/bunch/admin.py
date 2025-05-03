@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from bunch.models import Bunch, Channel, Member
+from bunch.models import Bunch, Channel, Member, Message
 
 
 @admin.register(Bunch)
@@ -191,3 +191,47 @@ class ChannelAdmin(admin.ModelAdmin):
 
     list_editable: tuple[str, ...] = ("position",)
     ordering: tuple[str, ...] = ("bunch", "position")
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display: tuple[str, ...] = (
+        "content",
+        "channel",
+        "author",
+        "created_at",
+    )
+    list_filter: tuple[str, ...] = (
+        "channel",
+        "author",
+        "created_at",
+    )
+    search_fields: tuple[str, ...] = (
+        "content",
+        "channel__name",
+        "author__username",
+    )
+    raw_id_fields: tuple[str, ...] = ("channel", "author")
+
+    fieldsets = (
+        (
+            "Message Information",
+            {
+                "fields": (
+                    "content",
+                    "channel",
+                    "author",
+                )
+            },
+        ),
+        (
+            "Timestamps",
+            {
+                "fields": ("created_at",),
+                "classes": ("collapse",),
+            },
+        ),
+    )
+    readonly_fields: tuple[str, ...] = ("created_at",)
+
+    list_editable: tuple[str, ...] = ()
+    ordering: tuple[str, ...] = ("channel", "created_at")
