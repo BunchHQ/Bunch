@@ -136,6 +136,12 @@ class MessageManager(models.Manager):
             channel_id=channel_id
         )
 
+    def for_bunch(self, bunch_id):
+        """Returns messages in a specific bunch."""
+        return self.get_queryset().filter(
+            channel__bunch_id=bunch_id
+        )
+
     def by_author(self, author_id):
         """Returns messages by a specific author."""
         return self.get_queryset().filter(
@@ -172,7 +178,7 @@ class Message(models.Model):
     deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
-    objects = MessageManager()
+    objects: "MessageManager" = MessageManager()
 
     class Meta:
         verbose_name = "Message"
