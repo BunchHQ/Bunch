@@ -1,6 +1,7 @@
 from django.http import HttpRequest
 from rest_framework import permissions
 
+from bunch.models import Message
 from users.models import User
 
 
@@ -82,3 +83,17 @@ class IsBunchAdmin(permissions.BasePermission):
         return request.user.bunch_memberships.filter(
             bunch=obj.bunch, role__in=["owner", "admin"]
         ).exists()
+
+
+class IsMessageAuthor(permissions.BasePermission):
+    """
+    Custom permission to only allow authors of a message to edit/delete it.
+    """
+
+    def has_object_permission(
+        self, request: AuthedHttpRequest, view, obj: Message
+    ):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        return obj.author == request.user
