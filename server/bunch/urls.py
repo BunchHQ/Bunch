@@ -17,6 +17,11 @@ bunch_router.register(
 bunch_router.register(
     r"members", views.MemberViewSet, basename="bunch-member"
 )
+bunch_router.register(
+    r"messages",
+    views.MessageViewSet,
+    basename="bunch-message",
+)
 
 urlpatterns = [
     path("", include(router.urls)),

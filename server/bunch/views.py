@@ -4,17 +4,25 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from bunch.models import Bunch, Channel, Member, RoleChoices
+from bunch.models import (
+    Bunch,
+    Channel,
+    Member,
+    Message,
+    RoleChoices,
+)
 from bunch.permissions import (
     AuthedHttpRequest,
     IsBunchAdmin,
     IsBunchMember,
     IsBunchOwner,
+    IsMessageAuthor,
 )
 from bunch.serializers import (
     BunchSerializer,
     ChannelSerializer,
     MemberSerializer,
+    MessageSerializer,
 )
 from users.models import User
 
@@ -240,3 +248,60 @@ class ChannelViewSet(viewsets.ModelViewSet):
             Bunch, id=self.kwargs.get("bunch_id")
         )
         serializer.save(bunch=bunch)
+
+    @action(detail=True, methods=["post"])
+    def send_message(self, request, bunch_id=None, id=None):
+        channel: Channel = self.get_object()
+        member: Member = get_object_or_404(
+            Member, user=request.user, channel=channel
+        )
+
+        message = Message.objects.create(
+            channel=channel,
+            author=member,
+            content=request.data.get("content"),
+        )
+
+        serializer = MessageSerializer(
+            message, context={"request": request}
+        )
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED
+        )
+
+
+class MessageViewSet(viewsets.ModelViewSet):
+    serializer_class = MessageSerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        IsBunchMember,
+        # TODO: a IsChannelMember once we have channel permissions
+    ]
+    lookup_field = "id"
+
+    def get_permissions(self):
+        if self.request.method in ["POST", "PUT", "DELETE"]:
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+                IsMessageAuthor,
+            ]
+        else:
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+
+        return super().get_permissions()
+
+    def get_queryset(self):
+        message_id = self.kwargs.get("message_id")
+        return Message.objects.filter(
+            id=message_id
+        ).order_by("created_at")
+
+    def perform_create(self, serializer: MessageSerializer):
+        message = get_object_or_404(
+            Message, id=self.kwargs.get("message_id")
+        )
+        serializer.save(message=message)
