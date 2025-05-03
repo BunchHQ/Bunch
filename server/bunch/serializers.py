@@ -3,7 +3,7 @@ from typing import override
 from django.urls import reverse
 from rest_framework import serializers
 
-from bunch.models import Bunch, Channel, Member
+from bunch.models import Bunch, Channel, Member, Message
 from users.serializers import UserSerializer
 
 
@@ -121,6 +121,52 @@ class MemberSerializer(serializers.ModelSerializer):
                 "bunch:bunch-member-detail",
                 kwargs={
                     "bunch_id": obj.bunch.id,
+                    "id": obj.id,
+                },
+            )
+        )
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+    channel = ChannelSerializer(read_only=True)
+    channel_name = serializers.CharField(
+        source="channel.name", read_only=True
+    )
+    author = MemberSerializer(read_only=True)
+    author_username = serializers.CharField(
+        source="author.user.username", read_only=True
+    )
+
+    class Meta:
+        model = Message
+        fields = [
+            "url",
+            "id",
+            "content",
+            "channel",
+            "channel_name",
+            "author",
+            "author_username",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "channel",
+            "author",
+            "created_at",
+        ]
+
+    def get_url(self, obj):
+        request = self.context.get("request")
+        if request is None:
+            return None
+        return request.build_absolute_uri(
+            reverse(
+                "bunch:bunch-message-detail",
+                kwargs={
+                    "bunch_id": obj.channel.bunch.id,
+                    "channel_id": obj.channel.id,
                     "id": obj.id,
                 },
             )
