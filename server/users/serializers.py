@@ -45,9 +45,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     @override
     def create(self, validated_data: dict):
-        groups_data = validated_data.pop("groups")
+        groups_data = None
+        if "groups" in validated_data:
+            groups_data = validated_data.pop("groups")
+
         user = User.objects.create_user(**validated_data)
-        user.groups.set(groups_data)
+
+        if groups_data:
+            user.groups.set(groups_data)
+
         return user
 
 
