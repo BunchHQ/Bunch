@@ -192,6 +192,7 @@ class ChannelAdmin(admin.ModelAdmin):
     list_editable: tuple[str, ...] = ("position",)
     ordering: tuple[str, ...] = ("bunch", "position")
 
+
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
     list_display: tuple[str, ...] = (
@@ -199,11 +200,14 @@ class MessageAdmin(admin.ModelAdmin):
         "channel",
         "author",
         "created_at",
+        "edit_count",
+        "deleted",
     )
     list_filter: tuple[str, ...] = (
         "channel",
         "author",
         "created_at",
+        "deleted",
     )
     search_fields: tuple[str, ...] = (
         "content",
@@ -220,18 +224,32 @@ class MessageAdmin(admin.ModelAdmin):
                     "content",
                     "channel",
                     "author",
+                    "edit_count",
+                    "deleted",
                 )
             },
         ),
         (
             "Timestamps",
             {
-                "fields": ("created_at",),
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                    "deleted_at",
+                ),
                 "classes": ("collapse",),
             },
         ),
     )
-    readonly_fields: tuple[str, ...] = ("created_at",)
+    readonly_fields: tuple[str, ...] = (
+        "created_at",
+        "updated_at",
+        "deleted_at",
+        "edit_count",
+        "deleted",
+        "channel",
+        "author",
+    )
 
     list_editable: tuple[str, ...] = ()
     ordering: tuple[str, ...] = ("channel", "created_at")
