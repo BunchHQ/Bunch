@@ -1,7 +1,7 @@
 from django.http import HttpRequest
 from rest_framework import permissions
 
-from bunch.models import Message
+from bunch.models import Member, Message
 from users.models import User
 
 
@@ -44,6 +44,11 @@ class IsBunchMember(permissions.BasePermission):
     def has_object_permission(
         self, request: AuthedHttpRequest, view, obj
     ):
+        if hasattr(obj, "author"):
+            # for Message
+            return request.user.bunch_memberships.filter(
+                id=obj.author.id
+            ).exists()
         if hasattr(obj, "bunch"):
             # for Member and Channel
             return request.user.bunch_memberships.filter(
