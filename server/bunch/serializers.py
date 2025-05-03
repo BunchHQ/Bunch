@@ -166,7 +166,6 @@ class MessageSerializer(serializers.ModelSerializer):
                 "bunch:bunch-message-detail",
                 kwargs={
                     "bunch_id": obj.channel.bunch.id,
-                    "channel_id": obj.channel.id,
                     "id": obj.id,
                 },
             )
