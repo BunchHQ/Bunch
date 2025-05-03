@@ -49,6 +49,7 @@ class Bunch(models.Model):
     class Meta:
         verbose_name = "Bunch"
         verbose_name_plural = "Bunches"
+        ordering = ["-updated_at"]
 
 
 class Member(models.Model):
@@ -81,6 +82,7 @@ class Member(models.Model):
         )  # user can be member of a bunch only once
         verbose_name = "Member"
         verbose_name_plural = "Members"
+        ordering = ["-joined_at"]
 
     def __str__(self):
         return f"{self.user.username} in {self.bunch.name}"
@@ -110,6 +112,7 @@ class Channel(models.Model):
         ordering = ["position"]
         verbose_name = "Channel"
         verbose_name_plural = "Channels"
+        ordering = ["created_at"]
 
     def __str__(self):
         return f"{self.name} in {self.bunch.name}"
