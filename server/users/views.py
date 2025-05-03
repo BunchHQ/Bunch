@@ -2,6 +2,8 @@ from typing import override
 
 from django.contrib.auth.models import Group
 from rest_framework import permissions, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from users.models import User
 from users.serializers import (
@@ -31,6 +33,11 @@ class UserViewSet(viewsets.ModelViewSet):
             ]
 
         return super().get_permissions()
+
+    @action(detail=False, methods=["get"])
+    def me(self, request):
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
 
 
 class GroupViewSet(viewsets.ModelViewSet):
