@@ -186,7 +186,7 @@ class Message(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
 
-        if self.id is not None:
+        if self.created_at is not None:
             self.edit_count += 1
 
         super().save(*args, **kwargs)
