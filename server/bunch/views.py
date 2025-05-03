@@ -304,9 +304,9 @@ class MessageViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self):
-        message_id = self.kwargs.get("message_id")
+        bunch_id = self.kwargs.get("bunch_id")
         return Message.objects.filter(
-            id=message_id
+            channel__bunch_id=bunch_id
         ).order_by("created_at")
 
     def perform_create(self, serializer: MessageSerializer):
