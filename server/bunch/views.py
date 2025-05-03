@@ -305,9 +305,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         bunch_id = self.kwargs.get("bunch_id")
-        return Message.objects.filter(
-            channel__bunch_id=bunch_id
-        ).order_by("created_at")
+        return Message.objects.for_bunch(bunch_id).order_by("created_at")
 
     def perform_create(self, serializer: MessageSerializer):
         message = get_object_or_404(
