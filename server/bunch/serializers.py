@@ -129,13 +129,11 @@ class MemberSerializer(serializers.ModelSerializer):
 
 class MessageSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
-    channel = ChannelSerializer(read_only=True)
-    channel_name = serializers.CharField(
-        source="channel.name", read_only=True
+    channel_id = serializers.UUIDField(
+        source="channel.id", read_only=True
     )
-    author = MemberSerializer(read_only=True)
-    author_username = serializers.CharField(
-        source="author.user.username", read_only=True
+    author_id = serializers.UUIDField(
+        source="author.id", read_only=True
     )
 
     class Meta:
@@ -144,17 +142,23 @@ class MessageSerializer(serializers.ModelSerializer):
             "url",
             "id",
             "content",
-            "channel",
-            "channel_name",
-            "author",
-            "author_username",
+            "channel_id",
+            "author_id",
             "created_at",
+            "edit_count",
+            "updated_at",
+            "deleted",
+            "deleted_at",
         ]
         read_only_fields = [
             "id",
-            "channel",
-            "author",
+            "channel_id",
+            "author_id",
             "created_at",
+            "edit_count",
+            "updated_at",
+            "deleted",
+            "deleted_at",
         ]
 
     def get_url(self, obj):
