@@ -224,7 +224,16 @@ class ChannelViewSet(viewsets.ModelViewSet):
     lookup_field = "id"
 
     def get_permissions(self):
-        if self.request.method in ["POST", "PUT", "DELETE"]:
+        if self.action == "send_message":
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+        elif self.request.method in [
+            "POST",
+            "PUT",
+            "DELETE",
+        ]:
             self.permission_classes = [
                 permissions.IsAuthenticated,
                 IsBunchAdmin,
@@ -253,7 +262,7 @@ class ChannelViewSet(viewsets.ModelViewSet):
     def send_message(self, request, bunch_id=None, id=None):
         channel: Channel = self.get_object()
         member: Member = get_object_or_404(
-            Member, user=request.user, channel=channel
+            Member, user=request.user, bunch__id=bunch_id
         )
 
         message = Message.objects.create(
