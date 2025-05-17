@@ -7,6 +7,7 @@ from bunch.models import Bunch, Channel, Member, Message
 @admin.register(Bunch)
 class BunchAdmin(admin.ModelAdmin):
     list_display: tuple[str, ...] = (
+        "id",
         "name",
         "owner",
         "member_count",
@@ -25,6 +26,7 @@ class BunchAdmin(admin.ModelAdmin):
         "owner__username",
     )
     readonly_fields: tuple[str, ...] = (
+        "id",
         "created_at",
         "updated_at",
         "show_channels",
@@ -38,6 +40,7 @@ class BunchAdmin(admin.ModelAdmin):
             "Basic Information",
             {
                 "fields": (
+                    "id",
                     "name",
                     "description",
                     "owner",
@@ -109,6 +112,7 @@ class BunchAdmin(admin.ModelAdmin):
 @admin.register(Member)
 class MemberAdmin(admin.ModelAdmin):
     list_display: tuple[str, ...] = (
+        "id",
         "user",
         "bunch",
         "role",
@@ -127,17 +131,49 @@ class MemberAdmin(admin.ModelAdmin):
     )
     raw_id_fields: tuple[str, ...] = ("user", "bunch")
 
+    readonly_fields: tuple[str, ...] = (
+        "id",
+        "bunch_memberships",
+        "owned_bunches",
+        "joined_at",
+    )
+
     fieldsets = (
         (
             "Membership Information",
-            {"fields": ("user", "bunch", "role")},
+            {"fields": ("id", "user", "bunch", "role")},
+        ),
+        (
+            "Related Objects",
+            {
+                "fields": (
+                    "bunch_memberships",
+                    "owned_bunches",
+                ),
+                "classes": ("collapse",),
+            },
         ),
         (
             "Additional Information",
             {"fields": ("nickname", "joined_at")},
         ),
     )
-    readonly_fields: tuple[str, ...] = ("joined_at",)
+
+    def bunch_memberships(self, obj: Member):
+        return format_html(
+            "<br>".join(
+                f"{membership.bunch.name}"
+                for membership in obj.user.bunch_memberships.all()
+            )
+        )
+
+    def owned_bunches(self, obj: Member):
+        return format_html(
+            "<br>".join(
+                f"{bunch.name}"
+                for bunch in obj.user.owned_bunches.all()
+            )
+        )
 
 
 @admin.register(Channel)
