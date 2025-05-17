@@ -28,15 +28,6 @@ class MembersTest(APITestCase):
         self.bunch = Bunch.objects.create(
             name="Test Bunch", owner=self.owner
         )
-        # the owner member - this is needed
-        Member.objects.create(
-            bunch=self.bunch,
-            user=self.owner,
-            role=RoleChoices.OWNER,
-        )
-        Member.objects.filter(
-            bunch=self.bunch, user=self.member
-        ).delete()
 
         # URL for member operations
         self.members_url = (

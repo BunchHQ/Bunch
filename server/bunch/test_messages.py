@@ -41,8 +41,8 @@ class MessagesTest(APITestCase):
             name="Test Bunch #1", owner=self.owner
         )
 
-        # owner member
-        self.owner_member_1 = Member.objects.create(
+        # owner member was already created with bunch
+        self.owner_member_1 = Member.objects.get(
             bunch=self.bunch1,
             user=self.owner,
             role=RoleChoices.OWNER,
@@ -90,8 +90,8 @@ class MessagesTest(APITestCase):
             last_name="User",
         )
 
-        # owner member
-        self.owner_member_2 = Member.objects.create(
+        # owner member was already created with bunch
+        self.owner_member_2 = Member.objects.get(
             bunch=self.bunch2,
             user=self.owner,
             role=RoleChoices.OWNER,

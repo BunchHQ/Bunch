@@ -41,12 +41,6 @@ class ChannelsTest(APITestCase):
         self.bunch = Bunch.objects.create(
             name="Test Bunch", owner=self.owner
         )
-        # owner member
-        Member.objects.create(
-            bunch=self.bunch,
-            user=self.owner,
-            role=RoleChoices.OWNER,
-        )
         # admin member
         Member.objects.filter(
             bunch=self.bunch, user=self.admin
