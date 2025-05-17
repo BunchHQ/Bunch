@@ -25,6 +25,13 @@ class BunchModelTest(TestCase):
             first_name="Test",
             last_name="User",
         )
+        self.user2 = User.objects.create_user(
+            username="testuser2",
+            email="test2@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="User2",
+        )
         self.bunch = Bunch.objects.create(
             name="Test Bunch",
             description="Test Description",
@@ -86,17 +93,43 @@ class BunchModelTest(TestCase):
             "Bunch icon should be None by default",
         )
 
+    def test_bunch_owner(self):
+        """Test bunch member creation and unique constraint"""
+        owner = Member.objects.get(
+            bunch=self.bunch,
+            user=self.user,
+            role=RoleChoices.OWNER,
+        )
+
+        self.assertIsNotNone(owner, "Owner should exist")
+
+        self.assertEqual(
+            str(owner),
+            f"{self.user.username} in {self.bunch.name}",
+            "Member string representation is not correct",
+        )
+
+        with self.assertRaises(
+            Exception,
+            msg="Member creation should fail for duplicate user in same bunch",
+        ):
+            Member.objects.create(
+                bunch=self.bunch,
+                user=self.user,
+                role=RoleChoices.MEMBER,
+            )
+
     def test_bunch_member_creation(self):
         """Test bunch member creation and unique constraint"""
         member = Member.objects.create(
             bunch=self.bunch,
-            user=self.user,
+            user=self.user2,
             role=RoleChoices.MEMBER,
             nickname="TestNick",
         )
         self.assertEqual(
             str(member),
-            f"{self.user.username} in {self.bunch.name}",
+            f"{self.user2.username} in {self.bunch.name}",
             "Member string representation is not correct",
         )
         self.assertEqual(
@@ -179,12 +212,11 @@ class MemberModelTest(TestCase):
             description="Test Description",
             owner=self.user1,
         )
-
-        self.member1 = Member.objects.create(
+        # owner member was already created with bunch
+        self.member1 = Member.objects.get(
             bunch=self.bunch,
             user=self.user1,
             role=RoleChoices.OWNER,
-            nickname="Owner",
         )
 
     def test_member_creation(self):
@@ -198,11 +230,6 @@ class MemberModelTest(TestCase):
             self.member1.role,
             RoleChoices.OWNER,
             "Member role is not correct",
-        )
-        self.assertEqual(
-            self.member1.nickname,
-            "Owner",
-            "Member nickname is not correct",
         )
         self.assertIsNotNone(
             self.member1.joined_at,
@@ -453,16 +480,16 @@ class MessageModelTest(TestCase):
             type="text",
         )
 
-        self.root_member = Member.objects.create(
+        # owner member was already created with bunch
+        self.owner = Member.objects.get(
             bunch=self.bunch,
-            user=self.root_user,
+            user=self.user,
             role=RoleChoices.OWNER,
-            nickname="Owner",
         )
 
         self.member = Member.objects.create(
             bunch=self.bunch,
-            user=self.user,
+            user=self.root_user,
             role=RoleChoices.MEMBER,
             nickname="Test User",
         )

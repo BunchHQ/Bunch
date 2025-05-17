@@ -16,6 +16,7 @@ from bunch.permissions import (
     IsBunchAdmin,
     IsBunchMember,
     IsBunchOwner,
+    IsBunchPublic,
     IsMessageAuthor,
 )
 from bunch.serializers import (
@@ -37,23 +38,48 @@ class BunchViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         self.request: AuthedHttpRequest
-        all_bunches = Bunch.objects.all()
-        user_memberships = (
-            self.request.user.bunch_memberships.all()
-        )
-        queryset = Bunch.objects.filter(
-            members__user=self.request.user
-        ).order_by("-created_at")
-
-        if not queryset.exists() and all_bunches.exists():
-            if not user_memberships.exists():
-                # for testing -- return all bunches if the user not part of any
-                return all_bunches.order_by("-created_at")
+        if self.action == "join":
+            # return all bunches
+            queryset = Bunch.objects.all()
+        elif self.action == "list":
+            # return all bunches the user is in
+            queryset = Bunch.objects.filter(
+                members__user=self.request.user
+            )
+        else:
+            # return all public bunches instead
+            queryset = Bunch.objects.public()
 
         return queryset
 
     def get_permissions(self):
-        if self.action == "join":
+        if self.action == "list":
+            # for listing joined bunches, auth is must and must be a member
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+        elif self.action == "retrieve":
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                # allow retrieving any bunch by id if it's public or is a bunch member
+                IsBunchPublic | IsBunchMember,
+            ]
+        elif self.action == "create":
+            # creation allowed by all authenticated users
+            self.permission_classes = [
+                permissions.IsAuthenticated
+            ]
+        elif (
+            self.action == "update"
+            or self.action == "partial_update"
+            or self.action == "destroy"
+        ):
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchOwner | IsBunchAdmin,
+            ]
+        elif self.action == "join":
             self.permission_classes = [
                 permissions.IsAuthenticated
             ]
@@ -140,7 +166,12 @@ class MemberViewSet(viewsets.ModelViewSet):
         ).order_by("-joined_at")
 
     def get_permissions(self):
-        if self.action == "update_role":
+        if self.action == "create":
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchOwner,
+            ]
+        elif self.action == "update_role":
             self.permission_classes = [
                 permissions.IsAuthenticated,
                 IsBunchAdmin,
