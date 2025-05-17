@@ -18,6 +18,15 @@ class ChannelTypes(models.TextChoices):
     ANNOUNCEMENT = "announcement", "Announcement Channel"
 
 
+class BunchManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def public(self):
+        """Get only public bunches."""
+        return self.get_queryset().filter(is_private=False)
+
+
 class Bunch(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
@@ -50,6 +59,8 @@ class Bunch(models.Model):
         verbose_name = "Bunch"
         verbose_name_plural = "Bunches"
         ordering = ["-updated_at"]
+
+    objects: "BunchManager" = BunchManager()
 
 
 class Member(models.Model):
