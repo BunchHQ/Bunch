@@ -1,3 +1,5 @@
+from typing import override
+
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
@@ -18,6 +20,7 @@ from bunch.permissions import (
     IsBunchOwner,
     IsBunchPublic,
     IsMessageAuthor,
+    IsSelfMember,
 )
 from bunch.serializers import (
     BunchSerializer,
@@ -38,21 +41,39 @@ class BunchViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         self.request: AuthedHttpRequest
-        if self.action == "join":
-            # return all bunches
-            queryset = Bunch.objects.all()
-        elif self.action == "list":
+        # allow all access to superuser
+        if (
+            self.request.user
+            and self.request.user.is_superuser
+        ):
+            return Bunch.objects.all()
+
+        if self.action == "list":
             # return all bunches the user is in
             queryset = Bunch.objects.filter(
                 members__user=self.request.user
             )
+        elif self.action == "join":
+            # return all bunches
+            queryset = Bunch.objects.all()
         else:
             # return all public bunches instead
             queryset = Bunch.objects.public()
 
         return queryset
 
+    @override
     def get_permissions(self):
+        if (
+            self.request.user
+            and self.request.user.is_superuser
+        ):
+            self.permission_classes = [
+                permissions.IsAdminUser
+            ]
+
+            return super().get_permissions()
+
         if self.action == "list":
             # for listing joined bunches, auth is must and must be a member
             self.permission_classes = [
@@ -93,6 +114,7 @@ class BunchViewSet(viewsets.ModelViewSet):
                 permissions.IsAuthenticated,
                 IsBunchOwner,
             ]
+
         return super().get_permissions()
 
     def perform_create(self, serializer):
@@ -165,11 +187,42 @@ class MemberViewSet(viewsets.ModelViewSet):
             bunch_id=bunch_id
         ).order_by("-joined_at")
 
+    @override
     def get_permissions(self):
-        if self.action == "create":
+        # allow all to super user
+        if (
+            self.request.user
+            and self.request.user.is_superuser
+        ):
+            self.permission_classes = [
+                permissions.IsAdminUser
+            ]
+            return super().get_permissions()
+
+        if self.action == "list":
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+        elif self.action == "create":
             self.permission_classes = [
                 permissions.IsAuthenticated,
                 IsBunchOwner,
+            ]
+        elif self.action == "retrieve":
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+        elif self.action in (
+            "update",
+            "partial_update",
+            "delete",
+        ):
+            # TDOD: disallow role update via PUT or PATCH
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsSelfMember,
             ]
         elif self.action == "update_role":
             self.permission_classes = [
@@ -197,6 +250,7 @@ class MemberViewSet(viewsets.ModelViewSet):
                 raise ValidationError("User not found.")
         else:
             user = self.request.user
+
         if Member.objects.filter(
             bunch=bunch, user=user
         ).exists():
@@ -254,16 +308,46 @@ class ChannelViewSet(viewsets.ModelViewSet):
     ]
     lookup_field = "id"
 
+    def get_queryset(self):
+        bunch_id = self.kwargs.get("bunch_id")
+        return Channel.objects.filter(
+            bunch_id=bunch_id
+        ).order_by("created_at")
+
     def get_permissions(self):
-        if self.action == "send_message":
+        if (
+            self.request.user
+            and self.request.user.is_superuser
+        ):
+            self.permission_classes = [
+                permissions.IsAdminUser
+            ]
+            return super().get_permissions()
+
+        if self.action == "list":
             self.permission_classes = [
                 permissions.IsAuthenticated,
                 IsBunchMember,
             ]
-        elif self.request.method in [
-            "POST",
-            "PUT",
-            "DELETE",
+        elif self.action == "create":
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchAdmin,
+            ]
+        elif self.action == "retrieve":
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+        elif self.action == "send_message":
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+        elif self.action in [
+            "update",
+            "partial_update",
+            "destroy",
         ]:
             self.permission_classes = [
                 permissions.IsAuthenticated,
@@ -272,16 +356,10 @@ class ChannelViewSet(viewsets.ModelViewSet):
         else:
             self.permission_classes = [
                 permissions.IsAuthenticated,
-                IsBunchMember,
+                IsBunchAdmin,
             ]
 
         return super().get_permissions()
-
-    def get_queryset(self):
-        bunch_id = self.kwargs.get("bunch_id")
-        return Channel.objects.filter(
-            bunch_id=bunch_id
-        ).order_by("created_at")
 
     def perform_create(self, serializer):
         bunch = get_object_or_404(
@@ -319,8 +397,43 @@ class MessageViewSet(viewsets.ModelViewSet):
     ]
     lookup_field = "id"
 
+    def get_queryset(self):
+        bunch_id = self.kwargs.get("bunch_id")
+        return Message.objects.for_bunch(bunch_id).order_by(
+            "created_at"
+        )
+
+    @override
     def get_permissions(self):
-        if self.request.method in ["POST", "PUT", "DELETE"]:
+        if (
+            self.request.user
+            and self.request.user.is_superuser
+        ):
+            self.permission_classes = [
+                permissions.IsAdminUser
+            ]
+            return super().get_permissions()
+
+        if self.action == "list":
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+        elif self.action == "retrieve":
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+        elif self.action == "create":
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+        elif self.action in (
+            "update",
+            "partial_update",
+            "destroy",
+        ):
             self.permission_classes = [
                 permissions.IsAuthenticated,
                 IsBunchMember,
@@ -333,12 +446,6 @@ class MessageViewSet(viewsets.ModelViewSet):
             ]
 
         return super().get_permissions()
-
-    def get_queryset(self):
-        bunch_id = self.kwargs.get("bunch_id")
-        return Message.objects.for_bunch(bunch_id).order_by(
-            "created_at"
-        )
 
     def perform_create(self, serializer: MessageSerializer):
         message = get_object_or_404(

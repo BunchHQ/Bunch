@@ -3,7 +3,7 @@ from typing import override
 from django.http import HttpRequest
 from rest_framework import permissions
 
-from bunch.models import Bunch, Message
+from bunch.models import Bunch, Member, Message, RoleChoices
 from users.models import User
 
 
@@ -99,7 +99,10 @@ class IsBunchAdmin(permissions.BasePermission):
         if bunch_id:
             return request.user.bunch_memberships.filter(
                 bunch_id=bunch_id,
-                role__in=["owner", "admin"],
+                role__in=[
+                    RoleChoices.OWNER,
+                    RoleChoices.ADMIN,
+                ],
             ).exists()
         return False
 
@@ -110,6 +113,18 @@ class IsBunchAdmin(permissions.BasePermission):
         return request.user.bunch_memberships.filter(
             bunch=obj.bunch, role__in=["owner", "admin"]
         ).exists()
+
+
+class IsSelfMember(permissions.BasePermission):
+    """
+    Custom permission to only allow users to uper their own memberships
+    """
+
+    @override
+    def has_object_permission(
+        self, request: AuthedHttpRequest, view, obj: Member
+    ) -> bool:
+        return obj.user == request.user
 
 
 class IsMessageAuthor(permissions.BasePermission):
