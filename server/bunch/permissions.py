@@ -38,7 +38,11 @@ class IsBunchOwner(permissions.BasePermission):
         if not request.user.is_authenticated:
             return False
 
-        bunch_id = view.kwargs.get("bunch_id")
+        if "bunch_id" in view.kwargs:
+            bunch_id = view.kwargs.get("bunch_id")
+        else:
+            bunch_id = view.kwargs.get("id")
+
         if bunch_id:
             return request.user.owned_bunches.filter(
                 id=bunch_id
@@ -95,7 +99,11 @@ class IsBunchAdmin(permissions.BasePermission):
         if not request.user.is_authenticated:
             return False
 
-        bunch_id = view.kwargs.get("bunch_id")
+        if "bunch_id" in view.kwargs:
+            bunch_id = view.kwargs.get("bunch_id")
+        else:
+            bunch_id = view.kwargs.get("id")
+
         if bunch_id:
             return request.user.bunch_memberships.filter(
                 bunch_id=bunch_id,
