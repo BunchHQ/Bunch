@@ -48,7 +48,7 @@ class BunchViewSet(viewsets.ModelViewSet):
         ):
             return Bunch.objects.all()
 
-        if self.action == "list":
+        if self.action in ("list", "destroy"):
             # return all bunches the user is in
             queryset = Bunch.objects.filter(
                 members__user=self.request.user
@@ -100,6 +100,10 @@ class BunchViewSet(viewsets.ModelViewSet):
                 permissions.IsAuthenticated,
                 IsBunchOwner | IsBunchAdmin,
             ]
+        elif self.action == "public":
+            self.permission_classes = [
+                IsBunchPublic,
+            ]
         elif self.action == "join":
             self.permission_classes = [
                 permissions.IsAuthenticated
@@ -117,15 +121,45 @@ class BunchViewSet(viewsets.ModelViewSet):
 
         return super().get_permissions()
 
-    def perform_create(self, serializer):
-        bunch = serializer.save(owner=self.request.user)
+    def perform_create(self, serializer: BunchSerializer):
+        bunch: Bunch = serializer.save(
+            owner=self.request.user
+        )
         Member.objects.get_or_create(
             user=self.request.user,
             bunch=bunch,
             role="owner",
         )
 
-    @action(detail=True, methods=["post"])
+    @action(
+        detail=False,
+        methods=["GET"],
+        # allow no-auth access to /public
+        authentication_classes=[],
+    )
+    def public(self, request, id=None):
+        public_bunches = Bunch.objects.public()
+
+        page = self.paginate_queryset(public_bunches)
+
+        if page is not None:
+            serializer = BunchSerializer(
+                page,
+                context={"request": request},
+                many=True,
+            )
+            return self.get_paginated_response(
+                serializer.data
+            )
+
+        serializer = BunchSerializer(
+            public_bunches,
+            context={"request": request},
+            many=True,
+        )
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["POST"])
     def join(self, request, id=None):
         bunch = self.get_object()
         if (
@@ -170,7 +204,13 @@ class BunchViewSet(viewsets.ModelViewSet):
             )
 
         member.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {
+                "status": "success",
+                "message": "left bunch",
+            },
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
 
 class MemberViewSet(viewsets.ModelViewSet):
@@ -184,7 +224,7 @@ class MemberViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         bunch_id = self.kwargs.get("bunch_id")
         return Member.objects.filter(
-            bunch_id=bunch_id
+            bunch__id=bunch_id
         ).order_by("-joined_at")
 
     @override
