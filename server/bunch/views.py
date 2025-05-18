@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from bunch.models import (
@@ -428,14 +429,21 @@ class ChannelViewSet(viewsets.ModelViewSet):
         )
 
 
+class MessagePagination(PageNumberPagination):
+    page_size = 100
+    page_size_query_param = "page_size"
+    max_page_size = 1000
+
+
 class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [
         permissions.IsAuthenticated,
         IsBunchMember,
-        # TODO: a IsChannelMember once we have channel permissions
+        # TODO: IsChannelMember once we have channel permissions
     ]
     lookup_field = "id"
+    pagination_class = MessagePagination
 
     def get_queryset(self):
         bunch_id = self.kwargs.get("bunch_id")
