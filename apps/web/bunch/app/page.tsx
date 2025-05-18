@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth, useUser } from "@clerk/nextjs";
-import { MainLayout } from "@/components/MainLayout";
+import { useUser } from "@clerk/nextjs";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { MessageCircle, Users, Hash, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,16 +15,18 @@ import {
 } from "@/components/ui/card";
 
 export default function Home() {
-  const { isLoaded, isSignedIn, user } = useUser();
-  // const { getToken } = useAuth();
+  const { isLoaded, isSignedIn } = useUser();
   const router = useRouter();
 
   // useEffect(() => {
-  //   (async () => {
-  //     const token = await getToken();
-  //     console.log("JWT Token:", token);
-  //   })();
-  // }, []);
+  //   if (isLoaded && !isSignedIn) {
+  //     router.push("/sign-in");
+  //   }
+  // }, [isLoaded, isSignedIn, router]);
+
+  // if (!isLoaded || !isSignedIn) {
+  //   return null;
+  // }
 
   return (
     <MainLayout>
@@ -32,8 +34,8 @@ export default function Home() {
         <div className="max-w-4xl w-full text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">Welcome to Bunch</h1>
           <p className="text-muted-foreground text-lg">
-            Your modern, Discord-like chat platform. Join bunches, create
-            channels, and chat in real-time.
+            Chat platform for any kind of groups. Join bunches, create channels,
+            and chat in real-time.
           </p>
         </div>
 
@@ -45,7 +47,7 @@ export default function Home() {
                 Start Chatting
               </CardTitle>
               <CardDescription>
-                Join a channel and start a conversation
+                Join a bunch and start a conversation
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -62,7 +64,7 @@ export default function Home() {
                 Create a Bunch
               </CardTitle>
               <CardDescription>
-                Start your own community with your friends
+                Start your own community with friends
               </CardDescription>
             </CardHeader>
             <CardContent>
