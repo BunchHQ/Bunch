@@ -1,10 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { MessageCircle, Users, Hash, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,6 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useUser } from "@clerk/nextjs";
+import { Hash, MessageCircle, Settings, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const { isLoaded, isSignedIn } = useUser();

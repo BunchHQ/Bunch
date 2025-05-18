@@ -1,10 +1,10 @@
-import "./globals.css";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { WebSocketProvider } from "@/lib/WebSocketProvider";
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
-import { WebSocketProvider } from "@/lib/WebSocketProvider";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { ClerkProvider } from "@clerk/nextjs";
+import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
