@@ -27,6 +27,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Run Tests
+      env:
+        CLERK_FRONTEND_API_URL: ${{ secrets.CLERK_FRONTEND_API_URL }}
+        CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+        CLERK_USER_ID: ${{ secrets.CLERK_USER_ID }}
+        CLERK_OTHER_USER_ID: ${{ secrets.CLERK_OTHER_USER_ID }}
+        CLERK_ROOT_ID: ${{ secrets.CLERK_ROOT_ID }}
+        CLERK_JWT_TEMPLATE: ${{ secrets.CLERK_JWT_TEMPLATE }}
+        CLERK_API_URL: ${{ secrets.CLERK_API_URL }}
       run: |
         cd server
         python manage.py test
