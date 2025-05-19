@@ -54,7 +54,9 @@ class BunchViewSet(viewsets.ModelViewSet):
             queryset = Bunch.objects.filter(
                 members__user=self.request.user
             )
-        elif self.action == "join":
+        elif (
+            self.action == "join" or self.action == "leave"
+        ):
             # return all bunches
             queryset = Bunch.objects.all()
         else:
@@ -210,7 +212,7 @@ class BunchViewSet(viewsets.ModelViewSet):
                 "status": "success",
                 "message": "left bunch",
             },
-            status=status.HTTP_204_NO_CONTENT,
+            status=status.HTTP_200_OK,
         )
 
 
