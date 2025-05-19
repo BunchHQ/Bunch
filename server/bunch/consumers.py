@@ -13,9 +13,8 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpRequest
 
+from bunch.models import Bunch, Channel, Message
 from orchard.middleware import ClerkJWTAuthentication
-
-from .models import Bunch, Channel, Message
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -156,7 +155,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     )
 
                     # the holy check that prevents the damn disconnect/reconnect cycle
-                    # If this is a reconnection with the same connection_id, don't close other connections
+                    # If this is a reconnection with the same connection_id,
+                    # don't close other connections
                     if (
                         self.connection_id
                         in old_connections

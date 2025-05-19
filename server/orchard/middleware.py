@@ -1,13 +1,23 @@
+import os
+
 import jwt
 import requests
 from django.core.cache import cache
+from dotenv import load_dotenv
 from rest_framework import authentication, exceptions
 
 from users.models import User
 
-CLERK_FRONTEND_API_URL = (
-    "https://notable-sole-11.clerk.accounts.dev"
+load_dotenv()
+
+CLERK_FRONTEND_API_URL = os.getenv(
+    "CLERK_FRONTEND_API_URL", None
 )
+
+if not CLERK_FRONTEND_API_URL:
+    raise ValueError(
+        "Clerk frontend API URL variable is not set."
+    )
 
 
 class ClerkJWTAuthentication(
