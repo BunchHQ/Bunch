@@ -8,6 +8,7 @@ from bunch.models import (
     Bunch,
     Channel,
     ChannelTypes,
+    ColorChoices,
     Member,
     Message,
     RoleChoices,
@@ -32,7 +33,7 @@ class BunchModelTest(TestCase):
             first_name="Test",
             last_name="User2",
         )
-        self.bunch = Bunch.objects.create(
+        self.bunch: Bunch = Bunch.objects.create(
             name="Test Bunch",
             description="Test Description",
             owner=self.user,
@@ -60,6 +61,11 @@ class BunchModelTest(TestCase):
             self.bunch.invite_code,
             "TEST123",
             "Bunch invite code is not correct",
+        )
+        self.assertIn(
+            self.bunch.primary_color,
+            ColorChoices.values,
+            "Bunch Primary color is not valid",
         )
         self.assertIsNotNone(
             self.bunch.created_at,
