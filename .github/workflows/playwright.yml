@@ -1,0 +1,47 @@
+name: Playwright Tests
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: |
+          cd apps/web/bunch
+          npm ci
+      - name: Install Playwright Browsers
+        run: |
+          cd apps/web/bunch
+          npx playwright install --with-deps
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Install server dependencies
+        run: |
+          cd server
+          uv venv
+          source .venv/bin/activate
+          uv sync
+      - name: Run Playwright tests
+        run: |
+          cd apps/web/bunch
+          npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: apps/web/bunch/playwright-report/
+          retention-days: 30
