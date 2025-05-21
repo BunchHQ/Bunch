@@ -1,6 +1,7 @@
 import os
 import time
 from typing import override
+from unittest.mock import patch
 
 import requests
 from dotenv import load_dotenv
@@ -48,90 +49,81 @@ class MessagesTest(APITestCase):
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
         self.client: APIClient = APIClient()
-        self.session_tokens = {}
 
-    def get_session_token(self, user_id):
-        """Get a valid session token from Clerk"""
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
 
-        # https://clerk.com/docs/testing/overview
+        cls.root_token = "root_token"
+        cls.user_token = "user_token"
+        cls.other_token = "other_token"
 
-        if user_id in self.session_tokens:
-            token_data = self.session_tokens[user_id]
-            # must beless than 60 seconds old
-            if (
-                time.time() - token_data["created_at"] < 55
-            ):  # 55 seconds to be safe
-                return token_data["token"]
-
-        # Create a new session
-        session_response = requests.post(
-            f"{CLERK_API_URL}/sessions",
-            headers={
-                "Authorization": f"Bearer {CLERK_SECRET_KEY}"
-            },
-            json={"user_id": user_id},
+        # Create test users
+        cls.root_user = User.objects.create_superuser(
+            username="root_id",
+            email="root@example.com",
+            password="rootpass",
+            first_name="Root",
+            last_name="User",
         )
-        if session_response.status_code != 200:
-            raise Exception(
-                f"Failed to create session: {session_response.text}"
-            )
 
-        session_id = session_response.json()["id"]
-
-        # Create a session token
-        token_response = requests.post(
-            f"{CLERK_API_URL}/sessions/{session_id}/tokens/{CLERK_JWT_TEMPLATE}",
-            headers={
-                "Authorization": f"Bearer {CLERK_SECRET_KEY}"
-            },
-            json={"expires_in_seconds": 60},
+        cls.user = User.objects.create_user(
+            username="user_id",
+            email="user@example.com",
+            password="userpass",
+            first_name="Test",
+            last_name="User",
         )
-        if token_response.status_code != 200:
-            raise Exception(
-                f"Failed to create session token: {token_response.text}"
-            )
 
-        token = token_response.json()["jwt"]
-        self.session_tokens[user_id] = {
-            "token": token,
-            "created_at": time.time(),
-        }
-        return token
+        cls.other_user = User.objects.create_user(
+            username="other_id",
+            email="other@example.com",
+            password="otherpass",
+            first_name="Other",
+            last_name="User",
+        )
+
+        # Patch ClerkJWTAuthentication.authenticate
+        def mock_authenticate(self, request):
+            token = request.headers.get(
+                "Authorization", ""
+            ).replace("Bearer ", "")
+            user_map = {
+                cls.root_token: cls.root_user,
+                cls.user_token: cls.user,
+                cls.other_token: cls.other_user,
+            }
+            if token not in user_map:
+                return (None, None)
+            return (user_map[token], None)
+
+        cls.auth_patch = patch(
+            "orchard.middleware.ClerkJWTAuthentication.authenticate",
+            new=mock_authenticate,
+        )
+        cls.auth_patch.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.auth_patch.stop()
+        super().tearDownClass()
 
     def authenticate_user(self, user_type="test"):
-        """Helper method to authenticate with Clerk token"""
-        user_id = {
-            "test": CLERK_USER_ID,
-            "root": CLERK_ROOT_ID,
-            "other": CLERK_OTHER_USER_ID,
-        }[user_type]
-        token = self.get_session_token(user_id)
+        """Helper method to authenticate with mock token"""
+        token_map = {
+            "test": self.user_token,
+            "root": self.root_token,
+            "other": self.other_token,
+        }
+        token = token_map[user_type]
         self.client.credentials(
             HTTP_AUTHORIZATION=f"Bearer {token}"
         )
 
     def setupBunch1(self) -> None:
-        self.owner = User.objects.create_user(
-            username=CLERK_USER_ID,
-            email="test@example.com",
-            password="testpass123",
-            first_name="Test",
-            last_name="User",
-        )
-        self.root_user = User.objects.create_superuser(
-            username=CLERK_ROOT_ID,
-            email="root@example.com",
-            password="testpass123",
-            first_name="Root",
-            last_name="User",
-        )
-        self.other_user = User.objects.create_user(
-            username=CLERK_OTHER_USER_ID,
-            email="other@example.com",
-            password="testpass123",
-            first_name="Other",
-            last_name="User",
-        )
+        self.owner = self.user
+        self.root_user = self.root_user
+        self.other_user = self.other_user
 
         self.bunch1 = Bunch.objects.create(
             name="Test Bunch #1", owner=self.owner
