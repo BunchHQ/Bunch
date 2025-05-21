@@ -1,3 +1,4 @@
+import random
 import uuid
 from typing import TYPE_CHECKING, override
 
@@ -16,6 +17,35 @@ class ChannelTypes(models.TextChoices):
     TEXT = "text", "Text Channel"
     VOICE = "voice", "Voice Channel"
     ANNOUNCEMENT = "announcement", "Announcement Channel"
+
+
+class ColorChoices(models.TextChoices):
+    MIDNIGHT = "#2c3e50", "Midnight"
+    SUNSET = "#f39c12", "Sunset"
+    OCEAN = "#1a5276", "Ocean"
+    FOREST = "#27ae60", "Forest"
+    BURGUNDY = "#7b241c", "Burgundy"
+    LILAC = "#af7ac5", "Lilac"
+    TURQUOISE = "#48c9b0", "Turquoise"
+    GRAPHITE = "#707b7c", "Graphite"
+    PEACH = "#f5cba7", "Peach"
+    NAVY = "#1f618d", "Navy"
+    OLIVE = "#7d8c42", "Olive"
+    MAROON = "#800000", "Maroon"
+    AQUA = "#00ffff", "Aqua"
+    ORCHID = "#da70d6", "Orchid"
+    CHARCOAL = "#333333", "Charcoal"
+    SALMON = "#fa8072", "Salmon"
+
+
+def get_random_color_choice() -> str:
+    """
+    Returns a :class:`ColorChoices` for a bunch.
+
+    Returns:
+        A ColorChoice value
+    """
+    return random.choice(ColorChoices.values)
 
 
 class BunchManager(models.Manager):
@@ -47,6 +77,12 @@ class Bunch(models.Model):
     invite_code = models.CharField(
         max_length=10, unique=True, null=True, blank=True
     )
+    primary_color = models.CharField(
+        max_length=7,
+        help_text="Bunch's Primary color",
+        choices=ColorChoices.choices,
+        blank=True,
+    )
 
     def __str__(self):
         return self.name
@@ -54,6 +90,15 @@ class Bunch(models.Model):
     if TYPE_CHECKING:
         channels: models.QuerySet["Channel"]
         members: models.QuerySet["Member"]
+
+    @override
+    def save(self, *args, **kwargs):
+        self.clean()
+
+        if not self.primary_color:
+            self.primary_color = get_random_color_choice()
+
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Bunch"

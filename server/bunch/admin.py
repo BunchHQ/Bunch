@@ -19,6 +19,7 @@ class BunchAdmin(admin.ModelAdmin):
     list_filter: tuple[str, ...] = (
         "is_private",
         "created_at",
+        "primary_color",
     )
     search_fields = (
         "name",
@@ -33,6 +34,7 @@ class BunchAdmin(admin.ModelAdmin):
         "show_members",
         "member_count",
         "channel_count",
+        "primary_color",
     )
 
     fieldsets = (
@@ -45,6 +47,7 @@ class BunchAdmin(admin.ModelAdmin):
                     "description",
                     "owner",
                     "icon",
+                    "primary_color",
                 )
             },
         ),
