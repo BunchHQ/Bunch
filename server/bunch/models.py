@@ -81,7 +81,7 @@ class Bunch(models.Model):
         max_length=7,
         help_text="Bunch's Primary color",
         choices=ColorChoices.choices,
-        blank=True,
+        default=get_random_color_choice,
     )
 
     def __str__(self):
