@@ -1,9 +1,17 @@
+# Integration tests for Clerk authentication
+
+# This test suite requires real Clerk API credentials and will make actual API calls.
+# It should be run separately from unit tests, possibly in a CI environment
+# with proper credentials set up.
+
+# NOT to be run in github actions
+
+
 import os
 
 import requests
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
-
 from users.models import User
 
 # These should be set in your environment for integration tests

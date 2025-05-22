@@ -4,38 +4,13 @@ from typing import override
 from unittest.mock import patch
 
 import requests
+from bunch.models import Bunch, Member, RoleChoices
 from dotenv import load_dotenv
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
-
-from bunch.models import Bunch, Member, RoleChoices
 from users.models import User
 
 load_dotenv()
-
-# Get Clerk configuration from environment variables
-CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
-CLERK_USER_ID = os.getenv("CLERK_USER_ID")
-CLERK_ROOT_ID = os.getenv("CLERK_ROOT_ID")
-CLERK_OTHER_USER_ID = os.getenv("CLERK_OTHER_USER_ID")
-CLERK_API_URL = os.getenv(
-    "CLERK_API_URL", "https://api.clerk.com/v1"
-)
-CLERK_JWT_TEMPLATE = os.getenv(
-    "CLERK_JWT_TEMPLATE", "Django"
-)
-
-if not all(
-    [
-        CLERK_SECRET_KEY,
-        CLERK_USER_ID,
-        CLERK_ROOT_ID,
-        CLERK_OTHER_USER_ID,
-    ]
-):
-    raise ValueError(
-        "CLERK_SECRET_KEY, CLERK_USER_ID, CLERK_ROOT_ID, CLERK_OTHER_USER_ID environment variables must be set"
-    )
 
 
 class BunchTest(APITestCase):
