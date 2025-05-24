@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "drf_spectacular",
     "corsheaders",
     "channels",
     "core",
@@ -142,6 +143,7 @@ AUTH_USER_MODEL = "users.User"
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "orchard.middleware.ClerkJWTAuthentication",
         "rest_framework.authentication.BasicAuthentication",
@@ -217,4 +219,11 @@ LOGGING = {
             "propagate": True,
         },
     },
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Orchard API",
+    "DESCRIPTION": "Docs for the Bunch API, Orchard",
+    "VERSION": "0.0.1",
+    "SCHEMA_PATH_PREFIX": "/api/v[0-9]",
 }

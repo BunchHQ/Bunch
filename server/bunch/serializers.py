@@ -32,10 +32,10 @@ class BunchSerializer(serializers.ModelSerializer):
             "created_at",
         ]
 
-    def get_members_count(self, obj):
+    def get_members_count(self, obj: Bunch) -> int:
         return obj.members.count()
 
-    def get_url(self, obj):
+    def get_url(self, obj: Bunch) -> str | None:
         request = self.context.get("request")
         if request is None:
             return None
@@ -71,7 +71,7 @@ class ChannelSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "bunch", "created_at"]
 
-    def get_url(self, obj):
+    def get_url(self, obj: Channel) -> str | None:
         request = self.context.get("request")
         if request is None:
             return None
@@ -112,7 +112,7 @@ class MemberSerializer(serializers.ModelSerializer):
             "joined_at",
         ]
 
-    def get_url(self, obj):
+    def get_url(self, obj: Channel) -> str | None:
         request = self.context.get("request")
         if request is None:
             return None
@@ -161,7 +161,7 @@ class MessageSerializer(serializers.ModelSerializer):
             "deleted_at",
         ]
 
-    def get_url(self, obj):
+    def get_url(self, obj: Message) -> str | None:
         request = self.context.get("request")
         if request is None:
             return None
