@@ -33,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
             "groups",
         ]
 
-    def get_url(self, obj):
+    def get_url(self, obj: User) -> str | None:
         request = self.context.get("request")
         if request is None:
             return None
@@ -64,7 +64,7 @@ class GroupSerializer(serializers.ModelSerializer):
         model = Group
         fields = ["url", "name"]
 
-    def get_url(self, obj):
+    def get_url(self, obj) -> str | None:
         request = self.context.get("request")
         if request is None:
             return None

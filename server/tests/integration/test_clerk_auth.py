@@ -12,6 +12,7 @@ import os
 import requests
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
+
 from users.models import User
 
 # These should be set in your environment for integration tests
