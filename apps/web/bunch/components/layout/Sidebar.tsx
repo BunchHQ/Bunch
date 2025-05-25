@@ -13,7 +13,14 @@ import {
 import type { Bunch } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { UserButton } from "@clerk/nextjs";
-import { Menu, MessageCircle, Plus, Settings, X } from "lucide-react";
+import {
+  Globe2Icon,
+  Menu,
+  MessageCircle,
+  Plus,
+  Settings,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -110,6 +117,28 @@ export function Sidebar({ bunches }: SidebarProps) {
               </TooltipTrigger>
               <TooltipContent side="right">
                 <p>Start a new bunch</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href="/browse"
+                  className="w-12 h-12 rounded-full flex items-center justify-center"
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-full h-full p-0 bg-primary/10 opacity-60 rounded-[100px] hover:!bg-primary/20 hover:rounded-[15px] transition-all"
+                  >
+                    <Globe2Icon className="!h-5 !w-5" />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Browse Public Bunches</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
