@@ -21,6 +21,7 @@ class BunchSerializer(serializers.ModelSerializer):
             "description",
             "is_private",
             "invite_code",
+            "primary_color",
             "owner",
             "members_count",
             "created_at",
