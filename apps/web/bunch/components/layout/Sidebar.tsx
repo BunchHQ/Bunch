@@ -51,9 +51,10 @@ export function Sidebar({ bunches }: SidebarProps) {
         <Button variant="ghost" size="icon" onClick={toggleSidebar}>
           {isOpen ? <X /> : <Menu />}
         </Button>
+        <span className="sr-only">Toggle Sidebar</span>
       </div>
 
-      <div
+      <nav
         className={cn(
           "fixed inset-y-0 left-0 z-30 flex flex-col bg-card border-1 border-border transition-transform duration-300 ease-in-out",
           "w-15 rounded-lg m-2",
@@ -112,6 +113,7 @@ export function Sidebar({ bunches }: SidebarProps) {
                     className="w-full h-full p-0 bg-primary/10 opacity-60 rounded-[100px] hover:!bg-primary/20 hover:rounded-[15px] transition-all"
                   >
                     <Plus className="!h-6 !w-6" />
+                    <span className="sr-only">Create Bunch</span>
                   </Button>
                 </div>
               </TooltipTrigger>
@@ -217,7 +219,7 @@ export function Sidebar({ bunches }: SidebarProps) {
             </Tooltip>
           </TooltipProvider>
         </div>
-      </div>
+      </nav>
 
       <CreateBunchDialog
         open={createDialogOpen}

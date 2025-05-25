@@ -4,16 +4,22 @@ test.describe("Channel Management", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
 
-    await page.locator(".w-12 > .inline-flex").first().click();
+    await page
+      .getByRole("button", { name: /Create Bunch/i })
+      .first()
+      .click();
     await page.getByRole("textbox", { name: "Name" }).click();
-    await page.getByRole("textbox", { name: "Name" }).fill("Test Bunch");
+    await page
+      .getByRole("textbox", { name: "Name" })
+      .fill("Playwright Test Bunch");
+
     await page.getByRole("textbox", { name: "Description" }).click();
     await page
       .getByRole("textbox", { name: "Description" })
       .fill("A test bunch for channels");
     await page.getByRole("button", { name: "Create Bunch" }).click();
 
-    const bunchLink = page.getByRole("link", { name: "Te" }).first();
+    const bunchLink = page.getByRole("link", { name: "Pl" }).first();
 
     await expect(bunchLink).toBeVisible();
     await bunchLink.click();
@@ -37,7 +43,7 @@ test.describe("Channel Management", () => {
     await expect(page.getByText("Success", { exact: true })).toBeVisible();
     await expect(page.getByText("Channel created successfully!")).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Test Channel" })
+      page.getByRole("link", { name: "Test Channel" }),
     ).toBeVisible();
   });
 
@@ -74,7 +80,7 @@ test.describe("Channel Management", () => {
     await page.getByRole("link", { name: "Empty Channel" }).click();
 
     await expect(
-      page.getByRole("heading", { name: "No messages yet" })
+      page.getByRole("heading", { name: "No messages yet" }),
     ).toBeVisible();
   });
 });

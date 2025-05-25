@@ -1,5 +1,5 @@
+import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
-import path from "path";
 
 const PORT = process.env.PORT || 3000;
 const baseURL = `http://localhost:${PORT}`;
@@ -13,7 +13,7 @@ export default defineConfig({
 
   webServer: [
     {
-      command: `npm run dev`,
+      command: "npm run dev",
       url: baseURL,
       name: "Next",
       timeout: 120 * 1000,

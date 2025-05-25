@@ -1,11 +1,11 @@
+import path from "node:path";
 import { clerk, clerkSetup } from "@clerk/testing/playwright";
 import { test as setup } from "@playwright/test";
-import path from "path";
 
 // Setup must be run serially, this is necessary if Playwright is configured to run fully parallel: https://playwright.dev/docs/test-parallel
 setup.describe.configure({ mode: "serial" });
 
-setup("global setup", async ({}) => {
+setup("global setup", async () => {
   await clerkSetup();
 
   if (
@@ -15,7 +15,7 @@ setup("global setup", async ({}) => {
     !process.env.E2E_CLERK_USER_PASSWORD
   ) {
     throw new Error(
-      "Please provide E2E_CLERK_USER_USERNAME/E2E_CLERK_USER_EMAIL and E2E_CLERK_USER_PASSWORD environment variables."
+      "Please provide E2E_CLERK_USER_USERNAME/E2E_CLERK_USER_EMAIL and E2E_CLERK_USER_PASSWORD environment variables.",
     );
   }
 });
