@@ -54,7 +54,7 @@ export default function Home() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" onClick={() => router.push("/bunch")}>
+              <Button className="w-full" onClick={() => router.push("/browse")}>
                 Browse Bunches
               </Button>
             </CardContent>

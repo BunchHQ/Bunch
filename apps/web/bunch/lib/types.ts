@@ -16,7 +16,7 @@ export interface Bunch {
   description: string;
   created_at: string;
   updated_at: string;
-  owner: string; // User ID
+  owner: User;
   icon?: string;
   is_private: boolean;
   invite_code?: string;

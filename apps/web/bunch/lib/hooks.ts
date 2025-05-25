@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react";
-import { User, Bunch, Channel, Member, Message } from "./types";
-import * as api from "./api";
 import { useAuth } from "@clerk/nextjs";
+import { useCallback, useState } from "react";
+import * as api from "./api";
+import type { Bunch, Channel, Member, Message, User } from "./types";
 
 // User hooks
 export const useCurrentUser = () => {
@@ -31,7 +31,7 @@ export const useCurrentUser = () => {
 };
 
 // Bunch hooks
-export const useBunches = () => {
+export const useBunches = (fetchPublic?: boolean) => {
   const [bunches, setBunches] = useState<Bunch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -41,10 +41,19 @@ export const useBunches = () => {
     try {
       setLoading(true);
       const token = await getToken({ template: "Django" });
-      if (!token) {
-        throw new Error("No authentication token available");
+      let data = null;
+
+      if (fetchPublic) {
+        // no auth for public bunches
+        data = await api.getPublicBunches(token || undefined);
+      } else {
+        if (!token) {
+          throw new Error("No authentication token available");
+        }
+
+        data = await api.getBunches(token);
       }
-      const data = await api.getBunches(token);
+
       setBunches(data);
       setError(null);
     } catch (err) {
@@ -52,7 +61,7 @@ export const useBunches = () => {
     } finally {
       setLoading(false);
     }
-  }, [getToken]);
+  }, [getToken, fetchPublic]);
 
   const createBunch = useCallback(
     async (data: Partial<Bunch>) => {
@@ -69,7 +78,7 @@ export const useBunches = () => {
         throw err;
       }
     },
-    [getToken]
+    [getToken],
   );
 
   return { bunches, loading, error, fetchBunches, createBunch };
@@ -114,7 +123,7 @@ export const useChannels = (bunchId: string) => {
         throw err;
       }
     },
-    [bunchId, getToken]
+    [bunchId, getToken],
   );
 
   return { channels, loading, error, fetchChannels, createChannel };
@@ -167,7 +176,7 @@ export function useMessages(bunchId: string, channelId: string) {
       }
       const data = await api.updateMessage(bunchId, messageId, content, token);
       setMessages((prev) =>
-        prev.map((msg) => (msg.id === messageId ? data : msg))
+        prev.map((msg) => (msg.id === messageId ? data : msg)),
       );
       return data;
     } catch (err) {

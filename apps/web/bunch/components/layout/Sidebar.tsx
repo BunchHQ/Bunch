@@ -51,7 +51,7 @@ export function Sidebar({ bunches }: SidebarProps) {
           "fixed inset-y-0 left-0 z-30 flex flex-col bg-card border-1 border-border transition-transform duration-300 ease-in-out",
           "w-15 rounded-lg m-2",
           isOpen ? "translate-x-0" : "translate-x-[-100%]",
-          "md:relative md:translate-x-0 md:items-center"
+          "md:relative md:translate-x-0 md:items-center",
         )}
       >
         <div className="flex-none p-2 flex flex-col items-center gap-2 overflow-y-auto">
@@ -72,7 +72,7 @@ export function Sidebar({ bunches }: SidebarProps) {
                             className={cn(
                               "bg-secondary text-primary/50 text-lg",
                               currentBunchId === bunch.id &&
-                                "bg-secondary text-primary"
+                                "bg-secondary text-primary",
                             )}
                           >
                             {bunch.name.substring(0, 2)}
@@ -94,6 +94,7 @@ export function Sidebar({ bunches }: SidebarProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
+                {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
                 <div
                   className="w-12 h-12 rounded-full flex items-center justify-center"
                   onClick={() => setCreateDialogOpen(true)}
