@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
-import { Loader2 } from "lucide-react";
-import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useBunches } from "@/lib/hooks";
+import { useUser } from "@clerk/nextjs";
+import { Loader2 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Sidebar } from "./Sidebar";
 
 interface MainLayoutProps {
   children: React.ReactNode;

@@ -1,11 +1,9 @@
-import { useAuth } from "@clerk/nextjs";
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 async function fetchWithAuth(
   url: string,
   options: RequestInit = {},
-  token?: string
+  token?: string,
 ) {
   const headers = {
     ...options.headers,
@@ -37,7 +35,7 @@ export const getUser = async (id: string, token?: string) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/user/${id}/`,
     {},
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to fetch user");
   return response.json();
@@ -50,13 +48,24 @@ export const updateUser = async (id: string, data: any, token?: string) => {
       method: "PATCH",
       body: JSON.stringify(data),
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to update user");
   return response.json();
 };
 
 // Bunch API
+export const getPublicBunches = async (token?: string) => {
+  const response = await fetchWithAuth(
+    `${API_URL}/api/v1/bunch/public/`,
+    {},
+    token,
+  );
+  if (!response.ok) throw new Error("Failed to fetch public bunches");
+  const data = await response.json();
+  return data.results;
+};
+
 export const getBunches = async (token?: string) => {
   const response = await fetchWithAuth(`${API_URL}/api/v1/bunch/`, {}, token);
   if (!response.ok) throw new Error("Failed to fetch bunches");
@@ -68,7 +77,7 @@ export const getBunch = async (id: string, token?: string) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${id}/`,
     {},
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to fetch bunch");
   return response.json();
@@ -81,7 +90,7 @@ export const createBunch = async (data: any, token?: string) => {
       method: "POST",
       body: JSON.stringify(data),
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to create bunch");
   return response.json();
@@ -94,7 +103,7 @@ export const updateBunch = async (id: string, data: any, token?: string) => {
       method: "PATCH",
       body: JSON.stringify(data),
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to update bunch");
   return response.json();
@@ -106,7 +115,7 @@ export const deleteBunch = async (id: string, token?: string) => {
     {
       method: "DELETE",
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to delete bunch");
   return response.ok;
@@ -115,7 +124,7 @@ export const deleteBunch = async (id: string, token?: string) => {
 export const joinBunch = async (
   id: string,
   inviteCode?: string,
-  token?: string
+  token?: string,
 ) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${id}/join/`,
@@ -123,7 +132,7 @@ export const joinBunch = async (
       method: "POST",
       body: JSON.stringify({ invite_code: inviteCode }),
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to join bunch");
   return response.json();
@@ -135,7 +144,7 @@ export const leaveBunch = async (id: string, token?: string) => {
     {
       method: "POST",
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to leave bunch");
   return response.ok;
@@ -146,7 +155,7 @@ export const getChannels = async (bunchId: string, token?: string) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/channels/`,
     {},
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to fetch channels");
   const data = await response.json();
@@ -156,12 +165,12 @@ export const getChannels = async (bunchId: string, token?: string) => {
 export const getChannel = async (
   bunchId: string,
   channelId: string,
-  token?: string
+  token?: string,
 ) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/channels/${channelId}/`,
     {},
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to fetch channel");
   return response.json();
@@ -170,7 +179,7 @@ export const getChannel = async (
 export const createChannel = async (
   bunchId: string,
   data: any,
-  token?: string
+  token?: string,
 ) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/channels/`,
@@ -178,7 +187,7 @@ export const createChannel = async (
       method: "POST",
       body: JSON.stringify(data),
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to create channel");
   return response.json();
@@ -188,7 +197,7 @@ export const updateChannel = async (
   bunchId: string,
   channelId: string,
   data: any,
-  token?: string
+  token?: string,
 ) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/channels/${channelId}/`,
@@ -196,7 +205,7 @@ export const updateChannel = async (
       method: "PATCH",
       body: JSON.stringify(data),
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to update channel");
   return response.json();
@@ -205,14 +214,14 @@ export const updateChannel = async (
 export const deleteChannel = async (
   bunchId: string,
   channelId: string,
-  token?: string
+  token?: string,
 ) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/channels/${channelId}/`,
     {
       method: "DELETE",
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to delete channel");
   return response.ok;
@@ -223,7 +232,7 @@ export const getMembers = async (bunchId: string, token?: string) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/members/`,
     {},
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to fetch members");
   return response.json();
@@ -233,7 +242,7 @@ export const updateMemberRole = async (
   bunchId: string,
   memberId: string,
   role: string,
-  token?: string
+  token?: string,
 ) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/members/${memberId}/update_role/`,
@@ -241,7 +250,7 @@ export const updateMemberRole = async (
       method: "POST",
       body: JSON.stringify({ role }),
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to update member role");
   return response.json();
@@ -250,14 +259,14 @@ export const updateMemberRole = async (
 export const removeMember = async (
   bunchId: string,
   memberId: string,
-  token?: string
+  token?: string,
 ) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/members/${memberId}/`,
     {
       method: "DELETE",
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to remove member");
   return response.ok;
@@ -267,14 +276,14 @@ export const removeMember = async (
 export const getMessages = async (
   bunchId: string,
   channelId: string,
-  token?: string
+  token?: string,
 ) => {
   // Request a larger page size to get more messages initially
   const pageSize = 100;
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/messages/?channel=${channelId}&page_size=${pageSize}`,
     {},
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to fetch messages");
   const data = await response.json();
@@ -284,7 +293,7 @@ export const getMessages = async (
       const authorResponse = await fetchWithAuth(
         `${API_URL}/api/v1/bunch/${bunchId}/members/${message.author_id}/`,
         {},
-        token
+        token,
       );
       const authorData = await authorResponse.json();
 
@@ -308,7 +317,7 @@ export const getMessages = async (
         deleted: message.deleted,
         deleted_at: message.deleted_at,
       };
-    })
+    }),
   );
 
   return transformedMessages;
@@ -318,7 +327,7 @@ export const createMessage = async (
   bunchId: string,
   channelId: string,
   content: string,
-  token?: string
+  token?: string,
 ) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/messages/`,
@@ -326,7 +335,7 @@ export const createMessage = async (
       method: "POST",
       body: JSON.stringify({ channel_id: channelId, content }),
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to create message");
   return response.json();
@@ -336,7 +345,7 @@ export const updateMessage = async (
   bunchId: string,
   messageId: string,
   content: string,
-  token?: string
+  token?: string,
 ) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/messages/${messageId}/`,
@@ -344,7 +353,7 @@ export const updateMessage = async (
       method: "PATCH",
       body: JSON.stringify({ content }),
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to update message");
   return response.json();
@@ -353,14 +362,14 @@ export const updateMessage = async (
 export const deleteMessage = async (
   bunchId: string,
   messageId: string,
-  token?: string
+  token?: string,
 ) => {
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/messages/${messageId}/`,
     {
       method: "DELETE",
     },
-    token
+    token,
   );
   if (!response.ok) throw new Error("Failed to delete message");
   return response.ok;
