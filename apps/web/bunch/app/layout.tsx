@@ -11,6 +11,16 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Bunch - Modern Chat App",
   description: "Very cool",
+  appleWebApp: {
+    title: "Bunch",
+  },
+  applicationName: "Bunch",
+  authors: [
+    { name: "tomlin7", url: "https://github.com/tomlin7" },
+    { name: "HarshNarayanJha", url: "https://github.com/HarshNarayanJha" },
+  ],
+  creator: "Bunch HQ",
+  keywords: ["Messaging", "Cross Platform", "Bunch"],
 };
 
 export default function RootLayout({
