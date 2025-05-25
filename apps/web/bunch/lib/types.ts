@@ -20,6 +20,8 @@ export interface Bunch {
   icon?: string;
   is_private: boolean;
   invite_code?: string;
+  members_count: number;
+  primary_color?: string;
 }
 
 export interface Member {
@@ -45,7 +47,7 @@ export interface Channel {
 export interface Message {
   id: string;
   channel: string; // Channel ID
-  author: Member; // Actually returns expanded Member object
+  author: Member;  // Actually returns expanded Member object
   content: string;
   created_at: string;
   updated_at: string;
