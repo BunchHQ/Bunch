@@ -95,7 +95,7 @@ export default function ChannelPage() {
           ) : (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-2 w-[250px]">
+                <div className="flex items-center space-x-2 min-w-[250px]">
                   <Avatar className="h-12 w-12">
                     {bunch?.icon ? (
                       <AvatarImage src={bunch.icon} alt={bunch.name} />
