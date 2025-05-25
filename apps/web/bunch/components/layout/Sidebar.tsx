@@ -1,36 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
-import {
-  PlusCircle,
-  Settings,
-  User,
-  Menu,
-  X,
-  Hash,
-  Volume2,
-  Bell,
-  MessageCircle,
-  Plus,
-} from "lucide-react";
+import { CreateBunchDialog } from "@/components/bunch/CreateBunchDialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bunch } from "@/lib/types";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserNav } from "@/components/user/UserNav";
-import { CreateBunchDialog } from "@/components/bunch/CreateBunchDialog";
+import type { Bunch } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { ThemeToggle } from "../theme/ThemeToggle";
 import { UserButton } from "@clerk/nextjs";
-import { UserProfile } from "@clerk/clerk-react";
+import { Menu, MessageCircle, Plus, Settings, X } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import { ThemeToggle } from "../theme/ThemeToggle";
 
 interface SidebarProps {
   bunches: Bunch[];
@@ -38,7 +25,7 @@ interface SidebarProps {
 
 export function Sidebar({ bunches }: SidebarProps) {
   const params = useParams();
-  const pathname = usePathname();
+  // const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 

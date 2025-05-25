@@ -1,5 +1,6 @@
 "use client";
 
+import { CreateBunchDialog } from "@/components/bunch/CreateBunchDialog";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,13 +10,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useUser } from "@clerk/nextjs";
+// import { useUser } from "@clerk/nextjs";
 import { Hash, MessageCircle, Settings, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function Home() {
-  const { isLoaded, isSignedIn } = useUser();
+  // const { isLoaded, isSignedIn } = useUser();
   const router = useRouter();
+
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   // useEffect(() => {
   //   if (isLoaded && !isSignedIn) {
@@ -70,7 +74,7 @@ export default function Home() {
               <Button
                 className="w-full"
                 variant="outline"
-                onClick={() => router.push("/bunch/create")}
+                onClick={() => setCreateDialogOpen(true)}
               >
                 Create Bunch
               </Button>
@@ -106,6 +110,11 @@ export default function Home() {
           </Button>
         </div>
       </div>
+
+      <CreateBunchDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
     </MainLayout>
   );
 }
