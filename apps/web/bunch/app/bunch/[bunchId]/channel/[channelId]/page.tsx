@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { Users, Info, Hash, Volume2, Bell } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ChannelsList } from "@/components/channel/ChannelsList";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { MessageList } from "@/components/message/MessageList";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -16,7 +14,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useBunch, useChannels } from "@/lib/hooks";
-import { Channel } from "@/lib/types";
+import type { Channel } from "@/lib/types";
+import { Bell, Hash, Info, Users, Volume2 } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function ChannelPage() {
   const params = useParams();
@@ -67,10 +68,21 @@ export default function ChannelPage() {
   const isLoading = isBunchLoading || isChannelsLoading;
   const channel = channels?.find((c: Channel) => c.id === channelId);
 
+  if (!isLoading && !bunch) {
+    return <h1>Bunch not found</h1>;
+  }
+
   return (
     <MainLayout>
       <div className="flex flex-col h-full">
-        <header className="border-b border-border p-4">
+        <header
+          className="border-b border-border p-4 bg-gradient-to-r from-[var(--bunch-primary-color)]/35 to-25% to-transparent"
+          style={
+            {
+              "--bunch-primary-color": bunch?.primary_color,
+            } as React.CSSProperties
+          }
+        >
           {isLoading ? (
             <div className="flex items-center space-x-4">
               <Skeleton className="h-6 w-6 rounded-full" />
@@ -83,6 +95,23 @@ export default function ChannelPage() {
           ) : (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 w-[250px]">
+                  <Avatar className="h-12 w-12">
+                    {bunch?.icon ? (
+                      <AvatarImage src={bunch.icon} alt={bunch.name} />
+                    ) : (
+                      <AvatarFallback className="bg-primary/50 text-primary-foreground">
+                        {bunch?.name.substring(0, 2)}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div>
+                    <h1 className="text-xl font-bold">{bunch?.name}</h1>
+                    <p className="text-sm text-muted-foreground">
+                      {bunch?.description || "No description"}
+                    </p>
+                  </div>
+                </div>
                 {getChannelIcon(channel?.type)}
                 <h1 className="text-xl font-medium">{channel?.name}</h1>
                 {channel?.description && (
@@ -104,8 +133,8 @@ export default function ChannelPage() {
                   {channel?.type === "text"
                     ? "Text Channel"
                     : channel?.type === "voice"
-                    ? "Voice Channel"
-                    : "Announcement Channel"}
+                      ? "Voice Channel"
+                      : "Announcement Channel"}
                 </span>
               </div>
               <div className="flex items-center">

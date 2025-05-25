@@ -12,7 +12,8 @@ import { useEffect } from "react";
 export default function BrowsePage() {
   const router = useRouter();
 
-  const { bunches, loading, error, fetchBunches } = useBunches();
+  // fetch public bunches
+  const { bunches, loading, error, fetchBunches } = useBunches(true);
 
   useEffect(() => {
     fetchBunches();

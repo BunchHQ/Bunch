@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { ChannelsList } from "@/components/channel/ChannelsList";
+import { CreateChannelDialog } from "@/components/channel/CreateChannelDialog";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Loader2, Plus, Settings, Hash, Users } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,11 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChannelsList } from "@/components/channel/ChannelsList";
 import { useBunch } from "@/lib/hooks";
-import { CreateChannelDialog } from "@/components/channel/CreateChannelDialog";
+import { Hash, Loader2, Plus, Settings, Users } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function BunchPage() {
   const params = useParams();
@@ -66,7 +66,14 @@ export default function BunchPage() {
   return (
     <MainLayout>
       <div className="flex flex-col h-full">
-        <header className="border-b border-border p-4">
+        <header
+          className="border-b border-border p-4 bg-gradient-to-r from-[var(--bunch-primary-color)]/35 to-25% to-transparent"
+          style={
+            {
+              "--bunch-primary-color": bunch?.primary_color,
+            } as React.CSSProperties
+          }
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Avatar className="h-12 w-12">
