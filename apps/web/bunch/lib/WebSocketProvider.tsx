@@ -1,15 +1,15 @@
 "use client";
 
+import { WebSocketMessage } from "@/lib/types";
+import { useAuth } from "@clerk/nextjs";
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
   useState,
-  useCallback,
 } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { WebSocketMessage } from "@/lib/types";
 
 // WebSocket connection states
 enum ConnectionState {
@@ -23,6 +23,7 @@ interface WebSocketContextType {
   connectWebSocket: (bunchId: string, channelId: string) => void;
   disconnectWebSocket: () => void;
   sendMessage: (content: string) => void;
+  sendReaction: (messageId: string, emoji: string) => void;
   messages: WebSocketMessage[];
   isConnected: boolean;
   connectionState: ConnectionState;
@@ -32,6 +33,7 @@ const WebSocketContext = createContext<WebSocketContextType>({
   connectWebSocket: () => {},
   disconnectWebSocket: () => {},
   sendMessage: () => {},
+  sendReaction: () => {},
   messages: [],
   isConnected: false,
   connectionState: ConnectionState.DISCONNECTED,
@@ -193,7 +195,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
           // Start the ping interval to keep the connection alive
           startPingInterval();
         };
-
         socket.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
@@ -212,6 +213,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
               return;
             }
 
+            // Handle message events
             if (data.message) {
               console.log("Adding new message to state:", data.message);
               setMessages((prev) => {
@@ -224,6 +226,17 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 }
                 return [...prev, data];
               });
+            }
+            // Handle reaction events
+            if (
+              data.type === "reaction.new" ||
+              data.type === "reaction.delete"
+            ) {
+              console.log("Received reaction event:", data);
+              // they will go in messages too, bc components depend on messages
+              // no need to update state separately
+              setMessages((prev) => [...prev, data]);
+              return;
             }
           } catch (error) {
             console.error("Error parsing message:", error);
@@ -315,7 +328,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     isConnectingRef.current = false;
     setIsConnected(false);
   }, []);
-
   const sendMessage = useCallback((content: string) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       try {
@@ -325,6 +337,30 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
       } catch (error) {
         console.error("Error sending message:", error);
         // Attempt to reconnect if sending fails
+        if (socketRef.current) {
+          socketRef.current.close();
+          socketRef.current = null;
+          setIsConnected(false);
+        }
+      }
+    } else {
+      console.error("WebSocket not connected");
+    }
+  }, []);
+
+  const sendReaction = useCallback((messageId: string, emoji: string) => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      try {
+        const reactionMessage = {
+          type: "reaction.toggle",
+          message_id: messageId,
+          emoji: emoji,
+        };
+        console.log("Sending reaction:", reactionMessage);
+        socketRef.current.send(JSON.stringify(reactionMessage));
+      } catch (error) {
+        console.error("Error sending reaction:", error);
+        // should attempt to reconnect
         if (socketRef.current) {
           socketRef.current.close();
           socketRef.current = null;
@@ -353,6 +389,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         connectWebSocket,
         disconnectWebSocket,
         sendMessage,
+        sendReaction,
         messages,
         isConnected,
         connectionState,

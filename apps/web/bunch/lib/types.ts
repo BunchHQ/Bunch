@@ -44,19 +44,36 @@ export interface Channel {
   position: number;
 }
 
+export interface Reaction {
+  id: string;
+  message_id: string; // Message ID (from backend serializer)
+  user: User;
+  emoji: string;
+  created_at: string;
+}
+
 export interface Message {
   id: string;
   channel: string; // Channel ID
-  author: Member;  // Actually returns expanded Member object
+  author: Member; // Actually returns expanded Member object
   content: string;
   created_at: string;
   updated_at: string;
   edit_count: number;
   deleted: boolean;
   deleted_at?: string;
+  reactions?: Reaction[];
+  reaction_counts?: { [emoji: string]: number };
 }
 
 export interface WebSocketMessage {
-  type: "message.new" | "message.update" | "message.delete" | "ping";
-  message: Message;
+  type:
+    | "message.new"
+    | "message.update"
+    | "message.delete"
+    | "reaction.new"
+    | "reaction.delete"
+    | "ping";
+  message?: Message;
+  reaction?: Reaction;
 }
