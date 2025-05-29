@@ -1,11 +1,12 @@
 from typing import override
 
-from bunch.models import Bunch, Channel, Member, Message, RoleChoices
+from bunch.models import Bunch, Channel, Member, Message, Reaction, RoleChoices
 from bunch.permissions import (AuthedHttpRequest, IsBunchAdmin, IsBunchMember,
                                IsBunchOwner, IsBunchPublic, IsMessageAuthor,
                                IsSelfMember)
 from bunch.serializers import (BunchSerializer, ChannelSerializer,
-                               MemberSerializer, MessageSerializer)
+                               MemberSerializer, MessageSerializer,
+                               ReactionSerializer)
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
@@ -486,7 +487,161 @@ class MessageViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def perform_create(self, serializer: MessageSerializer):
-        message = get_object_or_404(
-            Message, id=self.kwargs.get("message_id")
+        bunch = get_object_or_404(
+            Bunch, id=self.kwargs.get("bunch_id")
         )
-        serializer.save(message=message)
+        channel_id = self.request.data.get("channel_id")
+        channel = get_object_or_404(
+            Channel, id=channel_id, bunch=bunch
+        )
+        member = get_object_or_404(
+            Member, user=self.request.user, bunch=bunch
+        )
+        serializer.save(author=member, channel=channel)
+
+
+class ReactionViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing message reactions.
+    Supports CRUD operations for emoji reactions on messages.
+    """
+    serializer_class = ReactionSerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        IsBunchMember,
+    ]
+    lookup_field = "id"
+
+    def get_queryset(self):
+        bunch_id = self.kwargs.get("bunch_id")
+        message_id = self.request.query_params.get("message_id")
+        
+        if message_id:
+            return Reaction.objects.filter(
+                message_id=message_id,
+                message__channel__bunch_id=bunch_id
+            ).order_by("-created_at")
+        
+        return Reaction.objects.filter(
+            message__channel__bunch_id=bunch_id
+        ).order_by("-created_at")
+
+    @override
+    def get_permissions(self):
+        if (
+            self.request.user
+            and self.request.user.is_superuser
+        ):
+            self.permission_classes = [
+                permissions.IsAdminUser
+            ]
+            return super().get_permissions()
+
+        if self.action in ["list", "retrieve"]:
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+        elif self.action == "create":
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+        elif self.action in ("update", "partial_update", "destroy"):
+            # Only allow users to delete their own reactions
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+        else:
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsBunchMember,
+            ]
+
+        return super().get_permissions()
+
+    def perform_create(self, serializer: ReactionSerializer):
+        """Create a reaction for a message."""
+        message_id = self.request.data.get("message_id")
+        message = get_object_or_404(
+            Message, 
+            id=message_id,
+            channel__bunch_id=self.kwargs.get("bunch_id")
+        )
+        
+        # Check if user already reacted with this emoji
+        emoji = serializer.validated_data.get("emoji")
+        existing_reaction = Reaction.objects.filter(
+            message=message,
+            user=self.request.user,
+            emoji=emoji
+        ).first()
+        
+        if existing_reaction:
+            raise ValidationError(
+                "You have already reacted to this message with this emoji."
+            )
+        
+        serializer.save(user=self.request.user, message=message)
+
+    def perform_destroy(self, instance):
+        """Only allow users to delete their own reactions."""
+        if instance.user != self.request.user:
+            raise ValidationError(
+                "You can only delete your own reactions."
+            )
+        super().perform_destroy(instance)
+
+    @action(detail=False, methods=["post"])
+    def toggle(self, request, bunch_id=None):
+        """
+        Toggle a reaction (add if doesn't exist, remove if exists).
+        This is a more convenient endpoint for frontend usage.
+        """
+        message_id = request.data.get("message_id")
+        emoji = request.data.get("emoji")
+        
+        if not message_id or not emoji:
+            return Response(
+                {"error": "message_id and emoji are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        message = get_object_or_404(
+            Message,
+            id=message_id,
+            channel__bunch_id=bunch_id
+        )
+
+        # Check if reaction already exists
+        existing_reaction = Reaction.objects.filter(
+            message=message,
+            user=request.user,
+            emoji=emoji
+        ).first()
+
+        if existing_reaction:
+            # Remove reaction
+            existing_reaction.delete()
+            return Response(
+                {"action": "removed", "emoji": emoji},
+                status=status.HTTP_200_OK
+            )
+        else:
+            # Add reaction
+            reaction = Reaction.objects.create(
+                message=message,
+                user=request.user,
+                emoji=emoji
+            )
+            serializer = ReactionSerializer(
+                reaction, context={"request": request}
+            )
+            return Response(
+                {
+                    "action": "added",
+                    "reaction": serializer.data
+                },
+                status=status.HTTP_201_CREATED
+            )

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from bunch.models import Bunch, Channel, Member, Message
+from bunch.models import Bunch, Channel, Member, Message, Reaction
 
 
 @admin.register(Bunch)
@@ -292,3 +292,52 @@ class MessageAdmin(admin.ModelAdmin):
 
     list_editable: tuple[str, ...] = ()
     ordering: tuple[str, ...] = ("channel", "created_at")
+
+
+@admin.register(Reaction)
+class ReactionAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "emoji",
+        "user",
+        "message_content_preview",
+        "message_channel",
+        "created_at",
+    )
+    list_filter = (
+        "emoji",
+        "created_at",
+        "message__channel__bunch",
+    )
+    search_fields = (
+        "user__username",
+        "message__content",
+        "emoji",
+    )
+    readonly_fields = (
+        "id",
+        "created_at",
+    )
+    raw_id_fields = (
+        "message",
+        "user",
+    )
+
+    def message_content_preview(self, obj):
+        """Display a preview of the message content."""
+        if obj.message and obj.message.content:
+            preview = obj.message.content[:50]
+            if len(obj.message.content) > 50:
+                preview += "..."
+            return preview
+        return "-"
+    
+    message_content_preview.short_description = "Message Preview"
+
+    def message_channel(self, obj):
+        """Display the channel name and bunch name."""
+        if obj.message and obj.message.channel:
+            return f"{obj.message.channel.name} ({obj.message.channel.bunch.name})"
+        return "-"
+    
+    message_channel.short_description = "Channel"

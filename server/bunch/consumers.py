@@ -4,16 +4,13 @@ import time
 import urllib.parse
 from typing import Dict, Optional
 
+from bunch.models import Bunch, Channel, Message, Reaction
 from channels.db import database_sync_to_async
-from channels.generic.websocket import (
-    AsyncWebsocketConsumer,
-)
+from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpRequest
-
-from bunch.models import Bunch, Channel, Message
 from orchard.middleware import ClerkJWTAuthentication
 
 logger = logging.getLogger(__name__)
@@ -378,14 +375,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "connection_id"
         ] == self.connection_id and getattr(
             self, "is_keepalive", False
-        ):
-            logger.info(
+        ):            logger.info(
                 f"Ignoring close request for keepalive connection {self.connection_id}"
             )
 
     async def receive(self, text_data):
         try:
             data = json.loads(text_data)
+
+            logger.info(
+                f"Received data: {data.get('type')}, from user: {self.user.username if self.user else 'Anonymous'}"
+            )
 
             # ping!
             if data.get("type") == "ping":
@@ -418,8 +418,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         }
                     )
                 )
+                return            
+            
+            # Handle reaction events
+            if data.get("type") == "reaction" or data.get("type") == "reaction.toggle":
+                await self._handle_reaction(data)
                 return
 
+            # Handle regular chat messages
             content = data.get("content")
             if not content or not content.strip():
                 return
@@ -481,7 +487,226 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "deleted_at": message.deleted_at.isoformat()
             if message.deleted_at
             else None,
-        }
+        }    
+    
+    async def _handle_reaction(self, data):
+        """Handle reaction add/remove/toggle events."""
+        try:
+            action = data.get("action")  # "add", "remove", or None for toggle
+            message_id = data.get("message_id")
+            emoji = data.get("emoji")
+
+            if not all([message_id, emoji]):
+                logger.warning("Invalid reaction data received")
+                return            
+            
+            # reaction exists -> add/remove accordingly
+            if data.get("type") == "reaction.toggle" or not action:
+                def check_existing_reaction():
+                    return Reaction.objects.filter(
+                        message_id=message_id,
+                        user=self.user,
+                        emoji=emoji
+                    ).first()
+                
+                existing_reaction = await database_sync_to_async(check_existing_reaction)()
+                
+                if existing_reaction:
+                    reaction_data = await database_sync_to_async(
+                        self._remove_reaction
+                    )(self.user, message_id, emoji)
+                    
+                    if reaction_data:
+                        # Broadcast 
+                        await self.channel_layer.group_send(
+                            self.room_group_name,
+                            {
+                                "type": "reaction_removed",
+                                "reaction": reaction_data,
+                            },
+                        )
+                else:
+                    reaction_data = await database_sync_to_async(
+                        self._add_reaction
+                    )(self.user, message_id, emoji)
+                    
+                    if reaction_data:
+                        # Broadcast
+                        await self.channel_layer.group_send(
+                            self.room_group_name,
+                            {
+                                "type": "reaction_added",
+                                "reaction": reaction_data,
+                            },
+                        )
+                return
+
+            # Handle explicit add/remove actions
+            if action == "add":
+                reaction_data = await database_sync_to_async(
+                    self._add_reaction
+                )(self.user, message_id, emoji)
+                
+                if reaction_data:
+                    # Broadcast reaction add event
+                    await self.channel_layer.group_send(
+                        self.room_group_name,
+                        {
+                            "type": "reaction_added",
+                            "reaction": reaction_data,
+                        },
+                    )
+            
+            elif action == "remove":
+                reaction_data = await database_sync_to_async(
+                    self._remove_reaction
+                )(self.user, message_id, emoji)
+                
+                if reaction_data:
+                    # Broadcast reaction remove event
+                    await self.channel_layer.group_send(
+                        self.room_group_name,
+                        {
+                            "type": "reaction_removed",
+                            "reaction": reaction_data,
+                        },
+                    )
+                    
+        except Exception as e:
+            logger.error(f"Error handling reaction: {str(e)}")
+
+    def _add_reaction(self, user, message_id, emoji):
+        """Add a reaction to a message."""
+        try:
+            bunch = Bunch.objects.get(id=self.bunch_id)
+            message = Message.objects.get(
+                id=message_id,
+                channel__bunch=bunch
+            )
+            
+            # Check if user is a member of the bunch
+            if not bunch.members.filter(user=user).exists():
+                logger.warning(f"User {user.username} not a member of bunch {bunch.name}")
+                return None
+            
+            # Check if reaction already exists
+            existing_reaction = Reaction.objects.filter(
+                message=message,
+                user=user,
+                emoji=emoji
+            ).first()
+            
+            if existing_reaction:
+                logger.info(f"Reaction already exists: {emoji} by {user.username}")
+                return None
+            
+            # Create the reaction
+            reaction = Reaction.objects.create(
+                message=message,
+                user=user,
+                emoji=emoji
+            )
+            
+            logger.info(f"Reaction added: {emoji} by {user.username} to message {message_id}")
+            
+            return {
+                "id": str(reaction.id),
+                "message_id": str(message.id),
+                "user": {
+                    "id": str(user.id),
+                    "username": user.username,
+                },
+                "emoji": reaction.emoji,
+                "created_at": reaction.created_at.isoformat(),
+            }
+            
+        except (Bunch.DoesNotExist, Message.DoesNotExist) as e:
+            logger.error(f"Error adding reaction: {str(e)}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error adding reaction: {str(e)}")
+            return None
+
+    def _remove_reaction(self, user, message_id, emoji):
+        """Remove a reaction from a message."""
+        try:
+            bunch = Bunch.objects.get(id=self.bunch_id)
+            message = Message.objects.get(
+                id=message_id,
+                channel__bunch=bunch
+            )
+            
+            # Find the reaction
+            reaction = Reaction.objects.filter(
+                message=message,
+                user=user,
+                emoji=emoji
+            ).first()
+            
+            if not reaction:
+                logger.warning(f"Reaction not found: {emoji} by {user.username}")
+                return None
+            
+            reaction_data = {
+                "id": str(reaction.id),
+                "message_id": str(message.id),
+                "user": {
+                    "id": str(user.id),
+                    "username": user.username,
+                },
+                "emoji": reaction.emoji,
+                "created_at": reaction.created_at.isoformat(),
+            }
+            
+            # Delete the reaction
+            reaction.delete()
+            
+            logger.info(f"Reaction removed: {emoji} by {user.username} from message {message_id}")
+            
+            return reaction_data
+            
+        except (Bunch.DoesNotExist, Message.DoesNotExist) as e:
+            logger.error(f"Error removing reaction: {str(e)}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error removing reaction: {str(e)}")
+            return None
+
+    async def reaction_added(self, event):
+        """Send reaction added event to WebSocket."""
+        if not self._is_connected:
+            logger.warning("Received reaction_added while not connected")
+            return
+
+        try:
+            reaction = event["reaction"]
+            logger.info(f"Sending reaction added to client: {reaction['id']}")
+            await self.send(
+                text_data=json.dumps({
+                    "type": "reaction.new",
+                    "reaction": reaction
+                })
+            )
+        except Exception as e:
+            logger.error(f"Error in reaction_added: {str(e)}")
+
+    async def reaction_removed(self, event):
+        """Send reaction removed event to WebSocket."""
+        if not self._is_connected:
+            logger.warning("Received reaction_removed while not connected")
+            return
+
+        try:
+            reaction = event["reaction"]
+            logger.info(f"Sending reaction removed to client: {reaction['id']}")
+            await self.send(
+                text_data=json.dumps({
+                    "type": "reaction.delete",
+                    "reaction": reaction
+                })
+            )
+        except Exception as e:
+            logger.error(f"Error in reaction_removed: {str(e)}")
 
     async def chat_message(self, event):
         if not self._is_connected:
