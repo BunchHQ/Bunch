@@ -1,7 +1,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { useCallback, useState } from "react";
 import * as api from "./api";
-import type { Bunch, Channel, Member, Message, User } from "./types";
+import type { Bunch, Channel, Message, User } from "./types";
 
 // User hooks
 export const useCurrentUser = () => {
@@ -78,7 +78,7 @@ export const useBunches = (fetchPublic?: boolean) => {
         throw err;
       }
     },
-    [getToken],
+    [getToken]
   );
 
   return { bunches, loading, error, fetchBunches, createBunch };
@@ -123,7 +123,7 @@ export const useChannels = (bunchId: string) => {
         throw err;
       }
     },
-    [bunchId, getToken],
+    [bunchId, getToken]
   );
 
   return { channels, loading, error, fetchChannels, createChannel };
@@ -176,7 +176,7 @@ export function useMessages(bunchId: string, channelId: string) {
       }
       const data = await api.updateMessage(bunchId, messageId, content, token);
       setMessages((prev) =>
-        prev.map((msg) => (msg.id === messageId ? data : msg)),
+        prev.map((msg) => (msg.id === messageId ? data : msg))
       );
       return data;
     } catch (err) {
@@ -198,7 +198,6 @@ export function useMessages(bunchId: string, channelId: string) {
       throw err;
     }
   };
-
   return {
     messages,
     loading,
@@ -208,6 +207,103 @@ export function useMessages(bunchId: string, channelId: string) {
     updateMessage,
     deleteMessage,
     setMessages,
+  };
+}
+
+// reaction hooks (useless)
+export function useReactions(bunchId: string) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const { getToken } = useAuth();
+
+  const toggleReaction = async (messageId: string, emoji: string) => {
+    try {
+      setLoading(true);
+      const token = await getToken({ template: "Django" });
+      if (!token) {
+        throw new Error("No authentication token available");
+      }
+      const data = await api.toggleReaction(bunchId, messageId, emoji, token);
+      setError(null);
+      return data;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createReaction = async (messageId: string, emoji: string) => {
+    try {
+      setLoading(true);
+      const token = await getToken({ template: "Django" });
+      if (!token) {
+        throw new Error("No authentication token available");
+      }
+      const data = await api.createReaction(bunchId, messageId, emoji, token);
+      setError(null);
+      return data;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteReaction = async (reactionId: string) => {
+    try {
+      setLoading(true);
+      const token = await getToken({ template: "Django" });
+      if (!token) {
+        throw new Error("No authentication token available");
+      }
+      await api.deleteReaction(bunchId, reactionId, token);
+      setError(null);
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    loading,
+    error,
+    toggleReaction,
+    createReaction,
+    deleteReaction,
+  };
+}
+
+// THE reaction hooks
+export function useWebSocketReactions() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const toggleReaction = async (
+    messageId: string,
+    emoji: string,
+    sendReaction: (messageId: string, emoji: string) => void
+  ) => {
+    try {
+      setLoading(true);
+      sendReaction(messageId, emoji);
+      setError(null);
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    loading,
+    error,
+    toggleReaction,
   };
 }
 

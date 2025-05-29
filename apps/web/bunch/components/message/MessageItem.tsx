@@ -1,10 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Message } from "@/lib/types";
-import { MoreHorizontal, Edit, Trash, Reply } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,16 +9,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { MessageEditor } from "./MessageEditor";
+import { useMessages, useWebSocketReactions } from "@/lib/hooks";
+import { Message } from "@/lib/types";
+import { useWebSocket } from "@/lib/WebSocketProvider";
 import { useAuth } from "@clerk/nextjs";
-import { useMessages } from "@/lib/hooks";
+import { formatDistanceToNow } from "date-fns";
+import { Edit, MoreHorizontal, Smile, Trash } from "lucide-react";
+import { useState } from "react";
+import { EmojiPicker } from "./EmojiPicker";
+import { MessageEditor } from "./MessageEditor";
+import { MessageReactions } from "./MessageReactions";
 
 interface MessageItemProps {
   message: Message;
@@ -39,6 +42,8 @@ export function MessageItem({
     bunchId,
     message.channel
   );
+  const { sendReaction, isConnected } = useWebSocket();
+  const { toggleReaction } = useWebSocketReactions();
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -69,7 +74,6 @@ export function MessageItem({
   const handleCancelEdit = () => {
     setIsEditing(false);
   };
-
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
@@ -78,6 +82,19 @@ export function MessageItem({
       console.error("Failed to delete message:", error);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleEmojiSelect = async (emoji: string) => {
+    if (!isConnected) {
+      console.error("WebSocket not connected");
+      return;
+    }
+
+    try {
+      await toggleReaction(message.id, emoji, sendReaction);
+    } catch (error) {
+      console.error("Failed to add reaction:", error);
     }
   };
 
@@ -124,9 +141,11 @@ export function MessageItem({
       </div>
     );
   }
-
   return (
-    <div className="group px-4 py-2 hover:bg-accent/50 rounded-md transition-colors relative">
+    <div
+      className="group px-4 py-2 hover:bg-accent/50 rounded-md transition-colors relative"
+      data-testid={`message-${message.id}`}
+    >
       {showHeader ? (
         <div className="flex items-start space-x-2 mb-1.5">
           <Avatar className="h-8 w-8">
@@ -192,13 +211,23 @@ export function MessageItem({
                 (edited)
               </span>
             )}
+
+            {/* Reactions */}
+            {message.reactions && message.reaction_counts && (
+              <MessageReactions
+                messageId={message.id}
+                bunchId={bunchId}
+                reactions={message.reactions}
+                reactionCounts={message.reaction_counts}
+              />
+            )}
           </>
-        )}
+        )}{" "}
       </div>
 
-      {/* {!isEditing && (
+      {!isEditing && (
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">
-          <TooltipProvider>
+          {/* <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -208,8 +237,21 @@ export function MessageItem({
               <TooltipContent>
                 <p>Reply</p>
               </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+            </Tooltip>          </TooltipProvider> */}
+
+          <EmojiPicker
+            onEmojiSelect={handleEmojiSelect}
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                data-testid="message-emoji-picker-trigger"
+              >
+                <Smile className="h-4 w-4" />
+              </Button>
+            }
+          />
 
           {isAuthor && (
             <DropdownMenu>
@@ -245,7 +287,7 @@ export function MessageItem({
             </DropdownMenu>
           )}
         </div>
-      )} */}
+      )}
     </div>
   );
 }

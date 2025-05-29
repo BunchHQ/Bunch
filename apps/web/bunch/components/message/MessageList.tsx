@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
-import { useParams } from "next/navigation";
-import { useWebSocket } from "@/lib/WebSocketProvider";
-import { Message } from "@/lib/types";
-import { Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageItem } from "./MessageItem";
-import { MessageComposer } from "./MessageComposer";
+import { useWebSocket } from "@/lib/WebSocketProvider";
 import { useMessages } from "@/lib/hooks";
+import { Message } from "@/lib/types";
+import { Loader2 } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useRef } from "react";
+import { MessageComposer } from "./MessageComposer";
+import { MessageItem } from "./MessageItem";
 
 export function MessageList() {
   const params = useParams();
@@ -29,9 +29,9 @@ export function MessageList() {
     fetchMessages,
     setMessages,
   } = useMessages(bunchId, channelId);
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const processedMessageIds = useRef<Set<string>>(new Set());
+  const processedReactionIds = useRef<Set<string>>(new Set());
   const prevChannelRef = useRef<{ bunchId: string; channelId: string } | null>(
     null
   );
@@ -48,6 +48,7 @@ export function MessageList() {
       if (bunchId && channelId) {
         console.log("Fetching initial messages...");
         processedMessageIds.current = new Set();
+        processedReactionIds.current = new Set();
 
         await fetchMessages();
         console.log("Fetched messages:", messages);
@@ -107,12 +108,12 @@ export function MessageList() {
       }
     }
   }, [isConnected, bunchId, channelId, connectWebSocket]);
-
   // Process new WebSocket messages
   useEffect(() => {
     if (wsMessages.length > 0) {
       console.log("Received WebSocket messages:", wsMessages);
       for (const wsMessage of wsMessages) {
+        // Handle new message events
         if (
           wsMessage.message &&
           wsMessage.message.id &&
@@ -122,8 +123,92 @@ export function MessageList() {
 
           setMessages((prev: Message[]) => {
             const newMessages = [...prev, wsMessage.message];
-            console.log("Updated messages:", newMessages);
+            console.log("Updated messages with new message:", newMessages);
             return newMessages;
+          });
+        }
+        // Handle reaction events
+        else if (
+          wsMessage.type === "reaction.new" ||
+          wsMessage.type === "reaction.delete"
+        ) {
+          console.log("Processing reaction event:", wsMessage);
+          const { reaction } = wsMessage;
+
+          // Add type guard
+          if (!reaction) {
+            console.warn("Reaction event received without reaction data");
+            continue;
+          }
+
+          if (!reaction.message_id) {
+            console.warn("Reaction event received without message_id");
+            continue;
+          }
+
+          // unique identifier for this reaction event
+          const reactionEventId = `${wsMessage.type}-${reaction.id}-${reaction.message_id}-${reaction.emoji}-${reaction.user?.id}`;
+          if (processedReactionIds.current.has(reactionEventId)) {
+            console.log(
+              `Reaction event ${reactionEventId} already processed, skipping`
+            );
+            continue;
+          }
+          processedReactionIds.current.add(reactionEventId);
+
+          console.log("Reaction data:", reaction);
+
+          setMessages((prev: Message[]) => {
+            console.log("Current messages before reaction update:", prev);
+            const updatedMessages = prev.map((msg) => {
+              if (msg.id === reaction.message_id) {
+                console.log(
+                  `Found matching message ${reaction.message_id}, updating reactions`
+                );
+                let updatedReactions = [...(msg.reactions || [])];
+                let updatedCounts = { ...(msg.reaction_counts || {}) };
+
+                if (wsMessage.type === "reaction.new") {
+                  console.log("Adding reaction:", reaction);
+                  // Add the new reaction
+                  updatedReactions.push(reaction);
+                  updatedCounts[reaction.emoji] =
+                    (updatedCounts[reaction.emoji] || 0) + 1;
+                } else if (wsMessage.type === "reaction.delete") {
+                  console.log("Removing reaction:", reaction);
+                  // Remove the reaction
+                  updatedReactions = updatedReactions.filter(
+                    (r) => r.id !== reaction.id
+                  );
+                  updatedCounts[reaction.emoji] = Math.max(
+                    (updatedCounts[reaction.emoji] || 1) - 1,
+                    0
+                  );
+                  // Remove emoji from counts if count reaches 0
+                  if (updatedCounts[reaction.emoji] === 0) {
+                    delete updatedCounts[reaction.emoji];
+                  }
+                }
+
+                console.log(
+                  `Updated message ${reaction.message_id} reactions:`,
+                  {
+                    reactions: updatedReactions,
+                    counts: updatedCounts,
+                  }
+                );
+
+                return {
+                  ...msg,
+                  reactions: updatedReactions,
+                  reaction_counts: updatedCounts,
+                };
+              }
+              return msg;
+            });
+
+            console.log("Messages after reaction update:", updatedMessages);
+            return updatedMessages;
           });
         }
       }
