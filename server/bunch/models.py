@@ -2,8 +2,8 @@ import random
 import uuid
 from typing import TYPE_CHECKING, override
 
+from django.core.validators import RegexValidator
 from django.db import models
-
 from users.models import User
 
 
@@ -17,6 +17,22 @@ class ChannelTypes(models.TextChoices):
     TEXT = "text", "Text Channel"
     VOICE = "voice", "Voice Channel"
     ANNOUNCEMENT = "announcement", "Announcement Channel"
+
+
+# Common emoji choices for reactions
+class EmojiChoices(models.TextChoices):
+    THUMBS_UP = "👍", "Thumbs Up"
+    THUMBS_DOWN = "👎", "Thumbs Down"
+    HEART = "❤️", "Heart"
+    LAUGHING = "😂", "Laughing"
+    SURPRISED = "😮", "Surprised"
+    ANGRY = "😠", "Angry"
+    SAD = "😢", "Sad"
+    PARTY = "🎉", "Party"
+    FIRE = "🔥", "Fire"
+    CLAP = "👏", "Clapping"
+    EYES = "👀", "Eyes"
+    THINKING = "🤔", "Thinking"
 
 
 class ColorChoices(models.TextChoices):
@@ -255,3 +271,90 @@ class Message(models.Model):
             self.edit_count += 1
 
         super().save(*args, **kwargs)
+
+    if TYPE_CHECKING:
+        reactions: models.QuerySet["Reaction"]
+
+
+class ReactionManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def for_message(self, message_id):
+        """Returns reactions for a specific message."""
+        return self.get_queryset().filter(message_id=message_id)
+
+    def by_user(self, user_id):
+        """Returns reactions by a specific user."""
+        return self.get_queryset().filter(user_id=user_id)
+
+    def by_emoji(self, emoji):
+        """Returns reactions by a specific emoji."""
+        return self.get_queryset().filter(emoji=emoji)
+
+    def for_message_by_emoji(self, message_id, emoji):
+        """Returns reactions for a specific message and emoji."""
+        return self.get_queryset().filter(
+            message_id=message_id, emoji=emoji
+        )
+
+
+class Reaction(models.Model):
+    """
+    Model representing emoji reactions to messages.
+    Each user can only react once per message per emoji.
+    """
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False
+    )
+    message = models.ForeignKey(
+        Message,
+        on_delete=models.CASCADE,
+        related_name="reactions",
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="message_reactions",
+    )
+    emoji = models.CharField(
+        max_length=10,
+        help_text="Emoji character used for reaction",
+        # Allow any Unicode emoji, not just predefined choices
+        validators=[
+            RegexValidator(
+                regex=r'^[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF\u2600-\u26FF\u2700-\u27BF]+$',
+                message='Must be a valid emoji character',
+                flags=0
+            )
+        ]
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    objects: "ReactionManager" = ReactionManager()
+
+    class Meta:
+        unique_together = ('message', 'user', 'emoji')  # One reaction per user per emoji per message
+        verbose_name = "Reaction"
+        verbose_name_plural = "Reactions"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=['message', 'emoji']),
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} reacted {self.emoji} to message {self.message.id}"
+
+    def clean(self):
+        """Validate that the user has access to the message's channel/bunch."""
+        super().clean()
+        from django.core.exceptions import ValidationError
+
+        # Check if user is a member of the bunch where the message was posted
+        try:
+            self.message.channel.bunch.members.get(user=self.user)
+        except Member.DoesNotExist:
+            raise ValidationError(
+                "User must be a member of the bunch to react to messages."
+            )

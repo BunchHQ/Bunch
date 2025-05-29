@@ -1,9 +1,8 @@
 from typing import override
 
+from bunch.models import Bunch, Channel, Member, Message, Reaction
 from django.urls import reverse
 from rest_framework import serializers
-
-from bunch.models import Bunch, Channel, Member, Message
 from users.serializers import UserSerializer
 
 
@@ -128,6 +127,67 @@ class MemberSerializer(serializers.ModelSerializer):
         )
 
 
+class ReactionSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+    user = UserSerializer(read_only=True)
+    message_id = serializers.UUIDField(source="message.id", read_only=True)
+
+    class Meta:
+        model = Reaction
+        fields = [
+            "url",
+            "id",
+            "message_id",
+            "user",
+            "emoji",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "message_id",
+            "user",
+            "created_at",
+        ]
+
+    def get_url(self, obj: Reaction) -> str | None:
+        request = self.context.get("request")
+        if request is None:
+            return None
+        return request.build_absolute_uri(
+            reverse(
+                "bunch:bunch-reaction-detail",
+                kwargs={
+                    "bunch_id": obj.message.channel.bunch.id,
+                    "id": obj.id,
+                },
+            )
+        )
+
+    def validate_emoji(self, value):
+        """Validate that the emoji is a valid Unicode emoji."""
+        import re
+        emoji_pattern = r'^[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF\u2600-\u26FF\u2700-\u27BF]+$'
+        if not re.match(emoji_pattern, value):
+            raise serializers.ValidationError("Must be a valid emoji character.")
+        return value
+
+    def create(self, validated_data):
+        """Create a reaction, ensuring the user has access to the message."""
+        user = self.context['request'].user
+        message = validated_data['message']
+        
+        # user is a member of the bunch
+        try:
+            message.channel.bunch.members.get(user=user)
+        except Member.DoesNotExist:
+            raise serializers.ValidationError(
+                "You must be a member of this bunch to react to messages."
+            )
+        
+        validated_data['user'] = user
+        return super().create(validated_data)
+
+
 class MessageSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     channel_id = serializers.UUIDField(
@@ -136,6 +196,8 @@ class MessageSerializer(serializers.ModelSerializer):
     author_id = serializers.UUIDField(
         source="author.id", read_only=True
     )
+    reactions = ReactionSerializer(many=True, read_only=True)
+    reaction_counts = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
@@ -150,6 +212,8 @@ class MessageSerializer(serializers.ModelSerializer):
             "updated_at",
             "deleted",
             "deleted_at",
+            "reactions",
+            "reaction_counts",
         ]
         read_only_fields = [
             "id",
@@ -160,7 +224,17 @@ class MessageSerializer(serializers.ModelSerializer):
             "updated_at",
             "deleted",
             "deleted_at",
+            "reactions",
+            "reaction_counts",
         ]
+
+    def get_reaction_counts(self, obj: Message) -> dict:
+        """Get aggregated reaction counts by emoji."""
+        from django.db.models import Count
+        reaction_counts = obj.reactions.values('emoji').annotate(
+            count=Count('emoji')
+        ).order_by('-count')
+        return {item['emoji']: item['count'] for item in reaction_counts}
 
     def get_url(self, obj: Message) -> str | None:
         request = self.context.get("request")

@@ -22,6 +22,11 @@ bunch_router.register(
     views.MessageViewSet,
     basename="bunch-message",
 )
+bunch_router.register(
+    r"reactions",
+    views.ReactionViewSet,
+    basename="bunch-reaction",
+)
 
 urlpatterns = [
     path("", include(router.urls)),
