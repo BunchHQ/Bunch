@@ -7,7 +7,7 @@ import { useMessages } from "@/lib/hooks";
 import type { Message } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MessageComposer } from "./MessageComposer";
 import { MessageItem } from "./MessageItem";
 
@@ -33,12 +33,47 @@ export function MessageList() {
   const processedMessageIds = useRef<Set<string>>(new Set());
   const processedReactionIds = useRef<Set<string>>(new Set());
   const prevChannelRef = useRef<{ bunchId: string; channelId: string } | null>(
-    null,
+    null
   );
 
+  // Reply state
+  const [replyingTo, setReplyingTo] = useState<Message | undefined>(undefined);
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, []);
+
+  // Reply handlers
+  const handleReply = useCallback((message: Message) => {
+    setReplyingTo(message);
+    // Focus the composer textarea when starting a reply
+    setTimeout(() => {
+      const textarea = document.querySelector(
+        'textarea[placeholder*="Message"]'
+      );
+      if (textarea) {
+        (textarea as HTMLTextAreaElement).focus();
+      }
+    }, 100);
+  }, []);
+
+  const handleCancelReply = useCallback(() => {
+    setReplyingTo(undefined);
+  }, []);
+
+  const handleJumpToMessage = useCallback((messageId: string) => {
+    // Find the message element and scroll to it
+    const messageElement = document.querySelector(
+      `[data-message-id="${messageId}"]`
+    );
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Add a brief highlight effect
+      messageElement.classList.add("bg-accent/50");
+      setTimeout(() => {
+        messageElement.classList.remove("bg-accent/50");
+      }, 2000);
     }
   }, []);
 
@@ -149,7 +184,7 @@ export function MessageList() {
           const reactionEventId = `${wsMessage.type}-${reaction.id}-${reaction.message_id}-${reaction.emoji}-${reaction.user?.id}`;
           if (processedReactionIds.current.has(reactionEventId)) {
             console.log(
-              `Reaction event ${reactionEventId} already processed, skipping`,
+              `Reaction event ${reactionEventId} already processed, skipping`
             );
             continue;
           }
@@ -162,7 +197,7 @@ export function MessageList() {
             const updatedMessages = prev.map((msg) => {
               if (msg.id === reaction.message_id) {
                 console.log(
-                  `Found matching message ${reaction.message_id}, updating reactions`,
+                  `Found matching message ${reaction.message_id}, updating reactions`
                 );
                 let updatedReactions = [...(msg.reactions || [])];
                 const updatedCounts = { ...(msg.reaction_counts || {}) };
@@ -177,11 +212,11 @@ export function MessageList() {
                   console.log("Removing reaction:", reaction);
                   // Remove the reaction
                   updatedReactions = updatedReactions.filter(
-                    (r) => r.id !== reaction.id,
+                    (r) => r.id !== reaction.id
                   );
                   updatedCounts[reaction.emoji] = Math.max(
                     (updatedCounts[reaction.emoji] || 1) - 1,
-                    0,
+                    0
                   );
                   // Remove emoji from counts if count reaches 0
                   if (updatedCounts[reaction.emoji] === 0) {
@@ -194,7 +229,7 @@ export function MessageList() {
                   {
                     reactions: updatedReactions,
                     counts: updatedCounts,
-                  },
+                  }
                 );
 
                 return {
@@ -216,7 +251,7 @@ export function MessageList() {
     }
   }, [wsMessages, setMessages, scrollToBottom]);
 
-  // Group messages by author and time
+  // Group messages by author, time, and reply
   const groupedMessages =
     messages?.reduce((groups: Message[][], message) => {
       if (!message || !message.author || !message.author.user) {
@@ -226,16 +261,18 @@ export function MessageList() {
 
       const lastGroup = groups[groups.length - 1];
 
-      // Start new group if:
+      // new group if:
       // 1. first message
-      //  2. from a different author than the last group
+      // 2. from a different author than the last group
       // 3. more than 5 minutes apart from the last message in the last group
+      // 4. message is a reply (reply_to_id is present)
       if (
         !lastGroup ||
         lastGroup[0].author.user.id !== message.author.user.id ||
         new Date(message.created_at).getTime() -
           new Date(lastGroup[lastGroup.length - 1].created_at).getTime() >
-          5 * 60 * 1000
+          5 * 60 * 1000 ||
+        message.reply_to_id // <-- new group if this is a reply
       ) {
         groups.push([message]);
       } else {
@@ -270,7 +307,6 @@ export function MessageList() {
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <ConnectionStatus />
-
       <ScrollArea ref={scrollRef} className="flex-1 overflow-y-auto p-4">
         {messages?.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-20">
@@ -285,30 +321,41 @@ export function MessageList() {
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-1">
             {groupedMessages?.map((group, index) => (
-              <div key={`${group[0].id}-${index}`} className="space-y-1">
-                <MessageItem
-                  message={group[0]}
-                  showHeader={true}
-                  bunchId={bunchId}
-                />
-                {group.slice(1).map((message) => (
+              <div key={`${group[0].id}-${index}`} className="space-y-0">
+                <div data-message-id={group[0].id}>
                   <MessageItem
-                    key={message.id}
-                    message={message}
-                    showHeader={false}
+                    message={group[0]}
+                    showHeader={true}
                     bunchId={bunchId}
+                    onReply={handleReply}
+                    onJumpToMessage={handleJumpToMessage}
                   />
+                </div>
+                {group.slice(1).map((message) => (
+                  <div key={message.id} data-message-id={message.id}>
+                    <MessageItem
+                      message={message}
+                      showHeader={false}
+                      bunchId={bunchId}
+                      onReply={handleReply}
+                      onJumpToMessage={handleJumpToMessage}
+                    />
+                  </div>
                 ))}
               </div>
             ))}
           </div>
         )}
-      </ScrollArea>
-
+      </ScrollArea>{" "}
       <div>
-        <MessageComposer bunchId={bunchId} channelId={channelId} />
+        <MessageComposer
+          bunchId={bunchId}
+          channelId={channelId}
+          replyingTo={replyingTo}
+          onCancelReply={handleCancelReply}
+        />
       </div>
     </div>
   );

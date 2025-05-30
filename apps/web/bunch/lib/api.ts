@@ -317,6 +317,9 @@ export const getMessages = async (
         deleted_at: message.deleted_at,
         reactions: message.reactions || [],
         reaction_counts: message.reaction_counts || {},
+        reply_to_id: message.reply_to_id,
+        reply_to_preview: message.reply_to_preview,
+        reply_count: message.reply_count,
       };
     })
   );
@@ -328,13 +331,19 @@ export const createMessage = async (
   bunchId: string,
   channelId: string,
   content: string,
+  replyToId?: string,
   token?: string
 ) => {
+  const requestBody: any = { channel_id: channelId, content };
+  if (replyToId) {
+    requestBody.reply_to_id = replyToId;
+  }
+
   const response = await fetchWithAuth(
     `${API_URL}/api/v1/bunch/${bunchId}/messages/`,
     {
       method: "POST",
-      body: JSON.stringify({ channel_id: channelId, content }),
+      body: JSON.stringify(requestBody),
     },
     token
   );

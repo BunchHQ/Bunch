@@ -152,14 +152,19 @@ export function useMessages(bunchId: string, channelId: string) {
       setLoading(false);
     }
   };
-
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, replyToId?: string) => {
     try {
       const token = await getToken({ template: "Django" });
       if (!token) {
         throw new Error("No authentication token available");
       }
-      const data = await api.createMessage(bunchId, channelId, content, token);
+      const data = await api.createMessage(
+        bunchId,
+        channelId,
+        content,
+        replyToId,
+        token
+      );
       setMessages((prev) => [...prev, data]);
       return data;
     } catch (err) {
