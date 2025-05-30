@@ -1,3 +1,5 @@
+import json
+import logging
 from typing import override
 
 from bunch.models import Bunch, Channel, Member, Message, Reaction, RoleChoices
@@ -7,6 +9,8 @@ from bunch.permissions import (AuthedHttpRequest, IsBunchAdmin, IsBunchMember,
 from bunch.serializers import (BunchSerializer, ChannelSerializer,
                                MemberSerializer, MessageSerializer,
                                ReactionSerializer)
+from channels.layers import get_channel_layer
+from django.db import models
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
@@ -14,6 +18,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from users.models import User
+
+logger = logging.getLogger(__name__)
 
 
 class BunchViewSet(viewsets.ModelViewSet):
@@ -422,7 +428,7 @@ class MessagePagination(PageNumberPagination):
 
 
 class MessageViewSet(viewsets.ModelViewSet):
-    serializer_class = MessageSerializer
+    serializer_class = MessageSerializer    
     permission_classes = [
         permissions.IsAuthenticated,
         IsBunchMember,
@@ -433,13 +439,22 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         bunch_id = self.kwargs.get("bunch_id")
-        queryset = Message.objects.for_bunch(bunch_id)
+        queryset = Message.objects.for_bunch(bunch_id).select_related(
+            'author__user', 'reply_to__author__user'
+        ).annotate(
+            reply_count=models.Count('replies')
+        )
         
-        # Filter by channel if channel parameter is provided
-        channel_id = self.request.query_params.get("channel")
+        # Filter by channel if specified
+        channel_id = self.request.query_params.get('channel')
         if channel_id:
             queryset = queryset.filter(channel_id=channel_id)
         
+        # Filter for top-level messages only if requested
+        top_level = self.request.query_params.get('top_level')
+        if top_level and top_level.lower() == 'true':
+            queryset = queryset.filter(reply_to__isnull=True)
+            
         return queryset.order_by("created_at")
 
     @override
@@ -487,17 +502,105 @@ class MessageViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def perform_create(self, serializer: MessageSerializer):
-        bunch = get_object_or_404(
-            Bunch, id=self.kwargs.get("bunch_id")
-        )
+        bunch_id = self.kwargs.get("bunch_id")
         channel_id = self.request.data.get("channel_id")
-        channel = get_object_or_404(
-            Channel, id=channel_id, bunch=bunch
+        reply_to_id = self.request.data.get("reply_to_id")
+
+        if not channel_id:
+            raise ValidationError({"channel_id": "This field is required."})
+        
+        channel = get_object_or_404(Channel, id=channel_id, bunch_id=bunch_id)
+        member = get_object_or_404(Member, user=self.request.user, bunch_id=bunch_id)
+        
+        reply_to = None
+        if reply_to_id:
+            reply_to = get_object_or_404(
+                Message, 
+                id=reply_to_id, 
+                channel__bunch_id=bunch_id,
+                deleted=False  # Can't reply to deleted messages
+            )
+        
+        message = serializer.save(
+            channel=channel,
+            author=member,
+            reply_to=reply_to
         )
-        member = get_object_or_404(
-            Member, user=self.request.user, bunch=bunch
-        )
-        serializer.save(author=member, channel=channel)
+        self._broadcast_message_via_websocket(message, channel, member, bunch_id)
+    
+    def _broadcast_message_via_websocket(self, message, channel, member, bunch_id):
+        """Broadcast message to WebSocket consumers for live updates"""
+        try:
+            message_data = {
+                "id": str(message.id),
+                "channel": str(channel.id),
+                "author": {
+                    "id": str(member.id),
+                    "bunch": str(bunch_id),
+                    "user": {
+                        "id": str(member.user.id),
+                        "username": member.user.username,
+                    },
+                    "role": member.role,
+                    "joined_at": member.joined_at.isoformat(),
+                },
+                "content": message.content,
+                "created_at": message.created_at.isoformat(),
+                "updated_at": message.updated_at.isoformat(),
+                "edit_count": message.edit_count,                "deleted": message.deleted,
+                "deleted_at": message.deleted_at.isoformat() if message.deleted_at else None,
+                "reply_to_id": str(message.reply_to_id) if message.reply_to_id else None,
+                "reply_to_preview": self._get_reply_preview(message.reply_to) if message.reply_to else None,
+                "reply_count": 0,  # New message, no replies yet
+            }
+            channel_layer = get_channel_layer()
+            room_group_name = f"chat_{bunch_id}_{channel.id}"
+            
+            from asgiref.sync import async_to_sync
+            async_to_sync(channel_layer.group_send)(
+                room_group_name,
+                {
+                    "type": "chat_message",
+                    "message": message_data,
+                }
+            )
+        except Exception as e:
+            # Log the error but don't fail the message creation
+            logger.error(f"Failed to broadcast message via WebSocket: {str(e)}")    
+            
+    def _get_reply_preview(self, reply_to_message):
+        """Generate reply preview data for a replied-to message"""
+        if not reply_to_message:
+            return None
+            
+        return {
+            "id": str(reply_to_message.id),
+            "content": reply_to_message.content,
+            "created_at": reply_to_message.created_at.isoformat(),
+            "author": {
+                "id": str(reply_to_message.author.user.id),
+                "username": reply_to_message.author.user.username,
+            }
+        }
+
+    @action(detail=True, methods=["get"])
+    def replies(self, request, bunch_id=None, id=None):
+        """Get all replies to a specific message."""
+        message = self.get_object()
+        replies = Message.objects.replies_to(message.id).select_related(
+            'author__user', 'reply_to__author__user'
+        ).annotate(
+            reply_count=models.Count('replies')
+        ).order_by('created_at')
+        
+        # Paginate the replies
+        page = self.paginate_queryset(replies)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(replies, many=True)
+        return Response(serializer.data)
 
 
 class ReactionViewSet(viewsets.ModelViewSet):
@@ -622,7 +725,6 @@ class ReactionViewSet(viewsets.ModelViewSet):
         ).first()
 
         if existing_reaction:
-            # Remove reaction
             existing_reaction.delete()
             return Response(
                 {"action": "removed", "emoji": emoji},
@@ -645,3 +747,4 @@ class ReactionViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_201_CREATED
             )
+        
