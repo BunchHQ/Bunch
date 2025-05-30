@@ -198,6 +198,13 @@ class MessageSerializer(serializers.ModelSerializer):
     )
     reactions = ReactionSerializer(many=True, read_only=True)
     reaction_counts = serializers.SerializerMethodField()
+    reply_to_id = serializers.UUIDField(
+        source="reply_to.id", read_only=True, allow_null=True
+    )
+    reply_count = serializers.IntegerField(read_only=True)
+    
+    # Nested serializer for the replied-to message preview
+    reply_to_preview = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
@@ -207,6 +214,9 @@ class MessageSerializer(serializers.ModelSerializer):
             "content",
             "channel_id",
             "author_id",
+            "reply_to_id",
+            "reply_to_preview",
+            "reply_count",
             "created_at",
             "edit_count",
             "updated_at",
@@ -219,6 +229,9 @@ class MessageSerializer(serializers.ModelSerializer):
             "id",
             "channel_id",
             "author_id",
+            "reply_to_id",
+            "reply_to_preview",
+            "reply_count",
             "created_at",
             "edit_count",
             "updated_at",
@@ -235,6 +248,21 @@ class MessageSerializer(serializers.ModelSerializer):
             count=Count('emoji')
         ).order_by('-count')
         return {item['emoji']: item['count'] for item in reaction_counts}
+    
+    def get_reply_to_preview(self, obj: Message) -> dict | None:
+        """Get a preview of the message being replied to."""
+        if not obj.reply_to:
+            return None
+        
+        return {
+            "id": str(obj.reply_to.id),
+            "content": obj.reply_to.content[:100] + "..." if len(obj.reply_to.content) > 100 else obj.reply_to.content,
+            "author": {
+                "id": str(obj.reply_to.author.id),
+                "username": obj.reply_to.author.user.username,
+            },
+            "created_at": obj.reply_to.created_at,
+        }
 
     def get_url(self, obj: Message) -> str | None:
         request = self.context.get("request")

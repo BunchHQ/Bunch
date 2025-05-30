@@ -391,10 +391,378 @@ class MessagesTest(APITestCase):
             response.data["results"]
             if "results" in response.data
             else response.data
-        )
-
-        # Should return all messages when no channel filter is applied
+        )        # Should return all messages when no channel filter is applied
         self.assertEqual(
             len(messages), 2,
             "Should return all messages when no channel filter is applied"
         )
+
+    def test_create_reply_to_message(self):
+        """Test creating a reply to an existing message"""
+        self.authenticate_user("test")
+
+        # Create an original message
+        original_data = {
+            "content": "Original message content",
+            "channel_id": str(self.channel_general_1.id),
+        }
+        original_response = self.client.post(
+            self.messages_list_url_1, 
+            original_data, 
+            format="json"
+        )
+        self.assertEqual(original_response.status_code, status.HTTP_201_CREATED)
+        original_message_id = original_response.data["id"]
+
+        # Create a reply to the original message
+        reply_data = {
+            "content": "This is a reply",
+            "channel_id": str(self.channel_general_1.id),
+            "reply_to_id": original_message_id,
+        }
+        reply_response = self.client.post(
+            self.messages_list_url_1, 
+            reply_data, 
+            format="json"
+        )
+        
+        self.assertEqual(reply_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(reply_response.data["content"], "This is a reply")
+        self.assertEqual(reply_response.data["reply_to_id"], original_message_id)
+        self.assertIsNotNone(reply_response.data["reply_to_preview"])
+        
+        # Verify reply preview contains expected data
+        preview = reply_response.data["reply_to_preview"]
+        self.assertEqual(preview["id"], original_message_id)
+        self.assertEqual(preview["content"], "Original message content")
+        self.assertEqual(preview["author"]["username"], self.user.username)
+
+    def test_create_reply_to_nonexistent_message(self):
+        """Test creating a reply to a non-existent message returns 404"""
+        self.authenticate_user("test")
+
+        reply_data = {
+            "content": "This is a reply",
+            "channel_id": str(self.channel_general_1.id),
+            "reply_to_id": "00000000-0000-0000-0000-000000000000",
+        }
+        response = self.client.post(
+            self.messages_list_url_1, 
+            reply_data, 
+            format="json"
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_reply_to_deleted_message(self):
+        """Test that replying to a deleted message fails"""
+        self.authenticate_user("test")
+
+        # Create and delete an original message
+        original_data = {
+            "content": "Original message content",
+            "channel_id": str(self.channel_general_1.id),
+        }
+        original_response = self.client.post(
+            self.messages_list_url_1, 
+            original_data, 
+            format="json"
+        )
+        original_message_id = original_response.data["id"]
+        
+        # Mark the message as deleted
+        message = Message.objects.get(id=original_message_id)
+        message.deleted = True
+        message.save()
+
+        # Try to reply to the deleted message
+        reply_data = {
+            "content": "This is a reply to deleted message",
+            "channel_id": str(self.channel_general_1.id),
+            "reply_to_id": original_message_id,
+        }
+        response = self.client.post(
+            self.messages_list_url_1, 
+            reply_data, 
+            format="json"
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_reply_cross_bunch(self):
+        """Test that replying to a message from another bunch fails"""
+        self.authenticate_user("test")
+
+        # Create a message in bunch1
+        message_data = {
+            "content": "Message in bunch1",
+            "channel_id": str(self.channel_general_1.id),
+        }
+        response = self.client.post(
+            self.messages_list_url_1, 
+            message_data, 
+            format="json"
+        )
+        message_id = response.data["id"]
+
+        # Try to reply to it from bunch2
+        reply_data = {
+            "content": "Reply from bunch2",
+            "channel_id": str(self.channel_general_2.id),
+            "reply_to_id": message_id,
+        }
+        
+        messages_list_url_2 = f"/api/v1/bunch/{self.bunch2.id}/messages/"
+        response = self.client.post(
+            messages_list_url_2, 
+            reply_data, 
+            format="json"
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_replies_to_message(self):
+        """Test retrieving replies to a specific message"""
+        self.authenticate_user("test")
+
+        # Create an original message
+        original_data = {
+            "content": "Original message",
+            "channel_id": str(self.channel_general_1.id),
+        }
+        original_response = self.client.post(
+            self.messages_list_url_1, 
+            original_data, 
+            format="json"
+        )
+        original_message_id = original_response.data["id"]
+
+        # Create multiple replies
+        for i in range(3):
+            reply_data = {
+                "content": f"Reply {i+1}",
+                "channel_id": str(self.channel_general_1.id),
+                "reply_to_id": original_message_id,
+            }
+            self.client.post(self.messages_list_url_1, reply_data, format="json")
+
+        # Get replies
+        replies_url = f"{self.messages_list_url_1}{original_message_id}/replies/"
+        response = self.client.get(replies_url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        replies = response.data["results"] if "results" in response.data else response.data
+        self.assertEqual(len(replies), 3)
+        
+        # Verify replies are ordered by created_at
+        reply_contents = [reply["content"] for reply in replies]
+        self.assertEqual(reply_contents, ["Reply 1", "Reply 2", "Reply 3"])
+
+    def test_message_reply_count_annotation(self):
+        """Test that messages are properly annotated with reply count"""
+        self.authenticate_user("test")
+
+        # Create an original message
+        original_data = {
+            "content": "Message with replies",
+            "channel_id": str(self.channel_general_1.id),
+        }
+        original_response = self.client.post(
+            self.messages_list_url_1, 
+            original_data, 
+            format="json"
+        )
+        original_message_id = original_response.data["id"]
+
+        # Create 2 replies
+        for i in range(2):
+            reply_data = {
+                "content": f"Reply {i+1}",
+                "channel_id": str(self.channel_general_1.id),
+                "reply_to_id": original_message_id,
+            }
+            self.client.post(self.messages_list_url_1, reply_data, format="json")
+
+        # Get the original message and check reply count
+        message_detail_url = f"{self.messages_list_url_1}{original_message_id}/"
+        response = self.client.get(message_detail_url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["reply_count"], 2)
+
+    def test_nested_replies_not_allowed(self):
+        """Test that replying to a reply creates a reply to the original message"""
+        self.authenticate_user("test")
+
+        # Create original message
+        original_data = {
+            "content": "Original message",
+            "channel_id": str(self.channel_general_1.id),
+        }
+        original_response = self.client.post(
+            self.messages_list_url_1, 
+            original_data, 
+            format="json"
+        )
+        original_message_id = original_response.data["id"]
+
+        # Create first reply
+        reply1_data = {
+            "content": "First reply",
+            "channel_id": str(self.channel_general_1.id),
+            "reply_to_id": original_message_id,
+        }
+        reply1_response = self.client.post(
+            self.messages_list_url_1, 
+            reply1_data, 
+            format="json"
+        )
+        reply1_id = reply1_response.data["id"]
+
+        # Try to reply to the reply (should still reference original)
+        reply2_data = {
+            "content": "Reply to reply",
+            "channel_id": str(self.channel_general_1.id),
+            "reply_to_id": reply1_id,
+        }
+        reply2_response = self.client.post(
+            self.messages_list_url_1, 
+            reply2_data, 
+            format="json"
+        )
+        
+        self.assertEqual(reply2_response.status_code, status.HTTP_201_CREATED)
+        # The reply should still reference the first reply, not the original
+        self.assertEqual(reply2_response.data["reply_to_id"], reply1_id)
+
+    def test_top_level_messages_filter(self):
+        """Test filtering for top-level messages only"""
+        self.authenticate_user("test")
+
+        # Create original message
+        original_data = {
+            "content": "Top level message",
+            "channel_id": str(self.channel_general_1.id),
+        }
+        original_response = self.client.post(
+            self.messages_list_url_1, 
+            original_data, 
+            format="json"
+        )
+        original_message_id = original_response.data["id"]
+
+        # Create a reply
+        reply_data = {
+            "content": "This is a reply",
+            "channel_id": str(self.channel_general_1.id),
+            "reply_to_id": original_message_id,
+        }
+        self.client.post(self.messages_list_url_1, reply_data, format="json")
+
+        # Get all messages (should include both)
+        response = self.client.get(self.messages_list_url_1)
+        all_messages = response.data["results"] if "results" in response.data else response.data
+        self.assertEqual(len(all_messages), 2)
+
+        # Get only top-level messages
+        response = self.client.get(f"{self.messages_list_url_1}?top_level=true")
+        top_level_messages = response.data["results"] if "results" in response.data else response.data
+        self.assertEqual(len(top_level_messages), 1)
+        self.assertEqual(top_level_messages[0]["content"], "Top level message")
+
+    def test_reply_preview_content_truncation(self):
+        """Test that reply preview content is properly truncated"""
+        self.authenticate_user("test")
+
+        # Create a long original message (over 100 characters)
+        long_content = "A" * 150  # 150 characters
+        original_data = {
+            "content": long_content,
+            "channel_id": str(self.channel_general_1.id),
+        }
+        original_response = self.client.post(
+            self.messages_list_url_1, 
+            original_data, 
+            format="json"
+        )
+        original_message_id = original_response.data["id"]
+
+        # Create a reply
+        reply_data = {
+            "content": "Reply to long message",
+            "channel_id": str(self.channel_general_1.id),
+            "reply_to_id": original_message_id,
+        }
+        reply_response = self.client.post(
+            self.messages_list_url_1, 
+            reply_data, 
+            format="json"
+        )
+          # Check that preview content is truncated
+        preview = reply_response.data["reply_to_preview"]
+        self.assertEqual(len(preview["content"]), 103)  # 100 chars + "..."
+        self.assertTrue(preview["content"].endswith("..."))    
+        
+    def test_unauthorized_user_cannot_create_reply(self):
+        """Test that unauthorized users cannot create replies"""
+        self.authenticate_user("test")
+        
+        # First create a valid message to reply to
+        original_data = {
+            "content": "Original message for unauthorized test",
+            "channel_id": str(self.channel_general_1.id),
+        }
+        original_response = self.client.post(
+            self.messages_list_url_1, 
+            original_data, 
+            format="json"
+        )
+        original_message_id = original_response.data["id"]
+        
+        # Clear authentication to make user unauthorized
+        self.client.credentials()
+
+        reply_data = {
+            "content": "Unauthorized reply",
+            "channel_id": str(self.channel_general_1.id),
+            "reply_to_id": original_message_id,
+        }
+        response = self.client.post(
+            self.messages_list_url_1, 
+            reply_data, 
+            format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_non_member_cannot_create_reply(self):
+        """Test that non-members cannot create replies"""
+        # Use other_user who is not a member of bunch2
+        self.authenticate_user("other")
+        
+        # First create a valid message in bunch2 (as owner)
+        self.authenticate_user("test")
+        original_data = {
+            "content": "Original message in bunch2",
+            "channel_id": str(self.channel_general_2.id),
+        }
+        original_response = self.client.post(
+            self.messages_list_url_2, 
+            original_data, 
+            format="json"
+        )
+        original_message_id = original_response.data["id"]
+        
+        # Now try to reply as other_user (non-member of bunch2)
+        self.authenticate_user("other")
+        reply_data = {
+            "content": "Non-member reply",
+            "channel_id": str(self.channel_general_2.id),
+            "reply_to_id": original_message_id,
+        }
+        response = self.client.post(
+            self.messages_list_url_2, 
+            reply_data, 
+            format="json"
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

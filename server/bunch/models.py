@@ -229,6 +229,20 @@ class MessageManager(models.Manager):
             :limit
         ]
 
+    def with_replies(self):
+        """Returns messages with their reply count."""
+        return self.get_queryset().annotate(
+            reply_count=models.Count("replies")
+        )
+
+    def top_level(self):
+        """Returns only top-level messages (not replies)."""
+        return self.get_queryset().filter(reply_to__isnull=True)
+
+    def replies_to(self, message_id):
+        """Returns replies to a specific message."""
+        return self.get_queryset().filter(reply_to_id=message_id)
+
 
 class Message(models.Model):
     id = models.UUIDField(
@@ -252,6 +266,16 @@ class Message(models.Model):
 
     deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
+    
+    # Reply functionality
+    reply_to = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="replies",
+        help_text="Message this is a reply to",
+    )
 
     objects: "MessageManager" = MessageManager()
 
