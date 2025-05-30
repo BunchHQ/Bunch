@@ -305,3 +305,96 @@ class MessagesTest(APITestCase):
             status.HTTP_403_FORBIDDEN,
             "Message creation should fail",
         )
+
+    def test_list_messages_filtered_by_channel(self):
+        """Test that messages are properly filtered by channel when channel parameter is provided"""
+        # Create messages in different channels of the same bunch
+        message_general = Message.objects.create(
+            content="Message in General",
+            channel=self.channel_general_1,
+            author=self.member_member_1,
+        )
+
+        message_other = Message.objects.create(
+            content="Message in Other",
+            channel=self.channel_other_1,
+            author=self.member_member_1,
+        )
+
+        self.authenticate_user(user_type="other")
+
+        # Test filtering by general channel
+        response = self.client.get(
+            f"{self.messages_list_url_1}?channel={self.channel_general_1.id}"
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            "List request should succeed",
+        )
+
+        messages = (
+            response.data["results"]
+            if "results" in response.data
+            else response.data
+        )
+
+        # Should only return messages from general channel
+        self.assertEqual(
+            len(messages), 1,
+            "Should only return 1 message from general channel"
+        )
+        self.assertEqual(
+            messages[0]["content"], "Message in General"
+        )
+        self.assertEqual(
+            messages[0]["channel_id"], str(self.channel_general_1.id)
+        )
+
+        # Test filtering by other channel
+        response = self.client.get(
+            f"{self.messages_list_url_1}?channel={self.channel_other_1.id}"
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            "List request should succeed",
+        )
+
+        messages = (
+            response.data["results"]
+            if "results" in response.data
+            else response.data
+        )
+
+        # Should only return messages from other channel
+        self.assertEqual(
+            len(messages), 1,
+            "Should only return 1 message from other channel"
+        )
+        self.assertEqual(
+            messages[0]["content"], "Message in Other"
+        )
+        self.assertEqual(
+            messages[0]["channel_id"], str(self.channel_other_1.id)
+        )
+
+        # Test without channel filter - should return all messages from the bunch
+        response = self.client.get(self.messages_list_url_1)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            "List request should succeed",
+        )
+
+        messages = (
+            response.data["results"]
+            if "results" in response.data
+            else response.data
+        )
+
+        # Should return all messages when no channel filter is applied
+        self.assertEqual(
+            len(messages), 2,
+            "Should return all messages when no channel filter is applied"
+        )
