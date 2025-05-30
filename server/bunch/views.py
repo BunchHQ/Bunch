@@ -1,34 +1,17 @@
 from typing import override
 
+from bunch.models import Bunch, Channel, Member, Message, RoleChoices
+from bunch.permissions import (AuthedHttpRequest, IsBunchAdmin, IsBunchMember,
+                               IsBunchOwner, IsBunchPublic, IsMessageAuthor,
+                               IsSelfMember)
+from bunch.serializers import (BunchSerializer, ChannelSerializer,
+                               MemberSerializer, MessageSerializer)
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-
-from bunch.models import (
-    Bunch,
-    Channel,
-    Member,
-    Message,
-    RoleChoices,
-)
-from bunch.permissions import (
-    AuthedHttpRequest,
-    IsBunchAdmin,
-    IsBunchMember,
-    IsBunchOwner,
-    IsBunchPublic,
-    IsMessageAuthor,
-    IsSelfMember,
-)
-from bunch.serializers import (
-    BunchSerializer,
-    ChannelSerializer,
-    MemberSerializer,
-    MessageSerializer,
-)
 from users.models import User
 
 
@@ -449,9 +432,14 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         bunch_id = self.kwargs.get("bunch_id")
-        return Message.objects.for_bunch(bunch_id).order_by(
-            "created_at"
-        )
+        queryset = Message.objects.for_bunch(bunch_id)
+        
+        # Filter by channel if channel parameter is provided
+        channel_id = self.request.query_params.get("channel")
+        if channel_id:
+            queryset = queryset.filter(channel_id=channel_id)
+        
+        return queryset.order_by("created_at")
 
     @override
     def get_permissions(self):
