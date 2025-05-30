@@ -20,27 +20,33 @@ import type { Message } from "@/lib/types";
 import { useWebSocket } from "@/lib/WebSocketProvider";
 import { useAuth } from "@clerk/nextjs";
 import { formatDistanceToNow } from "date-fns";
-import { Edit, MoreHorizontal, Smile, Trash } from "lucide-react";
+import { Edit, MoreHorizontal, Reply, Smile, Trash } from "lucide-react";
 import { useState } from "react";
 import { EmojiPicker } from "./EmojiPicker";
 import { MessageEditor } from "./MessageEditor";
 import { MessageReactions } from "./MessageReactions";
+import { ReplyIndicator } from "./ReplyIndicator";
+import { ReplySpine } from "./ReplySpine";
 
 interface MessageItemProps {
   message: Message;
   showHeader: boolean;
   bunchId: string;
+  onReply?: (message: Message) => void;
+  onJumpToMessage?: (messageId: string) => void;
 }
 
 export function MessageItem({
   message,
   showHeader,
   bunchId,
+  onReply,
+  onJumpToMessage,
 }: MessageItemProps) {
   const { userId } = useAuth();
   const { updateMessage, deleteMessage } = useMessages(
     bunchId,
-    message.channel,
+    message.channel
   );
   const { sendReaction, isConnected } = useWebSocket();
   const { toggleReaction } = useWebSocketReactions();
@@ -56,7 +62,7 @@ export function MessageItem({
   const formattedDate = timestamp.toLocaleDateString();
   const timeAgo = formatDistanceToNow(timestamp, { addSuffix: true });
 
-  const isAuthor = userId === message.author.user.id; // won't work clerk userId doesn't match user.id
+  const isAuthor = userId === message.author.user.username; // won't work clerk userId doesn't match user.id
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -98,9 +104,19 @@ export function MessageItem({
     }
   };
 
+  const handleReply = () => {
+    onReply?.(message);
+  };
+
+  const handleJumpToReply = () => {
+    if (message.reply_to_id) {
+      onJumpToMessage?.(message.reply_to_id);
+    }
+  };
+
   if (message.deleted) {
     return (
-      <div className="px-4 py-2 opacity-60">
+      <div className="px-4 py-1 opacity-60">
         {showHeader && (
           <div className="flex items-start space-x-2 mb-1.5">
             <Avatar className="h-8 w-8">
@@ -143,9 +159,21 @@ export function MessageItem({
   }
   return (
     <div
-      className="group px-4 py-2 hover:bg-accent/50 rounded-md transition-colors relative"
+      className="group px-4 py-1 hover:bg-accent/50 rounded-md transition-colors relative"
       data-testid={`message-${message.id}`}
     >
+      {/* Reply indicator for messages that are replies */}
+      {message.reply_to_preview && (
+        <>
+          <ReplySpine onClick={handleJumpToReply} />
+          <ReplyIndicator
+            message={message}
+            onJumpToReply={handleJumpToReply}
+            className="relative z-10"
+          />
+        </>
+      )}
+
       {showHeader ? (
         <div className="flex items-start space-x-2 mb-1.5">
           <Avatar className="h-8 w-8">
@@ -226,17 +254,23 @@ export function MessageItem({
 
       {!isEditing && (
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">
-          {/* <TooltipProvider>
+          <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={handleReply}
+                >
                   <Reply className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Reply</p>
               </TooltipContent>
-            </Tooltip>          </TooltipProvider> */}
+            </Tooltip>{" "}
+          </TooltipProvider>
 
           <EmojiPicker
             onEmojiSelect={handleEmojiSelect}

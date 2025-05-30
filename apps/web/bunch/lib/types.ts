@@ -64,6 +64,17 @@ export interface Message {
   deleted_at?: string;
   reactions?: Reaction[];
   reaction_counts?: { [emoji: string]: number };
+  reply_to_id?: string;
+  reply_to_preview?: {
+    id: string;
+    content: string;
+    author: {
+      id: string;
+      username: string;
+    };
+    created_at: string;
+  };
+  reply_count?: number;
 }
 
 export interface WebSocketMessage {
