@@ -65,9 +65,9 @@ export default function BunchPage() {
 
   return (
     <MainLayout>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full py-2">
         <header
-          className="border-b border-border p-4 bg-gradient-to-r from-[var(--bunch-primary-color)]/35 to-25% to-transparent"
+          className="border-b border-border p-4 bg-gradient-to-r from-[var(--bunch-primary-color)]/35 to-25% to-transparent rounded-md"
           style={
             {
               "--bunch-primary-color": bunch?.primary_color,

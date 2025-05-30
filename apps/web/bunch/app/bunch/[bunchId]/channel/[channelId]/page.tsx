@@ -74,9 +74,9 @@ export default function ChannelPage() {
 
   return (
     <MainLayout>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col pt-2 h-full">
         <header
-          className="border-b border-border p-4 bg-gradient-to-r from-[var(--bunch-primary-color)]/35 to-25% to-transparent"
+          className="border-b border-border p-4 bg-gradient-to-r from-[var(--bunch-primary-color)]/35 to-25% to-transparent rounded-md"
           style={
             {
               "--bunch-primary-color": bunch?.primary_color,
@@ -133,8 +133,8 @@ export default function ChannelPage() {
                   {channel?.type === "text"
                     ? "Text Channel"
                     : channel?.type === "voice"
-                      ? "Voice Channel"
-                      : "Announcement Channel"}
+                    ? "Voice Channel"
+                    : "Announcement Channel"}
                 </span>
               </div>
               <div className="flex items-center">
