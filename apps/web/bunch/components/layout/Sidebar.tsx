@@ -71,7 +71,12 @@ export function Sidebar({ bunches }: SidebarProps) {
                     <TooltipTrigger asChild>
                       <Link
                         href={`/bunch/${bunch.id}`}
-                        className="w-12 h-12 rounded-[100px] flex items-center justify-center bg-card hover:!bg-secondary hover:rounded-[15px] transition-all"
+                        className="w-12 h-12 rounded-[100px] flex items-center justify-center bg-[var(--bunch-primary-color)]/20  hover:rounded-[15px] transition-all"
+                        style={
+                          {
+                            "--bunch-primary-color": bunch?.primary_color,
+                          } as React.CSSProperties
+                        }
                       >
                         <Avatar className="h-12 w-12">
                           {bunch.icon ? (
@@ -79,10 +84,14 @@ export function Sidebar({ bunches }: SidebarProps) {
                           ) : (
                             <AvatarFallback
                               className={cn(
-                                "bg-secondary text-primary/50 text-lg",
-                                currentBunchId === bunch.id &&
-                                  "bg-secondary text-primary"
+                                "bg-transparent text-[var(--bunch-primary-color)] text-lg",
+                                currentBunchId === bunch.id && "text-primary"
                               )}
+                              style={
+                                {
+                                  "--bunch-primary-color": bunch?.primary_color,
+                                } as React.CSSProperties
+                              }
                             >
                               {bunch.name.substring(0, 2)}
                             </AvatarFallback>
