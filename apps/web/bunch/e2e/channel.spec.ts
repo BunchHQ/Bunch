@@ -43,7 +43,7 @@ test.describe("Channel Management", () => {
     await expect(page.getByText("Success", { exact: true })).toBeVisible();
     await expect(page.getByText("Channel created successfully!")).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Test Channel" })
+      page.getByRole("link", { name: "Test Channel" }),
     ).toBeVisible();
   });
 
@@ -67,6 +67,145 @@ test.describe("Channel Management", () => {
     await expect(page.getByText("Hello there!")).toBeVisible();
   });
 
+  test("should show reply button when hovering over message", async ({
+    page,
+  }) => {
+    await page.getByRole("button", { name: "Create a channel" }).click();
+    await page.getByRole("combobox").click();
+    await page.getByRole("option", { name: "Text Channel" }).click();
+    await page.getByRole("textbox", { name: "Channel Name" }).click();
+    await page
+      .getByRole("textbox", { name: "Channel Name" })
+      .fill("Chat Channel");
+    await page.getByRole("button", { name: "Create Channel" }).click();
+
+    await page.getByRole("link", { name: "Chat Channel" }).click();
+
+    const messageInput = page.getByRole("textbox", { name: /Message #/ });
+    await messageInput.click();
+    await messageInput.fill("Hello there!");
+    await page.locator(".border-t > div > button:nth-child(3)").click();
+
+    const messageContainer = page
+      .locator(".group")
+      .filter({
+        hasText: "Hello there!",
+      })
+      .first();
+
+    await messageContainer.hover();
+
+    // Check that the reply button appears - scope within message container
+    const replyButton = messageContainer.getByTestId("message-reply-trigger");
+
+    await expect(replyButton).toBeVisible();
+  });
+
+  test("should be able to click reply for a message in channel", async ({
+    page,
+  }) => {
+    await page.getByRole("button", { name: "Create a channel" }).click();
+    await page.getByRole("combobox").click();
+    await page.getByRole("option", { name: "Text Channel" }).click();
+    await page.getByRole("textbox", { name: "Channel Name" }).click();
+    await page
+      .getByRole("textbox", { name: "Channel Name" })
+      .fill("Chat Channel");
+    await page.getByRole("button", { name: "Create Channel" }).click();
+
+    await page.getByRole("link", { name: "Chat Channel" }).click();
+
+    const messageInput = page.getByRole("textbox", { name: /Message #/ });
+    await messageInput.click();
+    await messageInput.fill("Hello there!");
+    await page.locator(".border-t > div > button:nth-child(3)").click();
+
+    const messageContainer = page
+      .locator(".group")
+      .filter({
+        hasText: "Hello there!",
+      })
+      .first();
+
+    await messageContainer.hover();
+
+    // Check that the reply button appears - scope within message container
+    const replyButton = messageContainer.getByTestId("message-reply-trigger");
+
+    await expect(replyButton).toBeVisible();
+
+    await replyButton.click();
+
+    // Verify reply header is visible with correct message
+    const replyHeader = page.getByTestId("message-compose-reply-header");
+    await expect(replyHeader).toBeVisible();
+    await expect(replyHeader.getByText(/Replying to \w+/)).toBeVisible();
+    await expect(replyHeader.getByText("Hello there!")).toBeVisible();
+
+    // verify reply cancel button is visible
+    const replyCancel = replyHeader.getByRole("button", { name: "Cancel" });
+    await expect(replyCancel).toBeVisible();
+
+    // click it
+    await replyCancel.click();
+
+    // Verify reply header is no longer visible
+    await expect(replyHeader).not.toBeVisible();
+    await expect(page.getByText(/Replying to \w+/)).not.toBeVisible();
+  });
+
+  test("should be able to send reply for a message in channel", async ({
+    page,
+  }) => {
+    const message = "Hello There!";
+    const replyMessage = "Reply There!";
+
+    await page.getByRole("button", { name: "Create a channel" }).click();
+    await page.getByRole("combobox").click();
+    await page.getByRole("option", { name: "Text Channel" }).click();
+    await page.getByRole("textbox", { name: "Channel Name" }).click();
+    await page
+      .getByRole("textbox", { name: "Channel Name" })
+      .fill("Chat Channel");
+    await page.getByRole("button", { name: "Create Channel" }).click();
+
+    await page.getByRole("link", { name: "Chat Channel" }).click();
+
+    const messageInput = page.getByRole("textbox", { name: /Message #/ });
+    await messageInput.click();
+    await messageInput.fill(message);
+    await page.locator(".border-t > div > button:nth-child(3)").click();
+
+    const messageContainer = page
+      .locator(".group")
+      .filter({
+        hasText: message,
+      })
+      .first();
+
+    await messageContainer.hover();
+
+    // Check that the reply button appears - scope within message container
+    const replyButton = messageContainer.getByTestId("message-reply-trigger");
+
+    await replyButton.click();
+
+    // send a reply
+    await messageInput.click();
+    await messageInput.fill(replyMessage);
+    await page.locator(".border-t > div > button:nth-child(3)").click();
+
+    const replyMessageContainer = page.getByText(replyMessage).first();
+
+    await expect(replyMessageContainer).toBeVisible();
+    // check message spine
+    await expect(
+      replyMessageContainer.getByTestId("message-reply-spine"),
+    ).toBeVisible();
+    // check actual message contents
+    await expect(replyMessageContainer.getByText(replyMessage)).toBeVisible();
+  });
+
   test("should show empty state for new channel", async ({ page }) => {
     await page.getByRole("button", { name: "Create a channel" }).click();
     await page.getByRole("combobox").click();
@@ -80,7 +219,7 @@ test.describe("Channel Management", () => {
     await page.getByRole("link", { name: "Empty Channel" }).click();
 
     await expect(
-      page.getByRole("heading", { name: "No messages yet" })
+      page.getByRole("heading", { name: "No messages yet" }),
     ).toBeVisible();
   });
 
@@ -105,7 +244,7 @@ test.describe("Channel Management", () => {
 
     // Wait for the emoji picker popover to appear
     const emojiPopover = page.locator(
-      '[role="dialog"], [data-radix-popper-content-wrapper]'
+      '[role="dialog"], [data-radix-popper-content-wrapper]',
     );
 
     // Click the first emoji in the picker
