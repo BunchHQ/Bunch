@@ -159,7 +159,7 @@ export function MessageItem({
   }
   return (
     <div
-      className="group px-4 py-1 hover:bg-accent/50 rounded-md transition-colors relative"
+      className="group px-2 py-1 hover:bg-accent/50 rounded-md transition-colors relative"
       data-testid={`message-${message.id}`}
     >
       {/* Reply indicator for messages that are replies */}
@@ -175,8 +175,8 @@ export function MessageItem({
       )}
 
       {showHeader ? (
-        <div className="flex items-start space-x-2 mb-1.5">
-          <Avatar className="h-8 w-8">
+        <div className="flex items-start space-x-3">
+          <Avatar className="h-10 w-10 mt-0.5">
             <AvatarImage
               src={message.author.user.avatar || undefined}
               alt={message.author.user.username}
@@ -185,9 +185,9 @@ export function MessageItem({
               {message.author.user.username.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <div className="flex items-baseline">
-              <span className="font-medium mr-2">
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm font-medium">
                 {message.author.nickname || message.author.user.username}
               </span>
               <TooltipProvider>
@@ -204,6 +204,32 @@ export function MessageItem({
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
+            </div>
+            <div className="text-sm whitespace-pre-wrap mt-0 mb-0 leading-tight">
+              {isEditing ? (
+                <MessageEditor
+                  initialContent={message.content}
+                  onSave={handleSaveEdit}
+                  onCancel={handleCancelEdit}
+                />
+              ) : (
+                <>
+                  {message.content}
+                  {message.edit_count > 0 && (
+                    <span className="text-xs text-muted-foreground italic ml-2">
+                      (edited)
+                    </span>
+                  )}
+                  {/* Reactions */}
+                  {message.reactions && message.reaction_counts && (
+                    <MessageReactions
+                      messageId={message.id}
+                      reactions={message.reactions}
+                      reactionCounts={message.reaction_counts}
+                    />
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -223,34 +249,6 @@ export function MessageItem({
           </Tooltip>
         </TooltipProvider>
       )}
-
-      <div className={`${showHeader ? "ml-10" : "ml-10"} break-words`}>
-        {isEditing ? (
-          <MessageEditor
-            initialContent={message.content}
-            onSave={handleSaveEdit}
-            onCancel={handleCancelEdit}
-          />
-        ) : (
-          <>
-            <div className="text-sm whitespace-pre-wrap">{message.content}</div>
-            {message.edit_count > 0 && (
-              <span className="text-xs text-muted-foreground italic">
-                (edited)
-              </span>
-            )}
-
-            {/* Reactions */}
-            {message.reactions && message.reaction_counts && (
-              <MessageReactions
-                messageId={message.id}
-                reactions={message.reactions}
-                reactionCounts={message.reaction_counts}
-              />
-            )}
-          </>
-        )}{" "}
-      </div>
 
       {!isEditing && (
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">

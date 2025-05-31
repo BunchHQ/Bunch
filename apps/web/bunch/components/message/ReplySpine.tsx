@@ -11,7 +11,7 @@ export const ReplySpine: React.FC<ReplySpineProps> = ({
 }) => {
   return (
     <div
-      className={`absolute left-8 top-0 h-8 w-3.5  flex items-center z-0 cursor-pointer ${
+      className={`absolute left-8 top-0 h-8 w-5  flex items-center z-0 cursor-pointer ${
         className || ""
       }`}
       onClick={onClick}
@@ -27,7 +27,12 @@ export const ReplySpine: React.FC<ReplySpineProps> = ({
         version="1.1"
         transform="matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,0)"
       >
-        <path d="M4 0 V20 Q4 25 9 25 H16" stroke="#9b9ca3" fill="none"></path>
+        <path
+          d="M4 0 V20 Q4 30 15 29 H20"
+          stroke="#9b9ca3"
+          fill="none"
+          stroke-width="1.5"
+        ></path>
       </svg>
     </div>
   );
