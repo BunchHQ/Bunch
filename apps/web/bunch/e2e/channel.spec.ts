@@ -190,12 +190,23 @@ test.describe("Channel Management", () => {
 
     await replyButton.click();
 
+    const replyHeader = page.getByTestId("message-compose-reply-header");
+
     // send a reply
     await messageInput.click();
     await messageInput.fill(replyMessage);
-    await page.locator(".border-t > div > button:nth-child(3)").click();
+    await page.keyboard.press("Enter");
 
-    const replyMessageContainer = page.getByText(replyMessage).first();
+    // Verify reply header is no longer visible
+    await expect(replyHeader).not.toBeVisible();
+    await expect(page.getByText(/Replying to \w+/)).not.toBeVisible();
+
+    const replyMessageContainer = page
+      .locator(".group")
+      .filter({
+        hasText: replyMessage,
+      })
+      .first();
 
     await expect(replyMessageContainer).toBeVisible();
     // check message spine
