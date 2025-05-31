@@ -9,9 +9,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useWebSocket } from "@/lib/WebSocketProvider";
 import { useWebSocketReactions } from "@/lib/hooks";
-import { Reaction } from "@/lib/types";
+import type { Reaction } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@clerk/nextjs";
 import { useState } from "react";
 
 interface ReactionButtonProps {
@@ -19,7 +18,6 @@ interface ReactionButtonProps {
   count: number;
   reactions: Reaction[];
   messageId: string;
-  bunchId: string;
   hasUserReacted: boolean;
 }
 
@@ -28,10 +26,8 @@ export function ReactionButton({
   count,
   reactions,
   messageId,
-  bunchId,
   hasUserReacted,
 }: ReactionButtonProps) {
-  const { userId } = useAuth();
   const { sendReaction, isConnected } = useWebSocket();
   const { toggleReaction, loading } = useWebSocketReactions();
   const [isToggling, setIsToggling] = useState(false);
@@ -70,8 +66,8 @@ export function ReactionButton({
             className={cn(
               "h-6 px-2 py-1 text-xs gap-1 transition-colors",
               hasUserReacted
-                ? "bg-blue-100 border border-blue-300 text-blue-700 hover:bg-blue-200"
-                : "hover:bg-accent"
+                ? "bg-blue-100 border border-blue-300 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-800"
+                : "hover:bg-accent",
             )}
             onClick={handleToggle}
             disabled={isToggling || loading || !isConnected}

@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useWebSocket } from "@/lib/WebSocketProvider";
 import { useMessages } from "@/lib/hooks";
-import { Message } from "@/lib/types";
+import type { Message } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
@@ -33,7 +33,7 @@ export function MessageList() {
   const processedMessageIds = useRef<Set<string>>(new Set());
   const processedReactionIds = useRef<Set<string>>(new Set());
   const prevChannelRef = useRef<{ bunchId: string; channelId: string } | null>(
-    null
+    null,
   );
 
   const scrollToBottom = useCallback(() => {
@@ -115,14 +115,13 @@ export function MessageList() {
       for (const wsMessage of wsMessages) {
         // Handle new message events
         if (
-          wsMessage.message &&
-          wsMessage.message.id &&
+          wsMessage.message?.id &&
           !processedMessageIds.current.has(wsMessage.message.id)
         ) {
           processedMessageIds.current.add(wsMessage.message.id);
 
           setMessages((prev: Message[]) => {
-            const newMessages = [...prev, wsMessage.message];
+            const newMessages = [...prev, wsMessage.message] as Message[];
             console.log("Updated messages with new message:", newMessages);
             return newMessages;
           });
@@ -150,7 +149,7 @@ export function MessageList() {
           const reactionEventId = `${wsMessage.type}-${reaction.id}-${reaction.message_id}-${reaction.emoji}-${reaction.user?.id}`;
           if (processedReactionIds.current.has(reactionEventId)) {
             console.log(
-              `Reaction event ${reactionEventId} already processed, skipping`
+              `Reaction event ${reactionEventId} already processed, skipping`,
             );
             continue;
           }
@@ -163,10 +162,10 @@ export function MessageList() {
             const updatedMessages = prev.map((msg) => {
               if (msg.id === reaction.message_id) {
                 console.log(
-                  `Found matching message ${reaction.message_id}, updating reactions`
+                  `Found matching message ${reaction.message_id}, updating reactions`,
                 );
                 let updatedReactions = [...(msg.reactions || [])];
-                let updatedCounts = { ...(msg.reaction_counts || {}) };
+                const updatedCounts = { ...(msg.reaction_counts || {}) };
 
                 if (wsMessage.type === "reaction.new") {
                   console.log("Adding reaction:", reaction);
@@ -178,11 +177,11 @@ export function MessageList() {
                   console.log("Removing reaction:", reaction);
                   // Remove the reaction
                   updatedReactions = updatedReactions.filter(
-                    (r) => r.id !== reaction.id
+                    (r) => r.id !== reaction.id,
                   );
                   updatedCounts[reaction.emoji] = Math.max(
                     (updatedCounts[reaction.emoji] || 1) - 1,
-                    0
+                    0,
                   );
                   // Remove emoji from counts if count reaches 0
                   if (updatedCounts[reaction.emoji] === 0) {
@@ -195,7 +194,7 @@ export function MessageList() {
                   {
                     reactions: updatedReactions,
                     counts: updatedCounts,
-                  }
+                  },
                 );
 
                 return {

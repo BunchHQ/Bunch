@@ -16,7 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useMessages, useWebSocketReactions } from "@/lib/hooks";
-import { Message } from "@/lib/types";
+import type { Message } from "@/lib/types";
 import { useWebSocket } from "@/lib/WebSocketProvider";
 import { useAuth } from "@clerk/nextjs";
 import { formatDistanceToNow } from "date-fns";
@@ -40,7 +40,7 @@ export function MessageItem({
   const { userId } = useAuth();
   const { updateMessage, deleteMessage } = useMessages(
     bunchId,
-    message.channel
+    message.channel,
   );
   const { sendReaction, isConnected } = useWebSocket();
   const { toggleReaction } = useWebSocketReactions();
@@ -216,7 +216,6 @@ export function MessageItem({
             {message.reactions && message.reaction_counts && (
               <MessageReactions
                 messageId={message.id}
-                bunchId={bunchId}
                 reactions={message.reactions}
                 reactionCounts={message.reaction_counts}
               />
