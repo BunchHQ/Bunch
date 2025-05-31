@@ -3,14 +3,371 @@
 import { useRef, useState } from "react";
 import { useWebSocket } from "@/lib/WebSocketProvider";
 import { Textarea } from "@/components/ui/textarea";
-import { PaperclipIcon, SmileIcon, SendIcon } from "lucide-react";
+import {
+  PaperclipIcon,
+  SmileIcon,
+  SendIcon,
+  Smile,
+  Hand,
+  Heart,
+  Leaf,
+  Apple,
+  Trophy,
+  Plane,
+  Smartphone,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface MessageComposerProps {
   bunchId: string;
   channelId: string;
 }
+
+const EMOJI_CATEGORIES = {
+  faces: {
+    name: "Faces",
+    icon: Smile,
+    emojis: [
+      "😀",
+      "😃",
+      "😄",
+      "😁",
+      "😆",
+      "😅",
+      "😂",
+      "🤣",
+      "😊",
+      "😇",
+      "🙂",
+      "🙃",
+      "😉",
+      "😌",
+      "😍",
+      "🥰",
+      "😘",
+      "😗",
+      "😙",
+      "😚",
+      "😋",
+      "😛",
+      "😝",
+      "😜",
+      "🤪",
+      "🤨",
+      "🧐",
+      "🤓",
+      "😎",
+      "🤩",
+      "🥳",
+      "😏",
+      "😒",
+      "😞",
+      "😔",
+      "😟",
+      "😕",
+      "🙁",
+      "☹️",
+      "😣",
+      "😖",
+      "😫",
+      "😩",
+      "🥺",
+      "😢",
+      "😭",
+      "😤",
+      "😠",
+      "😡",
+      "🤬",
+      "🤯",
+      "😳",
+      "🥵",
+      "🥶",
+      "😱",
+      "😨",
+      "😰",
+      "😥",
+      "😓",
+      "🤗",
+      "🤔",
+      "🤭",
+      "🤫",
+      "🤥",
+    ],
+  },
+  gestures: {
+    name: "Gestures",
+    icon: Hand,
+    emojis: [
+      "👋",
+      "🤚",
+      "🖐️",
+      "✋",
+      "🖖",
+      "👌",
+      "🤌",
+      "🤏",
+      "✌️",
+      "🤞",
+      "🤟",
+      "🤘",
+      "🤙",
+      "👈",
+      "👉",
+      "👆",
+      "🖕",
+      "👇",
+      "☝️",
+      "👍",
+      "👎",
+      "✊",
+      "👊",
+      "🤛",
+      "🤜",
+      "👏",
+      "🙌",
+      "👐",
+      "🤲",
+      "🤝",
+      "🙏",
+      "✍️",
+    ],
+  },
+  hearts: {
+    name: "Hearts",
+    icon: Heart,
+    emojis: [
+      "❤️",
+      "🧡",
+      "💛",
+      "💚",
+      "💙",
+      "💜",
+      "🖤",
+      "🤍",
+      "🤎",
+      "💔",
+      "❤️‍🔥",
+      "❤️‍🩹",
+      "💖",
+      "💗",
+      "💓",
+      "💞",
+      "💕",
+      "💟",
+      "❣️",
+      "💝",
+      "💘",
+      "💌",
+      "💋",
+      "💯",
+      "💢",
+      "💥",
+      "💫",
+      "💦",
+      "💨",
+      "🕳️",
+      "💣",
+      "💬",
+    ],
+  },
+  nature: {
+    name: "Nature",
+    icon: Leaf,
+    emojis: [
+      "🌱",
+      "🌲",
+      "🌳",
+      "🌴",
+      "🌵",
+      "🌾",
+      "🌿",
+      "☘️",
+      "🍀",
+      "🍁",
+      "🍂",
+      "🍃",
+      "🌺",
+      "🌸",
+      "🌼",
+      "🌻",
+      "🌞",
+      "🌝",
+      "🌛",
+      "🌜",
+      "🌚",
+      "🌕",
+      "🌖",
+      "🌗",
+      "🌘",
+      "🌑",
+      "🌒",
+      "🌓",
+      "🌔",
+      "🌙",
+      "🌎",
+      "🌍",
+    ],
+  },
+  food: {
+    name: "Food",
+    icon: Apple,
+    emojis: [
+      "🍎",
+      "🍐",
+      "🍊",
+      "🍋",
+      "🍌",
+      "🍉",
+      "🍇",
+      "🍓",
+      "🫐",
+      "🍈",
+      "🍒",
+      "🍑",
+      "🥭",
+      "🍍",
+      "🥥",
+      "🥝",
+      "🍅",
+      "🍆",
+      "🥑",
+      "🥦",
+      "🥬",
+      "🥒",
+      "🌶️",
+      "🫑",
+      "🌽",
+      "🥕",
+      "🫒",
+      "🧄",
+      "🧅",
+      "🥔",
+      "🍠",
+      "🥐",
+    ],
+  },
+  activities: {
+    name: "Activities",
+    icon: Trophy,
+    emojis: [
+      "⚽",
+      "🏀",
+      "🏈",
+      "⚾",
+      "🥎",
+      "🎾",
+      "🏐",
+      "🏉",
+      "🎱",
+      "🏓",
+      "🏸",
+      "🏒",
+      "🏑",
+      "🥍",
+      "🏏",
+      "🥊",
+      "🥋",
+      "🥅",
+      "⛳",
+      "⛸️",
+      "🎣",
+      "🤿",
+      "🎽",
+      "🛹",
+      "🛷",
+      "⛷️",
+      "🏂",
+      "🏋️",
+      "🤼",
+      "🤸",
+      "⛹️",
+      "🤾",
+    ],
+  },
+  travel: {
+    name: "Travel",
+    icon: Plane,
+    emojis: [
+      "✈️",
+      "🛫",
+      "🛬",
+      "🛩️",
+      "💺",
+      "🛰️",
+      "🚀",
+      "🛸",
+      "🚁",
+      "🛶",
+      "⛵",
+      "🚤",
+      "🛥️",
+      "🛳️",
+      "⛴️",
+      "🚢",
+      "🚗",
+      "🚕",
+      "🚙",
+      "🚌",
+      "🚎",
+      "🏎️",
+      "🚓",
+      "🚑",
+      "🚒",
+      "🚐",
+      "🚚",
+      "🚛",
+      "🚜",
+      "🛴",
+      "🚲",
+      "🛵",
+    ],
+  },
+  objects: {
+    name: "Objects",
+    icon: Smartphone,
+    emojis: [
+      "⌚",
+      "📱",
+      "📲",
+      "💻",
+      "⌨️",
+      "🖥️",
+      "🖨️",
+      "🖱️",
+      "🖲️",
+      "🕹️",
+      "🗜️",
+      "💽",
+      "💾",
+      "💿",
+      "📀",
+      "📼",
+      "📷",
+      "📸",
+      "📹",
+      "🎥",
+      "📽️",
+      "🎞️",
+      "📞",
+      "☎️",
+      "📟",
+      "📠",
+      "📺",
+      "📻",
+      "🎙️",
+      "🎚️",
+      "🎛️",
+      "🧭",
+    ],
+  },
+};
 
 export function MessageComposer({ bunchId, channelId }: MessageComposerProps) {
   const [message, setMessage] = useState("");
@@ -43,6 +400,23 @@ export function MessageComposer({ bunchId, channelId }: MessageComposerProps) {
     }
   };
 
+  const insertEmoji = (emoji: string) => {
+    const cursorPosition = textareaRef.current?.selectionStart || 0;
+    const textBeforeCursor = message.substring(0, cursorPosition);
+    const textAfterCursor = message.substring(cursorPosition);
+
+    setMessage(textBeforeCursor + emoji + textAfterCursor);
+
+    // Set cursor position after the inserted emoji
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const newPosition = cursorPosition + emoji.length;
+        textareaRef.current.setSelectionRange(newPosition, newPosition);
+        textareaRef.current.focus();
+      }
+    }, 0);
+  };
+
   return (
     <div
       className={cn(
@@ -71,14 +445,60 @@ export function MessageComposer({ bunchId, channelId }: MessageComposerProps) {
             placeholder={`Message #${channelId}`}
             className="min-h-[40px] max-h-[200px] pr-10 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-background"
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 bottom-2 h-6 w-6 rounded-full"
-          >
-            <SmileIcon className="h-5 w-5" />
-          </Button>
+          <div className="absolute right-2 bottom-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 rounded-full"
+                >
+                  <SmileIcon className="h-5 w-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[400px] p-0" align="end">
+                <Tabs defaultValue="faces" className="w-full">
+                  <TabsList className="w-full justify-start h-9 px-2 overflow-x-auto [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
+                    {Object.entries(EMOJI_CATEGORIES).map(
+                      ([key, { icon: Icon }]) => (
+                        <TabsTrigger
+                          key={key}
+                          value={key}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Icon className="h-4 w-4" />
+                        </TabsTrigger>
+                      )
+                    )}
+                  </TabsList>
+                  <div className="h-[300px]">
+                    {Object.entries(EMOJI_CATEGORIES).map(
+                      ([key, { emojis }]) => (
+                        <TabsContent
+                          key={key}
+                          value={key}
+                          className="mt-0 h-full"
+                        >
+                          <div className="grid grid-cols-8 gap-1 p-2 h-full overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
+                            {emojis.map((emoji, index) => (
+                              <button
+                                key={index}
+                                onClick={() => insertEmoji(emoji)}
+                                className="hover:bg-accent p-2 rounded-md transition-colors text-lg"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        </TabsContent>
+                      )
+                    )}
+                  </div>
+                </Tabs>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
         <Button
