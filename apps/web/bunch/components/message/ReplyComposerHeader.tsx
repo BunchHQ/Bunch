@@ -30,6 +30,7 @@ export function ReplyComposerHeader({
         "flex items-start gap-2 p-3 bg-accent/30 border-b border-border rounded-t-md",
         className,
       )}
+      data-testid="message-compose-reply-header"
     >
       <CornerDownRight className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
       <div className="min-w-0 flex-1">
@@ -47,6 +48,7 @@ export function ReplyComposerHeader({
         className="h-6 w-6 p-0 hover:bg-background/50"
       >
         <X className="h-4 w-4" />
+        <span className="sr-only">Cancel</span>
       </Button>
     </div>
   );
