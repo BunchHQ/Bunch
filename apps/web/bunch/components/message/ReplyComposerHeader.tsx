@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Message } from "@/lib/types";
+import type { Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CornerDownRight, X } from "lucide-react";
 
@@ -9,18 +9,26 @@ interface ReplyComposerHeaderProps {
   replyingTo: Message;
   onCancel: () => void;
   className?: string;
+  onJumpToReply?: () => void;
 }
 
 export function ReplyComposerHeader({
   replyingTo,
   onCancel,
   className,
+  onJumpToReply,
 }: ReplyComposerHeaderProps) {
+  const handleClick = () => {
+    onJumpToReply?.();
+  };
+
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
     <div
+      onClick={handleClick}
       className={cn(
         "flex items-start gap-2 p-3 bg-accent/30 border-b border-border rounded-t-md",
-        className
+        className,
       )}
     >
       <CornerDownRight className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />

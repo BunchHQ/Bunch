@@ -33,7 +33,7 @@ export function MessageList() {
   const processedMessageIds = useRef<Set<string>>(new Set());
   const processedReactionIds = useRef<Set<string>>(new Set());
   const prevChannelRef = useRef<{ bunchId: string; channelId: string } | null>(
-    null
+    null,
   );
 
   // Reply state
@@ -50,7 +50,7 @@ export function MessageList() {
     // Focus the composer textarea when starting a reply
     setTimeout(() => {
       const textarea = document.querySelector(
-        'textarea[placeholder*="Message"]'
+        'textarea[placeholder*="Message"]',
       );
       if (textarea) {
         (textarea as HTMLTextAreaElement).focus();
@@ -65,7 +65,7 @@ export function MessageList() {
   const handleJumpToMessage = useCallback((messageId: string) => {
     // Find the message element and scroll to it
     const messageElement = document.querySelector(
-      `[data-message-id="${messageId}"]`
+      `[data-message-id="${messageId}"]`,
     );
     if (messageElement) {
       messageElement.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -184,7 +184,7 @@ export function MessageList() {
           const reactionEventId = `${wsMessage.type}-${reaction.id}-${reaction.message_id}-${reaction.emoji}-${reaction.user?.id}`;
           if (processedReactionIds.current.has(reactionEventId)) {
             console.log(
-              `Reaction event ${reactionEventId} already processed, skipping`
+              `Reaction event ${reactionEventId} already processed, skipping`,
             );
             continue;
           }
@@ -197,7 +197,7 @@ export function MessageList() {
             const updatedMessages = prev.map((msg) => {
               if (msg.id === reaction.message_id) {
                 console.log(
-                  `Found matching message ${reaction.message_id}, updating reactions`
+                  `Found matching message ${reaction.message_id}, updating reactions`,
                 );
                 let updatedReactions = [...(msg.reactions || [])];
                 const updatedCounts = { ...(msg.reaction_counts || {}) };
@@ -212,11 +212,11 @@ export function MessageList() {
                   console.log("Removing reaction:", reaction);
                   // Remove the reaction
                   updatedReactions = updatedReactions.filter(
-                    (r) => r.id !== reaction.id
+                    (r) => r.id !== reaction.id,
                   );
                   updatedCounts[reaction.emoji] = Math.max(
                     (updatedCounts[reaction.emoji] || 1) - 1,
-                    0
+                    0,
                   );
                   // Remove emoji from counts if count reaches 0
                   if (updatedCounts[reaction.emoji] === 0) {
@@ -229,7 +229,7 @@ export function MessageList() {
                   {
                     reactions: updatedReactions,
                     counts: updatedCounts,
-                  }
+                  },
                 );
 
                 return {
@@ -355,6 +355,7 @@ export function MessageList() {
           channelId={channelId}
           replyingTo={replyingTo}
           onCancelReply={handleCancelReply}
+          onJumpToMessage={handleJumpToMessage}
         />
       </div>
     </div>
