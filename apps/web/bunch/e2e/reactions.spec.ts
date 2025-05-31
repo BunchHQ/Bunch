@@ -8,7 +8,7 @@ test.describe("Message Reactions", () => {
   test.beforeEach(async ({ page }) => {
     // Generate unique names to avoid conflicts
     const timestamp = Date.now();
-    bunchName = `Reactions Test ${timestamp}`;
+    bunchName = `Playwright Reactions Test ${timestamp}`;
     channelName = `reaction-tests-${timestamp}`;
     bunchAbbrev = bunchName.slice(0, 2);
 
@@ -41,7 +41,9 @@ test.describe("Message Reactions", () => {
     await page.getByRole("button", { name: "Create Channel" }).click();
 
     // Wait for success message and navigate to the channel
-    await expect(page.getByText("Success", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Success", { exact: true }).last(),
+    ).toBeVisible();
     await page.getByRole("link", { name: channelName }).click();
 
     // Send a test message
@@ -52,7 +54,7 @@ test.describe("Message Reactions", () => {
 
     // Wait for message to appear
     await expect(
-      page.getByText("Test message for reactions! 🎉").first()
+      page.getByText("Test message for reactions! 🎉").first(),
     ).toBeVisible();
   });
   test("should show emoji picker when hovering over message", async ({
@@ -70,7 +72,7 @@ test.describe("Message Reactions", () => {
 
     // Check that the emoji picker button appears - scope within message container
     const emojiPickerButton = messageContainer.getByTestId(
-      "message-emoji-picker-trigger"
+      "message-emoji-picker-trigger",
     );
 
     await expect(emojiPickerButton).toBeVisible();
@@ -90,7 +92,7 @@ test.describe("Message Reactions", () => {
 
     // Click the emoji picker button - scope within message container
     const emojiPickerButton = messageContainer.getByTestId(
-      "message-emoji-picker-trigger"
+      "message-emoji-picker-trigger",
     );
     await expect(emojiPickerButton).toBeVisible();
     await emojiPickerButton.click();
@@ -117,7 +119,7 @@ test.describe("Message Reactions", () => {
     await messageContainer.hover();
 
     const emojiPickerButton = messageContainer.getByTestId(
-      "message-emoji-picker-trigger"
+      "message-emoji-picker-trigger",
     );
     await emojiPickerButton.click();
 
@@ -145,7 +147,7 @@ test.describe("Message Reactions", () => {
     await messageContainer.hover();
 
     const emojiPickerButton = messageContainer.getByTestId(
-      "message-emoji-picker-trigger"
+      "message-emoji-picker-trigger",
     );
     await emojiPickerButton.click();
     await page.getByText("❤️").click();
@@ -177,7 +179,7 @@ test.describe("Message Reactions", () => {
     await messageContainer.hover();
 
     const emojiPickerButton = messageContainer.getByTestId(
-      "message-emoji-picker-trigger"
+      "message-emoji-picker-trigger",
     );
     await emojiPickerButton.click();
     await page.getByText("😂").click();
@@ -201,22 +203,29 @@ test.describe("Message Reactions", () => {
     await messageContainer.hover();
 
     const emojiPickerButton = messageContainer.getByTestId(
-      "message-emoji-picker-trigger"
+      "message-emoji-picker-trigger",
     );
+
+    const emojiPicker = page.getByTestId("emoji-picker-content");
 
     // Add thumbs up
     await emojiPickerButton.click();
-    await page.getByText("👍").click();
+    await emojiPicker.getByText("👍").click();
 
     // Add heart
     await messageContainer.hover();
     await emojiPickerButton.click();
-    await page.getByText("❤️").click();
+    await emojiPicker.getByText("❤️").click();
 
-    // Add another thumbs up (should not work - same user, same emoji)
+    // Add tada
     await messageContainer.hover();
     await emojiPickerButton.click();
-    await page.getByText("👍").click();
+    await emojiPicker.getByText("🎉").click();
+
+    // Add another tada (should remove the tada - same user, same emoji)
+    await messageContainer.hover();
+    await emojiPickerButton.click();
+    await emojiPicker.getByText("🎉").click();
 
     // Verify counts
     const thumbsUpButton = messageContainer.getByRole("button").filter({
@@ -226,7 +235,7 @@ test.describe("Message Reactions", () => {
       hasText: "❤️",
     });
 
-    await expect(thumbsUpButton).toContainText("1"); // Should still be 1
+    await expect(thumbsUpButton).toContainText("1");
     await expect(heartButton).toContainText("1");
   });
   test("should show tooltip with user information on hover", async ({
@@ -241,7 +250,7 @@ test.describe("Message Reactions", () => {
       .first();
     await messageContainer.hover();
     const emojiPickerButton = messageContainer.getByTestId(
-      "message-emoji-picker-trigger"
+      "message-emoji-picker-trigger",
     );
 
     await emojiPickerButton.click();
@@ -270,7 +279,7 @@ test.describe("Message Reactions", () => {
     await messageContainer.hover();
 
     const emojiPickerButton = messageContainer.getByTestId(
-      "message-emoji-picker-trigger"
+      "message-emoji-picker-trigger",
     );
 
     // Add reaction
@@ -317,7 +326,7 @@ test.describe("Message Reactions", () => {
     await firstMessage.hover();
 
     let emojiPickerButton = firstMessage.getByTestId(
-      "message-emoji-picker-trigger"
+      "message-emoji-picker-trigger",
     );
     await emojiPickerButton.click();
     await page.getByText("👍").click();
@@ -329,7 +338,7 @@ test.describe("Message Reactions", () => {
     await secondMessage.hover();
 
     emojiPickerButton = secondMessage.getByTestId(
-      "message-emoji-picker-trigger"
+      "message-emoji-picker-trigger",
     );
 
     await emojiPickerButton.click();
@@ -350,13 +359,13 @@ test.describe("Message Reactions", () => {
     await expect(
       firstMessage.getByRole("button").filter({
         hasText: "❤️",
-      })
+      }),
     ).not.toBeVisible();
 
     await expect(
       secondMessage.getByRole("button").filter({
         hasText: "👍",
-      })
+      }),
     ).not.toBeVisible();
   });
   test("should close emoji picker when clicking outside", async ({ page }) => {
@@ -367,7 +376,7 @@ test.describe("Message Reactions", () => {
     await messageContainer.hover();
 
     const emojiPickerButton = messageContainer.getByTestId(
-      "message-emoji-picker-trigger"
+      "message-emoji-picker-trigger",
     );
 
     await emojiPickerButton.click();
@@ -391,11 +400,14 @@ test.describe("Message Reactions", () => {
     await messageContainer.hover();
 
     const emojiPickerButton = messageContainer.getByTestId(
-      "message-emoji-picker-trigger"
+      "message-emoji-picker-trigger",
     );
 
     await emojiPickerButton.click();
-    await page.getByText("🎉").click();
+
+    const emojiPicker = page.getByTestId("emoji-picker-content");
+
+    await emojiPicker.getByText("🎉").click();
 
     // Verify reaction is added
     const reactionButton = messageContainer.getByRole("button").filter({
@@ -409,7 +421,7 @@ test.describe("Message Reactions", () => {
 
     // Wait for content to load
     await expect(
-      page.getByText("Test message for reactions! 🎉")
+      page.getByText("Test message for reactions! 🎉"),
     ).toBeVisible();
 
     // Verify reaction is still there

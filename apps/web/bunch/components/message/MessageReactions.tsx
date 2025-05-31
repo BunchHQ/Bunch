@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useWebSocket } from "@/lib/WebSocketProvider";
 import { useWebSocketReactions } from "@/lib/hooks";
-import { Reaction } from "@/lib/types";
+import type { Reaction } from "@/lib/types";
 import { useAuth } from "@clerk/nextjs";
 import { Plus } from "lucide-react";
 import { EmojiPicker } from "./EmojiPicker";
@@ -11,14 +11,12 @@ import { ReactionButton } from "./ReactionButton";
 
 interface MessageReactionsProps {
   messageId: string;
-  bunchId: string;
   reactions: Reaction[];
   reactionCounts: { [emoji: string]: number };
 }
 
 export function MessageReactions({
   messageId,
-  bunchId,
   reactions,
   reactionCounts,
 }: MessageReactionsProps) {
@@ -28,7 +26,7 @@ export function MessageReactions({
 
   // Get unique emojis that have reactions
   const emojiList = Object.keys(reactionCounts).filter(
-    (emoji) => reactionCounts[emoji] > 0
+    (emoji) => reactionCounts[emoji] > 0,
   );
 
   const handleEmojiSelect = async (emoji: string) => {
@@ -46,7 +44,9 @@ export function MessageReactions({
 
   // Check if current user has reacted with specific emoji
   const hasUserReacted = (emoji: string) => {
-    return reactions.some((r) => r.emoji === emoji && r.user.id === userId);
+    return reactions.some(
+      (r) => r.emoji === emoji && r.user.username === userId,
+    );
   };
 
   if (emojiList.length === 0) {
@@ -62,7 +62,6 @@ export function MessageReactions({
           count={reactionCounts[emoji]}
           reactions={reactions}
           messageId={messageId}
-          bunchId={bunchId}
           hasUserReacted={hasUserReacted(emoji)}
         />
       ))}{" "}
