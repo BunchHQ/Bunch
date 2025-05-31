@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { useMessages } from "@/lib/hooks";
-import { Message } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import { useWebSocket } from "@/lib/WebSocketProvider";
+import { useMessages } from "@/lib/hooks";
+import type { Message } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import {
   Apple,
   Hand,
@@ -33,6 +33,7 @@ interface MessageComposerProps {
   channelId: string;
   replyingTo?: Message;
   onCancelReply?: () => void;
+  onJumpToMessage?: (messageId: string) => void;
 }
 
 const EMOJI_CATEGORIES = {
@@ -379,6 +380,7 @@ export function MessageComposer({
   channelId,
   replyingTo,
   onCancelReply,
+  onJumpToMessage,
 }: MessageComposerProps) {
   const [message, setMessage] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -431,6 +433,12 @@ export function MessageComposer({
     }
   };
 
+  const handleOnJumpToReply = () => {
+    if (replyingTo) {
+      onJumpToMessage?.(replyingTo.id);
+    }
+  };
+
   const insertEmoji = (emoji: string) => {
     const cursorPosition = textareaRef.current?.selectionStart || 0;
     const textBeforeCursor = message.substring(0, cursorPosition);
@@ -455,6 +463,7 @@ export function MessageComposer({
         <ReplyComposerHeader
           replyingTo={replyingTo}
           onCancel={onCancelReply!}
+          onJumpToReply={handleOnJumpToReply}
         />
       )}
 
@@ -462,7 +471,7 @@ export function MessageComposer({
         className={cn(
           "border-t border-border p-4 transition-all",
           isFocused && "bg-accent/10",
-          replyingTo && "border-t-0 rounded-b-md"
+          replyingTo && "border-t-0 rounded-b-md",
         )}
       >
         <div className="flex items-end space-x-2">
@@ -516,7 +525,7 @@ export function MessageComposer({
                           >
                             <Icon className="h-4 w-4" />
                           </TabsTrigger>
-                        )
+                        ),
                       )}
                     </TabsList>
                     <div className="h-[300px]">
@@ -539,7 +548,7 @@ export function MessageComposer({
                               ))}
                             </div>
                           </TabsContent>
-                        )
+                        ),
                       )}
                     </div>
                   </Tabs>
@@ -553,7 +562,7 @@ export function MessageComposer({
             className={cn(
               "flex-shrink-0 rounded-full transition-opacity",
               (!message.trim() || !isConnected) &&
-                "opacity-50 cursor-not-allowed"
+                "opacity-50 cursor-not-allowed",
             )}
             onClick={handleSendMessage}
             disabled={!message.trim() || !isConnected}

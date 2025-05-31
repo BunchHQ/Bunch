@@ -1,6 +1,6 @@
 "use client";
 
-import { Message } from "@/lib/types";
+import type { Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface ReplyIndicatorProps {
@@ -28,6 +28,7 @@ export function ReplyIndicator({
         onClick={handleClick}
         className="flex items-center gap-1 w-full text-left truncate hover:underline focus:underline"
         style={{ padding: 0, margin: 0 }}
+        type="button"
       >
         <span
           className="text-xs font-medium text-foreground truncate"
