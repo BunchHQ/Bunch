@@ -15,9 +15,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useWebSocket } from "@/lib/WebSocketProvider";
 import { useMessages, useWebSocketReactions } from "@/lib/hooks";
 import type { Message } from "@/lib/types";
-import { useWebSocket } from "@/lib/WebSocketProvider";
 import { useAuth } from "@clerk/nextjs";
 import { formatDistanceToNow } from "date-fns";
 import { Edit, MoreHorizontal, Reply, Smile, Trash } from "lucide-react";
@@ -46,7 +46,7 @@ export function MessageItem({
   const { userId } = useAuth();
   const { updateMessage, deleteMessage } = useMessages(
     bunchId,
-    message.channel
+    message.channel,
   );
   const { sendReaction, isConnected } = useWebSocket();
   const { toggleReaction } = useWebSocketReactions();
@@ -234,20 +234,48 @@ export function MessageItem({
           </div>
         </div>
       ) : (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[9px] font-medium text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                {formattedTime}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                {formattedDate} ({timeAgo})
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex flex-row gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="text-[9px] font-medium text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  {formattedTime}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {formattedDate} ({timeAgo})
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <div className="text-sm whitespace-pre-wrap mt-0 mb-0 leading-tight">
+            {isEditing ? (
+              <MessageEditor
+                initialContent={message.content}
+                onSave={handleSaveEdit}
+                onCancel={handleCancelEdit}
+              />
+            ) : (
+              <>
+                {message.content}
+                {message.edit_count > 0 && (
+                  <span className="text-xs text-muted-foreground italic ml-2">
+                    (edited)
+                  </span>
+                )}
+                {/* Reactions */}
+                {message.reactions && message.reaction_counts && (
+                  <MessageReactions
+                    messageId={message.id}
+                    reactions={message.reactions}
+                    reactionCounts={message.reaction_counts}
+                  />
+                )}
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       {!isEditing && (
