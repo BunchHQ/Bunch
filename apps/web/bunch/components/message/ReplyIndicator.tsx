@@ -2,7 +2,6 @@
 
 import { Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { CornerDownRight, CornerLeftDown, CornerUpRight } from "lucide-react";
 
 interface ReplyIndicatorProps {
   message: Message;
@@ -24,7 +23,7 @@ export function ReplyIndicator({
   };
 
   return (
-    <div className={cn("ml-10 pb-1", className)}>
+    <div className={cn("ml-13 pb-1", className)}>
       <button
         onClick={handleClick}
         className="flex items-center gap-1 w-full text-left truncate hover:underline focus:underline"
