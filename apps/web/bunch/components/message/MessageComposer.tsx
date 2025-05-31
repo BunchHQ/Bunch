@@ -372,9 +372,21 @@ const EMOJI_CATEGORIES = {
 export function MessageComposer({ bunchId, channelId }: MessageComposerProps) {
   const [message, setMessage] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [hoverEmoji, setHoverEmoji] = useState("😊");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { sendMessage, isConnected } = useWebSocket();
+
+  const hoverEmojis = ["😊", "😄", "😉", "😎", "🥰", "🤩", "😋", "🤗"];
+
+  const handleEmojiHover = () => {
+    const randomIndex = Math.floor(Math.random() * hoverEmojis.length);
+    setHoverEmoji(hoverEmojis[randomIndex]);
+  };
+
+  const handleEmojiLeave = () => {
+    setHoverEmoji("😊");
+  };
 
   const handleSendMessage = async () => {
     const trimmedMessage = message.trim();
@@ -445,16 +457,23 @@ export function MessageComposer({ bunchId, channelId }: MessageComposerProps) {
             placeholder={`Message #${channelId}`}
             className="min-h-[40px] max-h-[200px] pr-10 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-background"
           />
-          <div className="absolute right-2 bottom-2">
+          <div className="absolute right-2 bottom-1">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 rounded-full"
+                  className="h-8 w-8 rounded-full relative group flex items-center justify-center"
+                  onMouseEnter={handleEmojiHover}
+                  onMouseLeave={handleEmojiLeave}
                 >
-                  <SmileIcon className="h-5 w-5" />
+                  <span className="absolute inset-0 flex items-center justify-center text-2xl transition-opacity duration-200 group-hover:opacity-0">
+                    <SmileIcon className="h-8 w-8 " />
+                  </span>
+                  <span className="absolute inset-0 flex items-center justify-center text-2xl opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    {hoverEmoji}
+                  </span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[400px] p-0" align="end">
