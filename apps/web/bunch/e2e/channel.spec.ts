@@ -43,7 +43,7 @@ test.describe("Channel Management", () => {
     await expect(page.getByText("Success", { exact: true })).toBeVisible();
     await expect(page.getByText("Channel created successfully!")).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Test Channel" }),
+      page.getByRole("link", { name: "Test Channel" })
     ).toBeVisible();
   });
 
@@ -80,7 +80,41 @@ test.describe("Channel Management", () => {
     await page.getByRole("link", { name: "Empty Channel" }).click();
 
     await expect(
-      page.getByRole("heading", { name: "No messages yet" }),
+      page.getByRole("heading", { name: "No messages yet" })
     ).toBeVisible();
+  });
+
+  test("should open emoji picker and insert emoji into message input", async ({
+    page,
+  }) => {
+    // Assumes a bunch and a channel are already created and navigated to
+    // Create a channel for emoji test
+    await page.getByRole("button", { name: "Create a channel" }).click();
+    await page.getByRole("combobox").click();
+    await page.getByRole("option", { name: "Text Channel" }).click();
+    await page.getByRole("textbox", { name: "Channel Name" }).click();
+    await page
+      .getByRole("textbox", { name: "Channel Name" })
+      .fill("Emoji Channel");
+    await page.getByRole("button", { name: "Create Channel" }).click();
+    await page.getByRole("link", { name: "Emoji Channel" }).click();
+
+    // Find the emoji picker trigger (smiley button)
+    const emojiTrigger = await page.locator(".absolute > .gap-2");
+    await emojiTrigger.first().click();
+
+    // Wait for the emoji picker popover to appear
+    const emojiPopover = page.locator(
+      '[role="dialog"], [data-radix-popper-content-wrapper]'
+    );
+
+    // Click the first emoji in the picker
+    const firstEmoji = emojiPopover.locator("button").first();
+    const emojiText = await firstEmoji.textContent();
+    await firstEmoji.click();
+
+    // Check that the emoji is inserted into the message input
+    const messageInput = page.getByRole("textbox", { name: /Message #/ });
+    await expect(messageInput).toHaveValue(new RegExp(emojiText ?? ""));
   });
 });
