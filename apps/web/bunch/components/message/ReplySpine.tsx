@@ -16,6 +16,7 @@ export const ReplySpine: React.FC<ReplySpineProps> = ({
       }`}
       onClick={onClick}
       style={{ pointerEvents: onClick ? "auto" : "none" }}
+      data-testid="message-reply-spine"
     >
       {/* SVG for a 90-degree bent line, like Discord */}
       <svg
