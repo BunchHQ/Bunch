@@ -67,7 +67,7 @@ export function ReactionButton({
               "h-6 px-2 py-1 text-xs gap-1 transition-colors",
               hasUserReacted
                 ? "bg-blue-100 border border-blue-300 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-800"
-                : "hover:bg-accent",
+                : "border border-gray-200 hover:bg-accent dark:border-gray-700",
             )}
             onClick={handleToggle}
             disabled={isToggling || loading || !isConnected}

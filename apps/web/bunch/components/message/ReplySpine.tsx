@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 interface ReplySpineProps {
   onClick?: () => void;
@@ -31,7 +31,7 @@ export const ReplySpine: React.FC<ReplySpineProps> = ({
           d="M4 0 V20 Q4 30 15 29 H20"
           stroke="#9b9ca3"
           fill="none"
-          stroke-width="1.5"
+          strokeWidth="1.5"
         ></path>
       </svg>
     </div>
