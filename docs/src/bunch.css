@@ -1,0 +1,75 @@
+@theme {
+  --font-bunch: "Darumadrop One", sans-serif;
+  --font-sans: "Poppins", system-ui, sans;
+
+  --color-bunch-primary: #4a457d; /* Deep violet from hero bg */
+  --color-bunch-primary-dark: #3b3864;
+  --color-bunch-primary-darker: #2a2847;
+  --color-bunch-secondary: #8b5cf6; /* Lighter purple / accent from buttons */
+  --color-bunch-accent-blue: #3b82f6; /* Blue from "What's New" */
+  --color-bunch-accent-pink: #ec4899; /* A pink accent if needed */
+  --color-bunch-text-light: #e0dff0; /* Light lavender text */
+  --color-bunch-text-dark: #1f2937; /* Darker text for contrast */
+  --color-bunch-text-heading: #ffffff;
+  --color-bunch-bg-dark: #1e1c32; /* Very dark background */
+  --color-bunch-bg-medium: #2c2a4a; /* Medium dark background (sidebar) */
+  --color-bunch-button-primary: #a78bfa; /* Violet-500 */
+  --color-bunch-button-primary-hover: #8b5cf6; /* Violet-600 */
+  --color-bunch-button-secondary: #ffffff; /* White */
+  --color-bunch-button-secondary-text: #4a457d;
+  --color-bunch-button-secondary-hover: #f3f4f6; /* Gray-100 */
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+}
+
+@layer base {
+  body {
+    @apply font-sans;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bunch;
+  }
+
+  /* Custom scrollbar for webkit browsers */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #2c2a4a; /* Darker purple for track */
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #8b5cf6; /* Primary purple for thumb */
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #7c3aed; /* Darker primary purple on hover */
+  }
+
+  .hero-bg-gradient {
+    background-image: linear-gradient(to bottom, #3b3864, #2a2847);
+  }
+  .chat-bg-gradient {
+    background-image: linear-gradient(to bottom, #2a2847, #1e1c32);
+  }
+  .text-glow {
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 0 0 12px
+      rgba(192, 132, 252, 0.3);
+  }
+  .button-glow {
+    box-shadow: 0 0 15px rgba(167, 139, 250, 0.5), 0 0 20px
+      rgba(167, 139, 250, 0.3);
+  }
+  .button-glow-secondary {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4), 0 0 20px
+      rgba(59, 130, 246, 0.2);
+  }
+}
