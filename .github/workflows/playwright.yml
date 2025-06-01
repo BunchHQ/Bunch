@@ -1,43 +1,51 @@
 name: Playwright Tests
+
 on:
   push:
-    branches: [main, master]
+    branches: ["main"]
+    paths:
+      - "apps/web/**"
   pull_request:
-    branches: [main, master]
+    branches: ["main"]
+    paths:
+      - "apps/web/**"
+
 jobs:
   test:
     environment: Bunch
-    timeout-minutes: 60
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: lts/*
+          bun-version: 1.2.13
+
       - name: Install dependencies
         run: |
           cd apps/web/bunch
-          npm ci
+          bun install
+
       - name: Install Playwright Browsers
         run: |
           cd apps/web/bunch
-          npx playwright install --with-deps
+          bunx playwright install --with-deps
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - name: Install UV
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          python-version-file: ".python-version"
+
       - name: Install server dependencies and run migrations
         env:
           CLERK_FRONTEND_API_URL: ${{ secrets.CLERK_FRONTEND_API_URL }}
         run: |
           cd server
-          uv venv
-          source .venv/bin/activate
-          uv sync
+          uv sync --locked --all-extras --dev
           uv run python manage.py makemigrations
           uv run python manage.py migrate
       - name: Run Playwright tests
@@ -54,7 +62,11 @@ jobs:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: |
           cd apps/web/bunch
-          npx playwright test
+          bunx playwright test
+
+      - name: Minimize uv cache
+        run: uv cache prune --ci
+
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
