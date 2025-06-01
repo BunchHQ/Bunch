@@ -20,5 +20,8 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.8",
     "tailwindcss": "^4.1.8"
-  }
+  },
+  "trustedDependencies": [
+    "@tailwindcss/oxide"
+  ]
 }
