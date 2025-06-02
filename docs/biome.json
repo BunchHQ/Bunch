@@ -30,6 +30,7 @@
     "formatter": {
       "quoteStyle": "double",
       "semicolons": "asNeeded",
+      "trailingCommas": "all",
       "arrowParentheses": "asNeeded"
     }
   },
@@ -38,5 +39,18 @@
       "allowTrailingCommas": true,
       "allowComments": true
     }
-  }
+  },
+  "overrides": [
+    {
+      "include": ["*.svelte", "*.astro", "*.vue"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useConst": "off",
+            "useImportType": "off"
+          }
+        }
+      }
+    }
+  ]
 }
