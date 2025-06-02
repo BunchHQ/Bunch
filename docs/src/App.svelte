@@ -1,4 +1,12 @@
 <script lang="ts">
+import { circOut } from "svelte/easing"
+import { blur } from "svelte/transition"
+import BottomDivider from "./components/BottomDivider.svelte"
+import FooterLower from "./components/FooterLower.svelte"
+import FooterUpper from "./components/FooterUpper.svelte"
+import Hero from "./components/Hero.svelte"
+import Navbar from "./components/Navbar.svelte"
+import WavyDivider from "./components/WavyDivider.svelte"
 </script>
 
 <svelte:head>
@@ -66,6 +74,89 @@
   <title>Bunch!</title>
 </svelte:head>
 
-<main class="grid min-h-svh w-full place-content-center bg-blue-200">
-  <h1 class="text-5xl text-blue-500">Bunch</h1>
+<main
+  class="dark:bg-bunch-secondary-dark h-max min-h-svh w-full overflow-x-hidden overflow-y-clip"
+>
+  <Navbar />
+
+  <div class="relative m-auto max-w-6xl">
+    <img
+      src="/squirly-arrow.svg"
+      alt="Arrow pointing to Bunch"
+      width="200"
+      class="absolute left-10 top-6 w-52"
+    />
+    <img
+      src="/bunch_mascot_hero.webp"
+      alt="Bunch's Mascot"
+      class="absolute right-4 top-16 w-96"
+      width="384"
+      height="485"
+      transition:blur={{ delay: 300, easing: circOut }}
+    />
+  </div>
+
+  <div
+    class="dark:bg-bunch-secondary m-auto flex h-full w-full flex-col items-center"
+  >
+    <Hero />
+  </div>
+
+  <!-- wavy divider -->
+  <WavyDivider colorClass="fill-bunch-secondary dark:fill-bunch-secondary" />
+
+  <!-- app demo section -->
+  <div
+    class="dark:bg-bunch-secondary-dark m-auto flex h-full max-w-6xl flex-col items-center"
+  >
+    <img
+      src="/bunch_window.webp"
+      alt="Bunch App's Main Window"
+      width="900"
+      height="530"
+      class="h-auto w-full"
+      transition:blur
+    />
+
+    <p class="font-bunch w-3/4 text-center text-2xl text-white">
+      Your all-in-one space to chat, and stay connected with your crew—no matter
+      where they are!
+    </p>
+  </div>
+
+  <!-- wavy divider -->
+  <WavyDivider colorClass="fill-bunch-secondary dark:fill-bunch-secondary" orientation="up" />
+
+  <!-- Footer -->
+  <div
+    class="dark:bg-bunch-secondary m-auto flex h-full w-full flex-col items-center"
+  >
+    <FooterUpper />
+  </div>
+
+  <div class="dark:bg-bunch-secondary-dark m-auto h-full w-full">
+    <FooterLower />
+  </div>
+
+  <div class="bg-bunch-accent-cream h-full w-full">
+    <BottomDivider />
+    <div
+      class="m-auto flex max-w-7xl flex-col items-center justify-center pt-16"
+    >
+      <img
+        src="/bunch_title.webp"
+        alt="Bunch's title text"
+        class="w-[36rem] translate-y-7"
+        width="576"
+        height="168"
+      />
+      <img
+        src="/bunch_mascot_footer_peek.webp"
+        alt="Bunch's Mascot Peeking"
+        class="z-[5] w-80"
+        width="320"
+        height="320"
+      />
+    </div>
+  </div>
 </main>

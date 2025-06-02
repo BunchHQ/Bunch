@@ -2,22 +2,17 @@
   --font-bunch: "Darumadrop One", sans-serif;
   --font-sans: "Poppins", system-ui, sans;
 
-  --color-bunch-primary: #4a457d; /* Deep violet from hero bg */
-  --color-bunch-primary-dark: #3b3864;
-  --color-bunch-primary-darker: #2a2847;
-  --color-bunch-secondary: #8b5cf6; /* Lighter purple / accent from buttons */
-  --color-bunch-accent-blue: #3b82f6; /* Blue from "What's New" */
-  --color-bunch-accent-pink: #ec4899; /* A pink accent if needed */
-  --color-bunch-text-light: #e0dff0; /* Light lavender text */
-  --color-bunch-text-dark: #1f2937; /* Darker text for contrast */
+  --color-bunch-primary: #0075cc;
+  --color-bunch-primary-dark: #0070b7;
+  --color-bunch-primary-darker: #00429d;
+  --color-bunch-secondary: #18045c;
+  --color-bunch-secondary-dark: #002033;
+  --color-bunch-accent-blue: var(--color-bunch-primary);
+  --color-bunch-accent-cream: #ebdabc;
+  --color-bunch-text-light: #343620;
+  --color-bunch-text-dark: #cbc9df;
   --color-bunch-text-heading: #ffffff;
-  --color-bunch-bg-dark: #1e1c32; /* Very dark background */
-  --color-bunch-bg-medium: #2c2a4a; /* Medium dark background (sidebar) */
-  --color-bunch-button-primary: #a78bfa; /* Violet-500 */
-  --color-bunch-button-primary-hover: #8b5cf6; /* Violet-600 */
-  --color-bunch-button-secondary: #ffffff; /* White */
-  --color-bunch-button-secondary-text: #4a457d;
-  --color-bunch-button-secondary-hover: #f3f4f6; /* Gray-100 */
+  --color-bunch-text-muted: #9e9e9e;
 
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
@@ -26,7 +21,7 @@
 
 @layer base {
   body {
-    @apply font-sans;
+    @apply font-sans dark:bg-bunch-secondary-dark dark:text-white;
   }
 
   h1,
