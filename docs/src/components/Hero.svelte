@@ -1,0 +1,13 @@
+<script>
+import Button from "./ui/button.svelte"
+</script>
+<div
+  class="px-18 flex w-full max-w-6xl flex-col items-center justify-center gap-8 pt-80"
+  id="hero"
+>
+  <Button border="dotted" color="light">What's New!</Button>
+  <div class="z-[5]">
+    <img src="/bunch_title.png" alt="Bunch's title text" class="w-[36rem]" />
+    <h2 class="text-[2.5rem] font-bold">Hangout HQ for You & Your Fam!</h2>
+  </div>
+</div>
