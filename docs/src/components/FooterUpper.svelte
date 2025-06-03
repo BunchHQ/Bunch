@@ -6,17 +6,17 @@ import Button from "./ui/button.svelte"
   <img
     src="/bunch_footer_line.png"
     alt="Footer line graphic"
-    class="absolute left-1/3 w-48"
+    class="absolute left-1/3 w-56"
   />
 
   <div class="flex flex-col items-start justify-end gap-2 px-8">
     <h2 class="text-4xl font-bold">Discover!</h2>
-    <p class="font-bunch">
+    <p class="font-bunch text-lg">
       Whether you're into gaming, music, study groups, or just chill
       convos—there’s a Bunch for you.
     </p>
     <span></span>
-    <Button class="w-full">Browse Public Bunches</Button>
+    <Button class="w-full text-2xl">Browse Public Bunches</Button>
     <img
       src="/bunch_mascot_discover.png"
       alt="Bunch Mascot thumb's up"
@@ -33,12 +33,12 @@ import Button from "./ui/button.svelte"
   <div class="flex flex-col items-center justify-between gap-16 px-8 pb-16">
     <div class="space-y-4">
       <h2 class="text-center text-4xl font-bold">Start Your Very Own Bunch</h2>
-      <p class="font-bunch text-center">
+      <p class="font-bunch text-center text-lg">
         Create a space that’s truly yours. Set the vibe, invite your crew.
         You’re in control of how you connect.
       </p>
     </div>
-    <Button class="w-full">Create New Bunch</Button>
+    <Button class="w-full text-2xl">Create New Bunch</Button>
     <img
       src="/bunch_footer_dot_grid.png"
       alt="Footer decorative"

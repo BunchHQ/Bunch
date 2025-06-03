@@ -16,10 +16,10 @@ const links = [
         class="bg-bunch-primary border-bunch-primary-darker rounded-[calc(theme(borderRadius.xl)-6px)] border-2"
       >
         {#each links as link}
-          <Button bg="none" border="none">{link.title}</Button>
+          <Button bg="none" border="none" color="white" class="text-lg">{link.title}</Button>
         {/each}
       </div>
     </div>
-    <Button bg="creme" color="primary">Open Bunch</Button>
+    <Button bg="creme" color="primary" class="text-2xl">Open Bunch</Button>
   </div>
 </nav>

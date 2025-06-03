@@ -20,16 +20,16 @@ let {
 
 <span
   class={[
-    "h-min w-min text-nowrap rounded-xl",
+    "text-nowrap rounded-xl",
     {
-      "border-6 border-bunch-primary-dark": border === "primary",
+      "border-bunch-primary-dark border-4": border === "primary",
     },
-    props.class,
+    props.class?.includes("w-full") ? "w-full" : "w-min",
   ]}
 >
   <button
     class={[
-      "font-bunch h-full rounded-[calc(theme(borderRadius.xl)-6px)] px-6 py-1 pb-2 font-medium tracking-tight",
+      "font-bunch h-full rounded-[calc(theme(borderRadius.xl)-4px)] px-6 py-1 pb-2 font-medium tracking-tight",
       {
         "bg-bunch-accent-creme": bg === "creme",
         "bg-bunch-primary-dark": bg === "primary",
@@ -38,9 +38,10 @@ let {
         "text-bunch-accent-creme": color === "creme",
         "text-bunch-text-light dark:text-bunch-text-dark": color === "light",
         "border-bunch-primary-darker border": border === "primary",
-        "outline-bunch-text-light dark:outline-bunch-text-dark outline-dashed outline-4 -outline-offset-2":
+        "outline-bunch-text-light dark:outline-bunch-text-dark outline-5 outline-dashed -outline-offset-2":
           border === "dotted",
       },
+      props.class,
     ]}
   >
     {@render children()}
