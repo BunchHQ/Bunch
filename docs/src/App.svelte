@@ -83,7 +83,7 @@ import Navbar from "./components/Navbar.svelte"
       class="absolute left-10 top-6 w-52"
     />
     <img
-      src="/bunch_mascot_hero.png"
+      src="/bunch_mascot_hero.webp"
       alt="Bunch's Mascot"
       class="absolute right-4 top-16 w-96"
     />
@@ -125,7 +125,7 @@ import Navbar from "./components/Navbar.svelte"
     class="dark:bg-bunch-secondary-dark m-auto flex h-full max-w-6xl flex-col items-center"
   >
     <img
-      src="/bunch_window.png"
+      src="/bunch_window.webp"
       alt="Bunch App's Main Window"
       width="900"
       height="530"
@@ -196,12 +196,12 @@ import Navbar from "./components/Navbar.svelte"
       class="m-auto flex max-w-7xl flex-col items-center justify-center pt-16"
     >
       <img
-        src="/bunch_title.png"
+        src="/bunch_title.webp"
         alt="Bunch's title text"
         class="w-[36rem] translate-y-7"
       />
       <img
-        src="/bunch_mascot_footer_peek.png"
+        src="/bunch_mascot_footer_peek.webp"
         alt="Bunch's Mascot Peeking"
         class="z-[5] w-80"
       />

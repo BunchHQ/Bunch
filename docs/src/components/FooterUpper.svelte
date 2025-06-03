@@ -4,7 +4,7 @@ import Button from "./ui/button.svelte"
 
 <div class="relative grid max-w-7xl grid-cols-[1fr_0.8fr_1fr] grid-rows-1 px-4">
   <img
-    src="/bunch_footer_line.png"
+    src="/bunch_footer_line.webp"
     alt="Footer line graphic"
     class="absolute left-1/3 w-56"
   />
@@ -18,14 +18,14 @@ import Button from "./ui/button.svelte"
     <span></span>
     <Button class="w-full text-2xl">Browse Public Bunches</Button>
     <img
-      src="/bunch_mascot_discover.png"
+      src="/bunch_mascot_discover.webp"
       alt="Bunch Mascot thumb's up"
       class="ms-8 h-auto w-32"
     />
   </div>
 
   <img
-    src="/bunch_mascot_start_jump.png"
+    src="/bunch_mascot_start_jump.webp"
     alt="Bunch Mascot thumb's up"
     class="h-auto w-40 self-start justify-self-end"
   />
@@ -40,7 +40,7 @@ import Button from "./ui/button.svelte"
     </div>
     <Button class="w-full text-2xl">Create New Bunch</Button>
     <img
-      src="/bunch_footer_dot_grid.png"
+      src="/bunch_footer_dot_grid.webp"
       alt="Footer decorative"
       width="900"
       class="h-auto w-full"

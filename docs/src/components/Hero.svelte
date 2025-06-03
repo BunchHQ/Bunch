@@ -7,7 +7,7 @@ import Button from "./ui/button.svelte"
 >
   <Button border="dotted" color="light" class="text-xl">What's New!</Button>
   <div class="z-[5]">
-    <img src="/bunch_title.png" alt="Bunch's title text" class="w-[36rem]" />
+    <img src="/bunch_title.webp" alt="Bunch's title text" class="w-[36rem]" />
     <h2 class="text-[2.5rem] font-bold">Hangout HQ for You & Your Fam!</h2>
   </div>
 </div>
