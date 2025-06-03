@@ -21,6 +21,8 @@ import Button from "./ui/button.svelte"
       src="/bunch_mascot_discover.webp"
       alt="Bunch Mascot thumb's up"
       class="ms-8 h-auto w-32"
+      width="128"
+      height="148"
     />
   </div>
 
@@ -28,6 +30,8 @@ import Button from "./ui/button.svelte"
     src="/bunch_mascot_start_jump.webp"
     alt="Bunch Mascot thumb's up"
     class="h-auto w-40 self-start justify-self-end"
+    width="160"
+    height="186"
   />
 
   <div class="flex flex-col items-center justify-between gap-16 px-8 pb-16">
@@ -43,6 +47,7 @@ import Button from "./ui/button.svelte"
       src="/bunch_footer_dot_grid.webp"
       alt="Footer decorative"
       width="900"
+      height="225"
       class="h-auto w-full"
     />
   </div>
