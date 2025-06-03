@@ -29,13 +29,17 @@ let {
 >
   <button
     class={[
-      "font-bunch h-full rounded-[calc(theme(borderRadius.xl)-4px)] px-6 py-1 pb-2 font-medium tracking-tight",
+      "font-bunch h-full cursor-pointer rounded-[calc(theme(borderRadius.xl)-4px)] px-6 py-1 pb-2 font-medium tracking-tight transition-colors duration-75",
       {
-        "bg-bunch-accent-creme": bg === "creme",
-        "bg-bunch-primary-dark": bg === "primary",
+        "bg-bunch-accent-cream hover:bg-bunch-accent-blue hover:text-bunch-accent-cream active:bg-bunch-primary-darker":
+          bg === "creme",
+        "bg-bunch-primary-dark hover:bg-bunch-primary-darker active:bg-bunch-secondary":
+          bg === "primary",
+        "hover:bg-bunch-primary-dark active:bg-bunch-primary-dark ring-bunch-primary-darker mx-1 my-1 rounded-lg ring-0 active:ring-2":
+          bg === "none",
         "text-bunch-accent-blue": color === "primary",
         "text-white": color === "white",
-        "text-bunch-accent-creme": color === "creme",
+        "text-bunch-accent-cream": color === "creme",
         "text-bunch-text-light dark:text-bunch-text-dark": color === "light",
         "border-bunch-primary-darker border": border === "primary",
         "outline-bunch-text-light dark:outline-bunch-text-dark outline-5 outline-dashed -outline-offset-2":

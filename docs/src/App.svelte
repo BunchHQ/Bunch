@@ -173,7 +173,7 @@ import Navbar from "./components/Navbar.svelte"
     <FooterLower />
   </div>
 
-  <div class="bg-bunch-accent-creme h-full w-full">
+  <div class="bg-bunch-accent-cream h-full w-full">
     <svg
       width="100%"
       height="100%"
