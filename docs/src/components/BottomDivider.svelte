@@ -11,7 +11,7 @@
     stroke-width="0"
     fill="currentColor"
     fill-opacity="1"
-    class="dark:fill-bunch-secondary-dark"
+    class="fill-bunch-secondary dark:fill-bunch-secondary-dark"
     transform="rotate(-180 720 200)"
   >
   </path>
