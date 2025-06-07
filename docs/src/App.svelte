@@ -75,7 +75,7 @@ import WavyDivider from "./components/WavyDivider.svelte"
 </svelte:head>
 
 <main
-  class="dark:bg-bunch-secondary-dark h-max min-h-svh w-full overflow-x-hidden overflow-y-clip"
+  class="bg-bunch-accent-blue dark:bg-bunch-secondary-dark h-max min-h-svh w-full overflow-x-hidden overflow-y-clip"
 >
   <Navbar />
 
@@ -84,7 +84,7 @@ import WavyDivider from "./components/WavyDivider.svelte"
       src="/squirly-arrow.svg"
       alt="Arrow pointing to Bunch"
       width="200"
-      class="absolute left-10 top-6 w-52"
+      class="absolute left-10 top-6 w-52 invert dark:invert-0"
     />
     <img
       src="/bunch_mascot_hero.webp"
@@ -97,25 +97,23 @@ import WavyDivider from "./components/WavyDivider.svelte"
   </div>
 
   <div
-    class="dark:bg-bunch-secondary m-auto flex h-full w-full flex-col items-center"
+    class="bg-bunch-accent-cream dark:bg-bunch-secondary m-auto flex h-full w-full flex-col items-center"
   >
     <Hero />
   </div>
 
   <!-- wavy divider -->
-  <WavyDivider colorClass="fill-bunch-secondary dark:fill-bunch-secondary" />
+  <WavyDivider colorClass="fill-bunch-accent-cream dark:fill-bunch-secondary" />
 
   <!-- app demo section -->
-  <div
-    class="dark:bg-bunch-secondary-dark m-auto flex h-full max-w-6xl flex-col items-center"
-  >
+  <div class="m-auto flex h-full max-w-6xl flex-col items-center">
     <img
       src="/bunch_window.webp"
       alt="Bunch App's Main Window"
       width="900"
       height="530"
       class="h-auto w-full"
-      transition:blur
+      transition:blur={{ delay: 300, easing: circOut }}
     />
 
     <p class="font-bunch w-3/4 text-center text-2xl text-white">
@@ -125,16 +123,21 @@ import WavyDivider from "./components/WavyDivider.svelte"
   </div>
 
   <!-- wavy divider -->
-  <WavyDivider colorClass="fill-bunch-secondary dark:fill-bunch-secondary" orientation="up" />
+  <WavyDivider
+    colorClass="fill-bunch-primary-darker dark:fill-bunch-secondary"
+    orientation="up"
+  />
 
   <!-- Footer -->
   <div
-    class="dark:bg-bunch-secondary m-auto flex h-full w-full flex-col items-center"
+    class="bg-bunch-primary-darker dark:bg-bunch-secondary m-auto flex h-full w-full flex-col items-center"
   >
     <FooterUpper />
   </div>
 
-  <div class="dark:bg-bunch-secondary-dark m-auto h-full w-full">
+  <div
+    class="bg-bunch-secondary dark:bg-bunch-secondary-dark m-auto h-full w-full"
+  >
     <FooterLower />
   </div>
 

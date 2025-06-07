@@ -10,8 +10,8 @@ import Button from "./ui/button.svelte"
   />
 
   <div class="flex flex-col items-start justify-end gap-2 px-8">
-    <h2 class="text-4xl font-bold">Discover!</h2>
-    <p class="font-bunch text-lg">
+    <h2 class="text-4xl font-bold text-white">Discover!</h2>
+    <p class="font-bunch text-bunch-text-dark text-lg">
       Whether you're into gaming, music, study groups, or just chill
       convos—there’s a Bunch for you.
     </p>
@@ -36,8 +36,10 @@ import Button from "./ui/button.svelte"
 
   <div class="flex flex-col items-center justify-between gap-16 px-8 pb-16">
     <div class="space-y-4">
-      <h2 class="text-center text-4xl font-bold">Start Your Very Own Bunch</h2>
-      <p class="font-bunch text-center text-lg">
+      <h2 class="text-center text-4xl font-bold text-white">
+        Start Your Very Own Bunch
+      </h2>
+      <p class="font-bunch text-bunch-text-dark text-center text-lg">
         Create a space that’s truly yours. Set the vibe, invite your crew.
         You’re in control of how you connect.
       </p>
