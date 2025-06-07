@@ -7,7 +7,7 @@
       width="64"
       height="64"
     />
-    <h3 class="font-sans text-2xl font-extrabold">Bunch</h3>
+    <h3 class="font-sans text-2xl font-extrabold text-bunch-text-dark">Bunch</h3>
   </div>
   <p class="text-bunch-text-muted max-w-xs text-sm">
     Your all-in-one space to chat, and stay connected with your crew—no matter
@@ -20,6 +20,6 @@
 </div>
 
 <hr class="text-bunch-text-muted/20" />
-<p class="text-bunch-text-muted my-4 text-center text-xs">
+<p class="text-bunch-text-muted py-4 text-center text-xs">
   &copy; 2025 Bunch. All rights reserved.
 </p>

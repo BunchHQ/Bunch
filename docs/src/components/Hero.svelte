@@ -19,7 +19,7 @@ import Button from "./ui/button.svelte"
       transition:blur={{ delay: 100, easing: circOut }}
     />
     <h2
-      class="text-[2.5rem] font-bold"
+      class="text-[2.5rem] font-bold text-bunch-primary dark:text-white"
       transition:blur={{ delay: 400, amount: 10, duration: 500 }}
     >
       Hangout HQ for You & Your Fam!

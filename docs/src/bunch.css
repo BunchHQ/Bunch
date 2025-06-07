@@ -1,18 +1,46 @@
+:root {
+  --primary: #0075cc;
+  --primary-dark: #0070b7;
+  --primary-darker: #00429d;
+  --secondary: #18045c;
+  --secondary-dark: #002033;
+  --accent-blue: var(--primary);
+  --accent-cream: #ebdabc;
+  --text-light: #343620;
+  --text-dark: #cbc9df;
+  --text-heading: #000000;
+  --text-muted: #cccccc;
+}
+
+.dark {
+  --primary: #0075cc;
+  --primary-dark: #0070b7;
+  --primary-darker: #00429d;
+  --secondary: #18045c;
+  --secondary-dark: #002033;
+  --accent-blue: var(--primary);
+  --accent-cream: #ebdabc;
+  --text-light: #343620;
+  --text-dark: #cbc9df;
+  --text-heading: #ffffff;
+  --text-muted: #9e9e9e;
+}
+
 @theme {
   --font-bunch: "Darumadrop One", sans-serif;
   --font-sans: "Poppins", system-ui, sans;
 
-  --color-bunch-primary: #0075cc;
-  --color-bunch-primary-dark: #0070b7;
-  --color-bunch-primary-darker: #00429d;
-  --color-bunch-secondary: #18045c;
-  --color-bunch-secondary-dark: #002033;
+  --color-bunch-primary: var(--primary);
+  --color-bunch-primary-dark: var(--primary-dark);
+  --color-bunch-primary-darker: var(--primary-darker);
+  --color-bunch-secondary: var(--secondary);
+  --color-bunch-secondary-dark: var(--secondary-dark);
   --color-bunch-accent-blue: var(--color-bunch-primary);
-  --color-bunch-accent-cream: #ebdabc;
-  --color-bunch-text-light: #343620;
-  --color-bunch-text-dark: #cbc9df;
-  --color-bunch-text-heading: #ffffff;
-  --color-bunch-text-muted: #9e9e9e;
+  --color-bunch-accent-cream: var(--accent-cream);
+  --color-bunch-text-light: var(--text-light);
+  --color-bunch-text-dark: var(--text-dark);
+  --color-bunch-text-heading: var(--text-heading);
+  --color-bunch-text-muted: var(--text-muted);
 
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
@@ -21,7 +49,7 @@
 
 @layer base {
   body {
-    @apply font-sans dark:bg-bunch-secondary-dark dark:text-white;
+    @apply font-sans bg-bunch-accent-blue dark:bg-bunch-secondary-dark text-bunch-text-dark dark:text-white;
   }
 
   h1,
@@ -52,17 +80,21 @@
   .hero-bg-gradient {
     background-image: linear-gradient(to bottom, #3b3864, #2a2847);
   }
+
   .chat-bg-gradient {
     background-image: linear-gradient(to bottom, #2a2847, #1e1c32);
   }
+
   .text-glow {
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 0 0 12px
       rgba(192, 132, 252, 0.3);
   }
+
   .button-glow {
     box-shadow: 0 0 15px rgba(167, 139, 250, 0.5), 0 0 20px
       rgba(167, 139, 250, 0.3);
   }
+
   .button-glow-secondary {
     box-shadow: 0 0 15px rgba(59, 130, 246, 0.4), 0 0 20px
       rgba(59, 130, 246, 0.2);
