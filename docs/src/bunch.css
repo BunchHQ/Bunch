@@ -77,14 +77,6 @@
     background: #7c3aed; /* Darker primary purple on hover */
   }
 
-  .hero-bg-gradient {
-    background-image: linear-gradient(to bottom, #3b3864, #2a2847);
-  }
-
-  .chat-bg-gradient {
-    background-image: linear-gradient(to bottom, #2a2847, #1e1c32);
-  }
-
   .text-glow {
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 0 0 12px
       rgba(192, 132, 252, 0.3);
@@ -93,10 +85,5 @@
   .button-glow {
     box-shadow: 0 0 15px rgba(167, 139, 250, 0.5), 0 0 20px
       rgba(167, 139, 250, 0.3);
-  }
-
-  .button-glow-secondary {
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4), 0 0 20px
-      rgba(59, 130, 246, 0.2);
   }
 }
