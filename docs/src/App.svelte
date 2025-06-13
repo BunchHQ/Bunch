@@ -1,4 +1,5 @@
 <script lang="ts">
+import { onMount } from "svelte"
 import { circOut } from "svelte/easing"
 import { blur } from "svelte/transition"
 import BottomDivider from "./components/BottomDivider.svelte"
@@ -7,6 +8,11 @@ import FooterUpper from "./components/FooterUpper.svelte"
 import Hero from "./components/Hero.svelte"
 import Navbar from "./components/Navbar.svelte"
 import WavyDivider from "./components/WavyDivider.svelte"
+
+let mounted = false
+onMount(() => {
+  mounted = true
+})
 </script>
 
 <svelte:head>
@@ -80,20 +86,23 @@ import WavyDivider from "./components/WavyDivider.svelte"
   <Navbar />
 
   <div class="relative m-auto max-w-6xl">
-    <img
-      src="/squirly-arrow.svg"
-      alt="Arrow pointing to Bunch"
-      width="200"
-      class="absolute -left-12 top-12 w-52 rotate-[24deg] select-none invert md:left-10 md:rotate-0 dark:invert-0"
-    />
-    <img
-      src="/bunch_mascot_hero.webp"
-      alt="Bunch's Mascot"
-      class="absolute right-0 top-32 w-48 select-none md:right-4 md:top-16 md:w-96"
-      width="384"
-      height="485"
-      transition:blur={{ delay: 300, easing: circOut }}
-    />
+    {#if mounted}
+      <img
+        src="/squirly-arrow.svg"
+        alt="Arrow pointing to Bunch"
+        width="200"
+        class="absolute -left-12 top-12 w-52 rotate-[24deg] select-none invert md:left-10 md:rotate-0 dark:invert-0"
+        transition:blur={{ delay: 600, easing: circOut }}
+      />
+      <img
+        src="/bunch_mascot_hero.webp"
+        alt="Bunch's Mascot"
+        class="absolute right-0 top-32 w-48 select-none md:right-4 md:top-16 md:w-96"
+        width="384"
+        height="485"
+        transition:blur={{ delay: 300, easing: circOut }}
+      />
+    {/if}
   </div>
 
   <div
@@ -113,7 +122,6 @@ import WavyDivider from "./components/WavyDivider.svelte"
       width="900"
       height="530"
       class="h-auto w-full"
-      transition:blur={{ delay: 300, easing: circOut }}
     />
 
     <p
