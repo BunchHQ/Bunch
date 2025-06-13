@@ -13,7 +13,7 @@ const links = [
 
 <nav class="fixed top-8 z-10 w-full" transition:fly={{y: -100, delay: 200, opacity: 0, easing: circOut}}>
   <div class="m-auto flex w-max flex-row items-stretch justify-stretch gap-4">
-    <div class="bg-bunch-primary-dark rounded-xl p-[0.25rem]">
+    <div class="bg-bunch-primary-dark rounded-xl p-[0.25rem] shadow-2xl">
       <div
         class="bg-bunch-primary border-bunch-primary-darker rounded-[calc(theme(borderRadius.xl)-4px)] border-2"
       >
@@ -22,6 +22,6 @@ const links = [
         {/each}
       </div>
     </div>
-    <Button bg="creme" color="primary" class="text-2xl">Open Bunch</Button>
+    <Button bg="creme" color="primary" class="text-2xl shadow-xl">Open Bunch</Button>
   </div>
 </nav>

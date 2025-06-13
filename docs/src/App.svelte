@@ -113,7 +113,7 @@ import WavyDivider from "./components/WavyDivider.svelte"
       width="900"
       height="530"
       class="h-auto w-full"
-      transition:blur
+      transition:blur={{ delay: 300, easing: circOut }}
     />
 
     <p class="font-bunch w-3/4 text-center text-2xl text-white">
