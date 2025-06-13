@@ -84,12 +84,12 @@ import WavyDivider from "./components/WavyDivider.svelte"
       src="/squirly-arrow.svg"
       alt="Arrow pointing to Bunch"
       width="200"
-      class="absolute left-10 top-6 w-52 invert dark:invert-0"
+      class="absolute -left-12 top-12 w-52 rotate-[24deg] select-none invert md:left-10 md:rotate-0 dark:invert-0"
     />
     <img
       src="/bunch_mascot_hero.webp"
       alt="Bunch's Mascot"
-      class="absolute right-4 top-16 w-96"
+      class="absolute right-0 top-32 w-48 select-none md:right-4 md:top-16 md:w-96"
       width="384"
       height="485"
       transition:blur={{ delay: 300, easing: circOut }}
@@ -97,7 +97,7 @@ import WavyDivider from "./components/WavyDivider.svelte"
   </div>
 
   <div
-    class="bg-bunch-accent-cream dark:bg-bunch-secondary m-auto flex h-full w-full flex-col items-center"
+    class="bg-bunch-accent-cream dark:from-bunch-secondary-dark dark:to-bunch-secondary m-auto flex h-full w-full flex-col items-center bg-gradient-to-b dark:bg-gradient-to-b dark:to-50%"
   >
     <Hero />
   </div>
@@ -116,7 +116,9 @@ import WavyDivider from "./components/WavyDivider.svelte"
       transition:blur={{ delay: 300, easing: circOut }}
     />
 
-    <p class="font-bunch w-3/4 text-center text-2xl text-white">
+    <p
+      class="font-bunch text-glow w-3/4 text-center text-xl text-white md:text-2xl"
+    >
       Your all-in-one space to chat, and stay connected with your crew—no matter
       where they are!
     </p>
@@ -144,19 +146,19 @@ import WavyDivider from "./components/WavyDivider.svelte"
   <div class="bg-bunch-accent-cream h-full w-full">
     <BottomDivider />
     <div
-      class="m-auto flex max-w-7xl flex-col items-center justify-center pt-16"
+      class="m-auto flex w-full max-w-7xl flex-col items-center justify-center pt-16"
     >
       <img
         src="/bunch_title.webp"
         alt="Bunch's title text"
-        class="w-[36rem] translate-y-7"
+        class="w-72 translate-y-7 select-none md:w-[36rem]"
         width="576"
         height="168"
       />
       <img
         src="/bunch_mascot_footer_peek.webp"
         alt="Bunch's Mascot Peeking"
-        class="z-[5] w-80"
+        class="z-[5] w-64 select-none md:w-80"
         width="320"
         height="320"
       />

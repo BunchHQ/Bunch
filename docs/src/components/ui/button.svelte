@@ -7,6 +7,7 @@ interface ButtonProps {
   bg?: "creme" | "primary" | "none"
   color?: "primary" | "white" | "creme" | "light"
   children: Snippet
+  innerClass?: ClassValue
   class?: ClassValue
 }
 let props: ButtonProps = $props()
@@ -24,12 +25,13 @@ let {
     {
       "border-bunch-primary-dark border-4": border === "primary",
     },
-    props.class?.includes("w-full") ? "w-full" : "w-min",
+    "w-min",
+    props.class,
   ]}
 >
   <button
     class={[
-      "font-bunch h-full cursor-pointer rounded-[calc(theme(borderRadius.xl)-4px)] px-6 py-1 pb-2 font-medium tracking-tight transition-colors duration-75",
+      "font-bunch h-full cursor-pointer rounded-[calc(theme(borderRadius.xl)-4px)] px-2 py-1 pb-2 font-medium tracking-tight transition-colors duration-75 md:px-6",
       {
         "bg-bunch-accent-cream hover:bg-bunch-accent-blue hover:text-bunch-accent-cream active:bg-bunch-primary-darker":
           bg === "creme",
@@ -45,7 +47,7 @@ let {
         "outline-bunch-text-light dark:outline-bunch-text-dark outline-5 outline-dashed -outline-offset-2":
           border === "dotted",
       },
-      props.class,
+      props.innerClass,
     ]}
   >
     {@render children()}
