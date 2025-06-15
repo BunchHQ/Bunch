@@ -1,3 +1,5 @@
-# Bunch
+# Bunch Docs
 
-Landing page for Bunch!
+Docs for Bunch!
+
+> [bunchhq.github.io](https://bunchhq.github.io)

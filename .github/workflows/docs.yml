@@ -1,0 +1,44 @@
+name: Deploy Docs to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/deploy-docs.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repo
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github
+            docs
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install and build Svelte docs
+        working-directory: ./docs
+        run: |
+          npm i
+          npm run build
+
+      - name: Deploy to bunchHQ.github.io
+        uses: crazy-max/ghaction-github-pages@v4
+        with:
+          repo: bunchhq/bunchHQ.github.io
+          target_branch: main
+          build_dir: docs/dist
+          jekyll: false
+          commit_message: "🚀 Deploy from bunch/docs"
+          committer: "Sir. Nick <bunchhq@gmail.com>"
+          author: "Sir. Nick <bunchhq@gmail.com>"
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
