@@ -115,6 +115,20 @@ wheels = [
 ]
 
 [[package]]
+name = "channels-stubs"
+version = "0.1.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "channels" },
+    { name = "django" },
+    { name = "django-stubs" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e5/e0/486e5cb0722c7ea1d2f79ee1c99835ad26cde0ca115a9f60b94fe5d06997/channels_stubs-0.1.9.tar.gz", hash = "sha256:2a884a5ad24d490206d51c4cde74b54b9e179310f6f2fe1eeb03a0a40d5dd2d9", size = 8807, upload-time = "2025-05-13T16:21:10.122Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5f/58/25f9b6645a09353cbe4038ba27b9a3ffafe56196fffb85962ec2d958cfa3/channels_stubs-0.1.9-py3-none-any.whl", hash = "sha256:f35fe06ba85d3e4e8d03fe72bf26f7288669da1b337183d08c2b851e079115ac", size = 16098, upload-time = "2025-05-13T16:21:08.543Z" },
+]
+
+[[package]]
 name = "charset-normalizer"
 version = "3.4.2"
 source = { registry = "https://pypi.org/simple" }
@@ -437,6 +451,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "channels-stubs" },
     { name = "django-types" },
     { name = "djangorestframework-stubs" },
 ]
@@ -458,6 +473,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "channels-stubs", specifier = ">=0.1.9" },
     { name = "django-types", specifier = ">=0.20.0" },
     { name = "djangorestframework-stubs", specifier = ">=3.15.3" },
 ]

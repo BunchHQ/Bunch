@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, override
 
 from django.core.validators import RegexValidator
 from django.db import models
+
 from users.models import User
 
 
@@ -64,7 +65,7 @@ def get_random_color_choice() -> str:
     return random.choice(ColorChoices.values)
 
 
-class BunchManager(models.Manager):
+class BunchManager(models.Manager["Bunch"]):
     def get_queryset(self):
         return super().get_queryset()
 
@@ -74,21 +75,17 @@ class BunchManager(models.Manager):
 
 
 class Bunch(models.Model):
-    id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    owner = models.ForeignKey(
+    owner = models.ForeignKey["User"](
         User,
         on_delete=models.CASCADE,
         related_name="owned_bunches",
     )
-    icon = models.ImageField(
-        upload_to="bunch_icons/", null=True, blank=True
-    )
+    icon = models.ImageField(upload_to="bunch_icons/", null=True, blank=True)
     is_private = models.BooleanField(default=False)
     invite_code = models.CharField(
         max_length=10, unique=True, null=True, blank=True
@@ -125,15 +122,13 @@ class Bunch(models.Model):
 
 
 class Member(models.Model):
-    id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False
-    )
-    bunch = models.ForeignKey(
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    bunch = models.ForeignKey["Bunch"](
         Bunch,
         on_delete=models.CASCADE,
         related_name="members",
     )
-    user = models.ForeignKey(
+    user = models.ForeignKey["User"](
         User,
         on_delete=models.CASCADE,
         related_name="bunch_memberships",
@@ -161,10 +156,8 @@ class Member(models.Model):
 
 
 class Channel(models.Model):
-    id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False
-    )
-    bunch = models.ForeignKey(
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    bunch = models.ForeignKey["Bunch"](
         Bunch,
         on_delete=models.CASCADE,
         related_name="channels",
@@ -193,7 +186,7 @@ class Channel(models.Model):
         messages: models.QuerySet["Message"]
 
 
-class MessageManager(models.Manager):
+class MessageManager(models.Manager["Message"]):
     def get_queryset(self):
         return super().get_queryset()
 
@@ -207,33 +200,23 @@ class MessageManager(models.Manager):
 
     def for_channel(self, channel_id):
         """Returns messages for a specific channel."""
-        return self.get_queryset().filter(
-            channel_id=channel_id
-        )
+        return self.get_queryset().filter(channel_id=channel_id)
 
     def for_bunch(self, bunch_id):
         """Returns messages in a specific bunch."""
-        return self.get_queryset().filter(
-            channel__bunch_id=bunch_id
-        )
+        return self.get_queryset().filter(channel__bunch_id=bunch_id)
 
     def by_author(self, author_id):
         """Returns messages by a specific author."""
-        return self.get_queryset().filter(
-            author_id=author_id
-        )
+        return self.get_queryset().filter(author_id=author_id)
 
     def recent(self, limit=100):
         """Returns most recent messages."""
-        return self.get_queryset().order_by("-created_at")[
-            :limit
-        ]
+        return self.get_queryset().order_by("-created_at")[:limit]
 
     def with_replies(self):
         """Returns messages with their reply count."""
-        return self.get_queryset().annotate(
-            reply_count=models.Count("replies")
-        )
+        return self.get_queryset().annotate(reply_count=models.Count("replies"))
 
     def top_level(self):
         """Returns only top-level messages (not replies)."""
@@ -245,15 +228,13 @@ class MessageManager(models.Manager):
 
 
 class Message(models.Model):
-    id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False
-    )
-    channel = models.ForeignKey(
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    channel = models.ForeignKey["Channel"](
         Channel,
         on_delete=models.CASCADE,
         related_name="messages",
     )
-    author = models.ForeignKey(
+    author = models.ForeignKey["Member"](
         Member,
         on_delete=models.CASCADE,
         related_name="messages",
@@ -266,9 +247,9 @@ class Message(models.Model):
 
     deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    
+
     # Reply functionality
-    reply_to = models.ForeignKey(
+    reply_to = models.ForeignKey["Message"](
         "self",
         on_delete=models.CASCADE,
         null=True,
@@ -300,7 +281,7 @@ class Message(models.Model):
         reactions: models.QuerySet["Reaction"]
 
 
-class ReactionManager(models.Manager):
+class ReactionManager(models.Manager["Reaction"]):
     def get_queryset(self):
         return super().get_queryset()
 
@@ -318,9 +299,7 @@ class ReactionManager(models.Manager):
 
     def for_message_by_emoji(self, message_id, emoji):
         """Returns reactions for a specific message and emoji."""
-        return self.get_queryset().filter(
-            message_id=message_id, emoji=emoji
-        )
+        return self.get_queryset().filter(message_id=message_id, emoji=emoji)
 
 
 class Reaction(models.Model):
@@ -328,15 +307,14 @@ class Reaction(models.Model):
     Model representing emoji reactions to messages.
     Each user can only react once per message per emoji.
     """
-    id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False
-    )
-    message = models.ForeignKey(
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    message = models.ForeignKey["Message"](
         Message,
         on_delete=models.CASCADE,
         related_name="reactions",
     )
-    user = models.ForeignKey(
+    user = models.ForeignKey["User"](
         User,
         on_delete=models.CASCADE,
         related_name="message_reactions",
@@ -347,24 +325,28 @@ class Reaction(models.Model):
         # Allow any Unicode emoji, not just predefined choices
         validators=[
             RegexValidator(
-                regex=r'^[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF\u2600-\u26FF\u2700-\u27BF]+$',
-                message='Must be a valid emoji character',
-                flags=0
+                regex=r"^[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF\u2600-\u26FF\u2700-\u27BF]+$",
+                message="Must be a valid emoji character",
+                flags=None,
             )
-        ]
+        ],
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects: "ReactionManager" = ReactionManager()
 
     class Meta:
-        unique_together = ('message', 'user', 'emoji')  # One reaction per user per emoji per message
+        unique_together = (
+            "message",
+            "user",
+            "emoji",
+        )  # One reaction per user per emoji per message
         verbose_name = "Reaction"
         verbose_name_plural = "Reactions"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['message', 'emoji']),
-            models.Index(fields=['user']),
+            models.Index(fields=["message", "emoji"]),
+            models.Index(fields=["user"]),
         ]
 
     def __str__(self):
