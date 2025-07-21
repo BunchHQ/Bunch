@@ -1,14 +1,6 @@
-import json
 import logging
 from typing import override
 
-from bunch.models import Bunch, Channel, Member, Message, Reaction, RoleChoices
-from bunch.permissions import (AuthedHttpRequest, IsBunchAdmin, IsBunchMember,
-                               IsBunchOwner, IsBunchPublic, IsMessageAuthor,
-                               IsSelfMember)
-from bunch.serializers import (BunchSerializer, ChannelSerializer,
-                               MemberSerializer, MessageSerializer,
-                               ReactionSerializer)
 from channels.layers import get_channel_layer
 from django.db import models
 from django.shortcuts import get_object_or_404
@@ -17,6 +9,25 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+
+from bunch.constants import WSMessageTypeServer
+from bunch.models import Bunch, Channel, Member, Message, Reaction, RoleChoices
+from bunch.permissions import (
+    AuthedHttpRequest,
+    IsBunchAdmin,
+    IsBunchMember,
+    IsBunchOwner,
+    IsBunchPublic,
+    IsMessageAuthor,
+    IsSelfMember,
+)
+from bunch.serializers import (
+    BunchSerializer,
+    ChannelSerializer,
+    MemberSerializer,
+    MessageSerializer,
+    ReactionSerializer,
+)
 from users.models import User
 
 logger = logging.getLogger(__name__)
@@ -33,20 +44,13 @@ class BunchViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         self.request: AuthedHttpRequest
         # allow all access to superuser
-        if (
-            self.request.user
-            and self.request.user.is_superuser
-        ):
+        if self.request.user and self.request.user.is_superuser:
             return Bunch.objects.all()
 
         if self.action in ("list", "destroy"):
             # return all bunches the user is in
-            queryset = Bunch.objects.filter(
-                members__user=self.request.user
-            )
-        elif (
-            self.action == "join" or self.action == "leave"
-        ):
+            queryset = Bunch.objects.filter(members__user=self.request.user)
+        elif self.action == "join" or self.action == "leave":
             # return all bunches
             queryset = Bunch.objects.all()
         else:
@@ -57,13 +61,8 @@ class BunchViewSet(viewsets.ModelViewSet):
 
     @override
     def get_permissions(self):
-        if (
-            self.request.user
-            and self.request.user.is_superuser
-        ):
-            self.permission_classes = [
-                permissions.IsAdminUser
-            ]
+        if self.request.user and self.request.user.is_superuser:
+            self.permission_classes = [permissions.IsAdminUser]
 
             return super().get_permissions()
 
@@ -81,9 +80,7 @@ class BunchViewSet(viewsets.ModelViewSet):
             ]
         elif self.action == "create":
             # creation allowed by all authenticated users
-            self.permission_classes = [
-                permissions.IsAuthenticated
-            ]
+            self.permission_classes = [permissions.IsAuthenticated]
         elif (
             self.action == "update"
             or self.action == "partial_update"
@@ -98,9 +95,7 @@ class BunchViewSet(viewsets.ModelViewSet):
                 IsBunchPublic,
             ]
         elif self.action == "join":
-            self.permission_classes = [
-                permissions.IsAuthenticated
-            ]
+            self.permission_classes = [permissions.IsAuthenticated]
         elif self.action == "leave":
             self.permission_classes = [
                 permissions.IsAuthenticated,
@@ -115,9 +110,7 @@ class BunchViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def perform_create(self, serializer: BunchSerializer):
-        bunch: Bunch = serializer.save(
-            owner=self.request.user
-        )
+        bunch: Bunch = serializer.save(owner=self.request.user)
         Member.objects.get_or_create(
             user=self.request.user,
             bunch=bunch,
@@ -141,9 +134,7 @@ class BunchViewSet(viewsets.ModelViewSet):
                 context={"request": request},
                 many=True,
             )
-            return self.get_paginated_response(
-                serializer.data
-            )
+            return self.get_paginated_response(serializer.data)
 
         serializer = BunchSerializer(
             public_bunches,
@@ -155,19 +146,15 @@ class BunchViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["POST"])
     def join(self, request, id=None):
         bunch = self.get_object()
-        if (
-            bunch.is_private
-            and not bunch.invite_code
-            == request.data.get("invite_code")
+        if bunch.is_private and not bunch.invite_code == request.data.get(
+            "invite_code"
         ):
             return Response(
                 {"error": "Invalid invite code"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if Member.objects.filter(
-            bunch=bunch, user=request.user
-        ).exists():
+        if Member.objects.filter(bunch=bunch, user=request.user).exists():
             return Response(
                 {"error": "Already a member"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -176,19 +163,13 @@ class BunchViewSet(viewsets.ModelViewSet):
         member = Member.objects.create(
             user=request.user, bunch=bunch, role="member"
         )
-        serializer = MemberSerializer(
-            member, context={"request": request}
-        )
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED
-        )
+        serializer = MemberSerializer(member, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
     def leave(self, request, id=None):
         bunch = self.get_object()
-        member = get_object_or_404(
-            Member, user=request.user, bunch=bunch
-        )
+        member = get_object_or_404(Member, user=request.user, bunch=bunch)
         # owner cannot leave their own bunch
         if member.role == "owner":
             return Response(
@@ -216,20 +197,13 @@ class MemberViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         bunch_id = self.kwargs.get("bunch_id")
-        return Member.objects.filter(
-            bunch__id=bunch_id
-        ).order_by("-joined_at")
+        return Member.objects.filter(bunch__id=bunch_id).order_by("-joined_at")
 
     @override
     def get_permissions(self):
         # allow all to super user
-        if (
-            self.request.user
-            and self.request.user.is_superuser
-        ):
-            self.permission_classes = [
-                permissions.IsAdminUser
-            ]
+        if self.request.user and self.request.user.is_superuser:
+            self.permission_classes = [permissions.IsAdminUser]
             return super().get_permissions()
 
         if self.action == "list":
@@ -252,7 +226,7 @@ class MemberViewSet(viewsets.ModelViewSet):
             "partial_update",
             "delete",
         ):
-            # TDOD: disallow role update via PUT or PATCH
+            # TODO: disallow role update via PUT or PATCH
             self.permission_classes = [
                 permissions.IsAuthenticated,
                 IsSelfMember,
@@ -270,9 +244,7 @@ class MemberViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def perform_create(self, serializer):
-        bunch = get_object_or_404(
-            Bunch, id=self.kwargs.get("bunch_id")
-        )
+        bunch = get_object_or_404(Bunch, id=self.kwargs.get("bunch_id"))
 
         # from 'user' field or default to current user
         user_id = self.request.POST.get("user")
@@ -284,12 +256,8 @@ class MemberViewSet(viewsets.ModelViewSet):
         else:
             user = self.request.user
 
-        if Member.objects.filter(
-            bunch=bunch, user=user
-        ).exists():
-            raise ValidationError(
-                "User is already a member of this bunch."
-            )
+        if Member.objects.filter(bunch=bunch, user=user).exists():
+            raise ValidationError("User is already a member of this bunch.")
 
         nickname = self.request.POST.get("nickname")
         role = self.request.POST.get("role")
@@ -308,9 +276,7 @@ class MemberViewSet(viewsets.ModelViewSet):
             bunch=member.bunch, role__in=["owner", "admin"]
         ).exists():
             return Response(
-                {
-                    "error": "You don't have permission to update roles"
-                },
+                {"error": "You don't have permission to update roles"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -325,12 +291,8 @@ class MemberViewSet(viewsets.ModelViewSet):
         member.save()
 
         # Return serialized member with updated role
-        serializer = MemberSerializer(
-            member, context={"request": request}
-        )
-        return Response(
-            serializer.data, status=status.HTTP_200_OK
-        )
+        serializer = MemberSerializer(member, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ChannelViewSet(viewsets.ModelViewSet):
@@ -343,18 +305,11 @@ class ChannelViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         bunch_id = self.kwargs.get("bunch_id")
-        return Channel.objects.filter(
-            bunch_id=bunch_id
-        ).order_by("created_at")
+        return Channel.objects.filter(bunch_id=bunch_id).order_by("created_at")
 
     def get_permissions(self):
-        if (
-            self.request.user
-            and self.request.user.is_superuser
-        ):
-            self.permission_classes = [
-                permissions.IsAdminUser
-            ]
+        if self.request.user and self.request.user.is_superuser:
+            self.permission_classes = [permissions.IsAdminUser]
             return super().get_permissions()
 
         if self.action == "list":
@@ -395,9 +350,7 @@ class ChannelViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def perform_create(self, serializer):
-        bunch = get_object_or_404(
-            Bunch, id=self.kwargs.get("bunch_id")
-        )
+        bunch = get_object_or_404(Bunch, id=self.kwargs.get("bunch_id"))
         serializer.save(bunch=bunch)
 
     @action(detail=True, methods=["post"])
@@ -413,12 +366,8 @@ class ChannelViewSet(viewsets.ModelViewSet):
             content=request.data.get("content"),
         )
 
-        serializer = MessageSerializer(
-            message, context={"request": request}
-        )
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED
-        )
+        serializer = MessageSerializer(message, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class MessagePagination(PageNumberPagination):
@@ -428,7 +377,7 @@ class MessagePagination(PageNumberPagination):
 
 
 class MessageViewSet(viewsets.ModelViewSet):
-    serializer_class = MessageSerializer    
+    serializer_class = MessageSerializer
     permission_classes = [
         permissions.IsAuthenticated,
         IsBunchMember,
@@ -439,33 +388,28 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         bunch_id = self.kwargs.get("bunch_id")
-        queryset = Message.objects.for_bunch(bunch_id).select_related(
-            'author__user', 'reply_to__author__user'
-        ).annotate(
-            reply_count=models.Count('replies')
+        queryset = (
+            Message.objects.for_bunch(bunch_id)
+            .select_related("author__user", "reply_to__author__user")
+            .annotate(reply_count=models.Count("replies"))
         )
-        
+
         # Filter by channel if specified
-        channel_id = self.request.query_params.get('channel')
+        channel_id = self.request.query_params.get("channel")
         if channel_id:
             queryset = queryset.filter(channel_id=channel_id)
-        
+
         # Filter for top-level messages only if requested
-        top_level = self.request.query_params.get('top_level')
-        if top_level and top_level.lower() == 'true':
+        top_level = self.request.query_params.get("top_level")
+        if top_level and top_level.lower() == "true":
             queryset = queryset.filter(reply_to__isnull=True)
-            
+
         return queryset.order_by("created_at")
 
     @override
     def get_permissions(self):
-        if (
-            self.request.user
-            and self.request.user.is_superuser
-        ):
-            self.permission_classes = [
-                permissions.IsAdminUser
-            ]
+        if self.request.user and self.request.user.is_superuser:
+            self.permission_classes = [permissions.IsAdminUser]
             return super().get_permissions()
 
         if self.action == "list":
@@ -508,27 +452,31 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         if not channel_id:
             raise ValidationError({"channel_id": "This field is required."})
-        
+
         channel = get_object_or_404(Channel, id=channel_id, bunch_id=bunch_id)
-        member = get_object_or_404(Member, user=self.request.user, bunch_id=bunch_id)
-        
+        member = get_object_or_404(
+            Member, user=self.request.user, bunch_id=bunch_id
+        )
+
         reply_to = None
         if reply_to_id:
             reply_to = get_object_or_404(
-                Message, 
-                id=reply_to_id, 
+                Message,
+                id=reply_to_id,
                 channel__bunch_id=bunch_id,
-                deleted=False  # Can't reply to deleted messages
+                deleted=False,  # Can't reply to deleted messages
             )
-        
+
         message = serializer.save(
-            channel=channel,
-            author=member,
-            reply_to=reply_to
+            channel=channel, author=member, reply_to=reply_to
         )
-        self._broadcast_message_via_websocket(message, channel, member, bunch_id)
-    
-    def _broadcast_message_via_websocket(self, message, channel, member, bunch_id):
+        self._broadcast_message_via_websocket(
+            message, channel, member, bunch_id
+        )
+
+    def _broadcast_message_via_websocket(
+        self, message, channel, member, bunch_id
+    ):
         """Broadcast message to WebSocket consumers for live updates"""
         try:
             message_data = {
@@ -547,32 +495,42 @@ class MessageViewSet(viewsets.ModelViewSet):
                 "content": message.content,
                 "created_at": message.created_at.isoformat(),
                 "updated_at": message.updated_at.isoformat(),
-                "edit_count": message.edit_count,                "deleted": message.deleted,
-                "deleted_at": message.deleted_at.isoformat() if message.deleted_at else None,
-                "reply_to_id": str(message.reply_to_id) if message.reply_to_id else None,
-                "reply_to_preview": self._get_reply_preview(message.reply_to) if message.reply_to else None,
+                "edit_count": message.edit_count,
+                "deleted": message.deleted,
+                "deleted_at": message.deleted_at.isoformat()
+                if message.deleted_at
+                else None,
+                "reply_to_id": str(message.reply_to_id)
+                if message.reply_to_id
+                else None,
+                "reply_to_preview": self._get_reply_preview(message.reply_to)
+                if message.reply_to
+                else None,
                 "reply_count": 0,  # New message, no replies yet
             }
             channel_layer = get_channel_layer()
+            assert channel_layer is not None
+
             room_group_name = f"chat_{bunch_id}_{channel.id}"
-            
+
             from asgiref.sync import async_to_sync
+
             async_to_sync(channel_layer.group_send)(
                 room_group_name,
                 {
-                    "type": "chat_message",
+                    "type": WSMessageTypeServer.CHAT_MESSAGE_SENT,
                     "message": message_data,
-                }
+                },
             )
         except Exception as e:
             # Log the error but don't fail the message creation
-            logger.error(f"Failed to broadcast message via WebSocket: {str(e)}")    
-            
+            logger.error(f"Failed to broadcast message via WebSocket: {str(e)}")
+
     def _get_reply_preview(self, reply_to_message):
         """Generate reply preview data for a replied-to message"""
         if not reply_to_message:
             return None
-            
+
         return {
             "id": str(reply_to_message.id),
             "content": reply_to_message.content,
@@ -580,25 +538,26 @@ class MessageViewSet(viewsets.ModelViewSet):
             "author": {
                 "id": str(reply_to_message.author.user.id),
                 "username": reply_to_message.author.user.username,
-            }
+            },
         }
 
     @action(detail=True, methods=["get"])
     def replies(self, request, bunch_id=None, id=None):
         """Get all replies to a specific message."""
         message = self.get_object()
-        replies = Message.objects.replies_to(message.id).select_related(
-            'author__user', 'reply_to__author__user'
-        ).annotate(
-            reply_count=models.Count('replies')
-        ).order_by('created_at')
-        
+        replies = (
+            Message.objects.replies_to(message.id)
+            .select_related("author__user", "reply_to__author__user")
+            .annotate(reply_count=models.Count("replies"))
+            .order_by("created_at")
+        )
+
         # Paginate the replies
         page = self.paginate_queryset(replies)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        
+
         serializer = self.get_serializer(replies, many=True)
         return Response(serializer.data)
 
@@ -608,6 +567,7 @@ class ReactionViewSet(viewsets.ModelViewSet):
     ViewSet for managing message reactions.
     Supports CRUD operations for emoji reactions on messages.
     """
+
     serializer_class = ReactionSerializer
     permission_classes = [
         permissions.IsAuthenticated,
@@ -618,26 +578,20 @@ class ReactionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         bunch_id = self.kwargs.get("bunch_id")
         message_id = self.request.query_params.get("message_id")
-        
+
         if message_id:
             return Reaction.objects.filter(
-                message_id=message_id,
-                message__channel__bunch_id=bunch_id
+                message_id=message_id, message__channel__bunch_id=bunch_id
             ).order_by("-created_at")
-        
+
         return Reaction.objects.filter(
             message__channel__bunch_id=bunch_id
         ).order_by("-created_at")
 
     @override
     def get_permissions(self):
-        if (
-            self.request.user
-            and self.request.user.is_superuser
-        ):
-            self.permission_classes = [
-                permissions.IsAdminUser
-            ]
+        if self.request.user and self.request.user.is_superuser:
+            self.permission_classes = [permissions.IsAdminUser]
             return super().get_permissions()
 
         if self.action in ["list", "retrieve"]:
@@ -668,32 +622,28 @@ class ReactionViewSet(viewsets.ModelViewSet):
         """Create a reaction for a message."""
         message_id = self.request.data.get("message_id")
         message = get_object_or_404(
-            Message, 
+            Message,
             id=message_id,
-            channel__bunch_id=self.kwargs.get("bunch_id")
+            channel__bunch_id=self.kwargs.get("bunch_id"),
         )
-        
+
         # Check if user already reacted with this emoji
         emoji = serializer.validated_data.get("emoji")
         existing_reaction = Reaction.objects.filter(
-            message=message,
-            user=self.request.user,
-            emoji=emoji
+            message=message, user=self.request.user, emoji=emoji
         ).first()
-        
+
         if existing_reaction:
             raise ValidationError(
                 "You have already reacted to this message with this emoji."
             )
-        
+
         serializer.save(user=self.request.user, message=message)
 
     def perform_destroy(self, instance):
         """Only allow users to delete their own reactions."""
         if instance.user != self.request.user:
-            raise ValidationError(
-                "You can only delete your own reactions."
-            )
+            raise ValidationError("You can only delete your own reactions.")
         super().perform_destroy(instance)
 
     @action(detail=False, methods=["post"])
@@ -704,7 +654,7 @@ class ReactionViewSet(viewsets.ModelViewSet):
         """
         message_id = request.data.get("message_id")
         emoji = request.data.get("emoji")
-        
+
         if not message_id or not emoji:
             return Response(
                 {"error": "message_id and emoji are required"},
@@ -712,39 +662,28 @@ class ReactionViewSet(viewsets.ModelViewSet):
             )
 
         message = get_object_or_404(
-            Message,
-            id=message_id,
-            channel__bunch_id=bunch_id
+            Message, id=message_id, channel__bunch_id=bunch_id
         )
 
         # Check if reaction already exists
         existing_reaction = Reaction.objects.filter(
-            message=message,
-            user=request.user,
-            emoji=emoji
+            message=message, user=request.user, emoji=emoji
         ).first()
 
         if existing_reaction:
             existing_reaction.delete()
             return Response(
-                {"action": "removed", "emoji": emoji},
-                status=status.HTTP_200_OK
+                {"action": "removed", "emoji": emoji}, status=status.HTTP_200_OK
             )
         else:
             # Add reaction
             reaction = Reaction.objects.create(
-                message=message,
-                user=request.user,
-                emoji=emoji
+                message=message, user=request.user, emoji=emoji
             )
             serializer = ReactionSerializer(
                 reaction, context={"request": request}
             )
             return Response(
-                {
-                    "action": "added",
-                    "reaction": serializer.data
-                },
-                status=status.HTTP_201_CREATED
+                {"action": "added", "reaction": serializer.data},
+                status=status.HTTP_201_CREATED,
             )
-        

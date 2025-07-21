@@ -20,12 +20,13 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "channels-stubs>=0.1.9",
     "django-types>=0.20.0",
     "djangorestframework-stubs>=3.15.3",
 ]
 
 [tool.ruff]
-line-length = 60
+line-length = 80
 indent-width = 4
 target-version = "py312"
 extend-exclude = ["**/migrations/*.py"]
