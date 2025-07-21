@@ -313,6 +313,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         group_name, self.channel_name
                     )
                     self.subscribed_channels.add((bunch_id, channel_id))
+                else:
+                    logger.warning(
+                        f"{self.user.username} already subscribed to {group_name}"
+                    )
 
                 logger.info(f"{self.user.username} subscribed to {group_name}")
 
@@ -372,7 +376,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         )
                     )
 
-            elif msg_type == WSMessageTypeClient.SEND_MESSAGE:
+            elif msg_type == WSMessageTypeClient.MESSAGE_NEW:
                 bunch_id = data.get("bunch_id")
                 channel_id = data.get("channel_id")
                 content = data.get("content", "").strip()
@@ -495,7 +499,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             has_access = await self.check_user_access(bunch_id, channel_id)
             if not has_access:
                 logger.warning(
-                    f"User {self.user.username} denied reaction access to channel {channel_id}"
+                    f"User {self.user.username} denied reaction access to bunch {bunch_id} channel {channel_id}"
                 )
                 return
 

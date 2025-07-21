@@ -1,124 +1,123 @@
-"use client";
+"use client"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@clerk/nextjs"
+import { formatDistanceToNow } from "date-fns"
+import { Edit, MoreHorizontal, Reply, Smile, Trash } from "lucide-react"
+import { useState } from "react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useWebSocket } from "@/lib/WebSocketProvider";
-import { useMessages, useWebSocketReactions } from "@/lib/hooks";
-import type { Message } from "@/lib/types";
-import { useAuth } from "@clerk/nextjs";
-import { formatDistanceToNow } from "date-fns";
-import { Edit, MoreHorizontal, Reply, Smile, Trash } from "lucide-react";
-import { useState } from "react";
-import { EmojiPicker } from "./EmojiPicker";
-import { MessageEditor } from "./MessageEditor";
-import { MessageReactions } from "./MessageReactions";
-import { ReplyIndicator } from "./ReplyIndicator";
-import { ReplySpine } from "./ReplySpine";
+} from "@/components/ui/tooltip"
+import { useMessages, useWebSocketReactions } from "@/lib/hooks"
+import type { Message } from "@/lib/types"
+import { useWebSocket } from "@/lib/WebSocketProvider"
+import { EmojiPicker } from "./EmojiPicker"
+import { MessageEditor } from "./MessageEditor"
+import { MessageReactions } from "./MessageReactions"
+import { ReplyIndicator } from "./ReplyIndicator"
+import { ReplySpine } from "./ReplySpine"
 
 interface MessageItemProps {
-  message: Message;
-  showHeader: boolean;
-  bunchId: string;
-  onReply?: (message: Message) => void;
-  onJumpToMessage?: (messageId: string) => void;
+  message: Message
+  showHeader: boolean
+  bunchId: string
+  channelId: string
+  onReply?: (message: Message) => void
+  onJumpToMessage?: (messageId: string) => void
 }
 
 export function MessageItem({
   message,
   showHeader,
   bunchId,
+  channelId,
   onReply,
   onJumpToMessage,
 }: MessageItemProps) {
-  const { userId } = useAuth();
-  const { updateMessage, deleteMessage } = useMessages(
-    bunchId,
-    message.channel,
-  );
-  const { sendReaction, isConnected } = useWebSocket();
-  const { toggleReaction } = useWebSocketReactions();
-  const [isEditing, setIsEditing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const { userId } = useAuth()
+  const { updateMessage, deleteMessage } = useMessages(bunchId, message.channel)
+  const { sendReaction, isConnected } = useWebSocket()
+  const { toggleReaction } = useWebSocketReactions()
+  const [isEditing, setIsEditing] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Format timestamp
-  const timestamp = new Date(message.created_at);
+  const timestamp = new Date(message.created_at)
   const formattedTime = timestamp.toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
-  });
-  const formattedDate = timestamp.toLocaleDateString();
-  const timeAgo = formatDistanceToNow(timestamp, { addSuffix: true });
+  })
+  const formattedDate = timestamp.toLocaleDateString()
+  const timeAgo = formatDistanceToNow(timestamp, { addSuffix: true })
 
-  const isAuthor = userId === message.author.user.username; // won't work clerk userId doesn't match user.id
+  const isAuthor = userId === message.author.user.username // won't work clerk userId doesn't match user.id
 
   const handleEdit = () => {
-    setIsEditing(true);
-  };
+    setIsEditing(true)
+  }
 
   const handleSaveEdit = async (content: string) => {
     try {
-      await updateMessage(message.id, content);
-      setIsEditing(false);
+      await updateMessage(message.id, content)
+      setIsEditing(false)
     } catch (error) {
-      console.error("Failed to update message:", error);
+      console.error("Failed to update message:", error)
     }
-  };
+  }
 
   const handleCancelEdit = () => {
-    setIsEditing(false);
-  };
+    setIsEditing(false)
+  }
   const handleDelete = async () => {
-    setIsDeleting(true);
+    setIsDeleting(true)
     try {
-      await deleteMessage(message.id);
+      await deleteMessage(message.id)
     } catch (error) {
-      console.error("Failed to delete message:", error);
+      console.error("Failed to delete message:", error)
     } finally {
-      setIsDeleting(false);
+      setIsDeleting(false)
     }
-  };
+  }
 
   const handleEmojiSelect = async (emoji: string) => {
     if (!isConnected) {
-      console.error("WebSocket not connected");
-      return;
+      console.error("WebSocket not connected")
+      return
     }
 
     try {
-      await toggleReaction(message.id, emoji, sendReaction);
+      await toggleReaction(bunchId, channelId, message.id, emoji, sendReaction)
     } catch (error) {
-      console.error("Failed to add reaction:", error);
+      console.error("Failed to add reaction:", error)
     }
-  };
+  }
 
   const handleReply = () => {
-    onReply?.(message);
-  };
+    onReply?.(message)
+  }
 
   const handleJumpToReply = () => {
     if (message.reply_to_id) {
-      onJumpToMessage?.(message.reply_to_id);
+      onJumpToMessage?.(message.reply_to_id)
     }
-  };
+  }
 
   if (message.deleted) {
     return (
       <div className="px-4 py-1 opacity-60">
         {showHeader && (
-          <div className="flex items-start space-x-2 mb-1.5">
+          <div className="mb-1.5 flex items-start space-x-2">
             <Avatar className="h-8 w-8">
               <AvatarImage
                 src={message.author.user.avatar || undefined}
@@ -130,13 +129,13 @@ export function MessageItem({
             </Avatar>
             <div>
               <div className="flex items-baseline">
-                <span className="font-medium mr-2">
+                <span className="mr-2 font-medium">
                   {message.author.nickname || message.author.user.username}
                 </span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         {formattedTime}
                       </span>
                     </TooltipTrigger>
@@ -151,15 +150,15 @@ export function MessageItem({
             </div>
           </div>
         )}
-        <div className="pl-10 italic text-muted-foreground text-sm">
+        <div className="text-muted-foreground pl-10 text-sm italic">
           This message was deleted
         </div>
       </div>
-    );
+    )
   }
   return (
     <div
-      className="group px-2 py-1 hover:bg-accent/50 rounded-md transition-colors relative"
+      className="group hover:bg-accent/50 relative rounded-md px-2 py-1 transition-colors"
       data-testid={`message-${message.id}`}
     >
       {/* Reply indicator for messages that are replies */}
@@ -176,7 +175,7 @@ export function MessageItem({
 
       {showHeader ? (
         <div className="flex items-start space-x-3">
-          <Avatar className="h-10 w-10 mt-0.5">
+          <Avatar className="mt-0.5 h-10 w-10">
             <AvatarImage
               src={message.author.user.avatar || undefined}
               alt={message.author.user.username}
@@ -193,7 +192,7 @@ export function MessageItem({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-muted-foreground text-xs">
                       {formattedTime}
                     </span>
                   </TooltipTrigger>
@@ -205,7 +204,7 @@ export function MessageItem({
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <div className="text-sm whitespace-pre-wrap mt-0 mb-0 leading-tight">
+            <div className="mt-0 mb-0 text-sm leading-tight whitespace-pre-wrap">
               {isEditing ? (
                 <MessageEditor
                   initialContent={message.content}
@@ -216,13 +215,15 @@ export function MessageItem({
                 <>
                   {message.content}
                   {message.edit_count > 0 && (
-                    <span className="text-xs text-muted-foreground italic ml-2">
+                    <span className="text-muted-foreground ml-2 text-xs italic">
                       (edited)
                     </span>
                   )}
                   {/* Reactions */}
                   {message.reactions && message.reaction_counts && (
                     <MessageReactions
+                      bunchId={bunchId}
+                      channelId={channelId}
                       messageId={message.id}
                       reactions={message.reactions}
                       reactionCounts={message.reaction_counts}
@@ -238,7 +239,7 @@ export function MessageItem({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="text-[9px] font-medium text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <span className="text-muted-foreground z-10 text-[9px] font-medium opacity-0 transition-opacity group-hover:opacity-100">
                   {formattedTime}
                 </span>
               </TooltipTrigger>
@@ -249,7 +250,7 @@ export function MessageItem({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          <div className="text-sm whitespace-pre-wrap mt-0 mb-0 leading-tight">
+          <div className="mt-0 mb-0 text-sm leading-tight whitespace-pre-wrap">
             {isEditing ? (
               <MessageEditor
                 initialContent={message.content}
@@ -260,13 +261,15 @@ export function MessageItem({
               <>
                 {message.content}
                 {message.edit_count > 0 && (
-                  <span className="text-xs text-muted-foreground italic ml-2">
+                  <span className="text-muted-foreground ml-2 text-xs italic">
                     (edited)
                   </span>
                 )}
                 {/* Reactions */}
                 {message.reactions && message.reaction_counts && (
                   <MessageReactions
+                    bunchId={bunchId}
+                    channelId={channelId}
                     messageId={message.id}
                     reactions={message.reactions}
                     reactionCounts={message.reaction_counts}
@@ -279,7 +282,7 @@ export function MessageItem({
       )}
 
       {!isEditing && (
-        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">
+        <div className="absolute top-1/2 right-2 flex -translate-y-1/2 transform items-center space-x-1 opacity-0 transition-opacity group-hover:opacity-100">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -331,7 +334,7 @@ export function MessageItem({
               </TooltipProvider>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={handleEdit}>
-                  <Edit className="h-4 w-4 mr-2" />
+                  <Edit className="mr-2 h-4 w-4" />
                   Edit Message
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -340,7 +343,7 @@ export function MessageItem({
                   disabled={isDeleting}
                   className="text-destructive focus:text-destructive"
                 >
-                  <Trash className="h-4 w-4 mr-2" />
+                  <Trash className="mr-2 h-4 w-4" />
                   Delete Message
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -349,5 +352,5 @@ export function MessageItem({
         </div>
       )}
     </div>
-  );
+  )
 }
