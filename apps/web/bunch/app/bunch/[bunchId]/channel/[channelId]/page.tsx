@@ -1,82 +1,82 @@
-"use client";
+"use client"
 
-import { ChannelsList } from "@/components/channel/ChannelsList";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { MessageList } from "@/components/message/MessageList";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ChannelsList } from "@/components/channel/ChannelsList"
+import { MainLayout } from "@/components/layout/MainLayout"
+import { MessageList } from "@/components/message/MessageList"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useBunch, useChannels } from "@/lib/hooks";
-import type { Channel } from "@/lib/types";
-import { Bell, Hash, Info, Users, Volume2 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+} from "@/components/ui/tooltip"
+import { useBunch, useChannels } from "@/lib/hooks"
+import type { Channel } from "@/lib/types"
+import { Bell, Hash, Info, Users, Volume2 } from "lucide-react"
+import { useParams, useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function ChannelPage() {
-  const params = useParams();
-  const router = useRouter();
-  const bunchId = params?.bunchId as string;
-  const channelId = params?.channelId as string;
+  const params = useParams()
+  const router = useRouter()
+  const bunchId = params?.bunchId as string
+  const channelId = params?.channelId as string
 
   const {
     bunch,
     loading: isBunchLoading,
     error: bunchError,
     fetchBunch,
-  } = useBunch(bunchId);
+  } = useBunch(bunchId)
   const {
     channels,
     loading: isChannelsLoading,
     error: channelsError,
     fetchChannels,
-  } = useChannels(bunchId);
+  } = useChannels(bunchId)
 
   useEffect(() => {
     if (bunchId && channelId) {
-      fetchBunch();
-      fetchChannels();
+      fetchBunch()
+      fetchChannels()
     }
-  }, [bunchId, channelId, fetchBunch, fetchChannels]);
+  }, [bunchId, channelId, fetchBunch, fetchChannels])
 
   useEffect(() => {
     if (bunchError || channelsError) {
-      console.error("Failed to fetch data:", bunchError || channelsError);
-      router.push("/");
+      console.error("Failed to fetch data:", bunchError || channelsError)
+      router.push("/")
     }
-  }, [bunchError, channelsError, router]);
+  }, [bunchError, channelsError, router])
 
   const getChannelIcon = (channelType?: string) => {
     switch (channelType) {
       case "text":
-        return <Hash className="h-5 w-5" />;
+        return <Hash className="h-5 w-5" />
       case "voice":
-        return <Volume2 className="h-5 w-5" />;
+        return <Volume2 className="h-5 w-5" />
       case "announcement":
-        return <Bell className="h-5 w-5" />;
+        return <Bell className="h-5 w-5" />
       default:
-        return <Hash className="h-5 w-5" />;
+        return <Hash className="h-5 w-5" />
     }
-  };
+  }
 
-  const isLoading = isBunchLoading || isChannelsLoading;
-  const channel = channels?.find((c: Channel) => c.id === channelId);
+  const isLoading = isBunchLoading || isChannelsLoading
+  const channel = channels?.find((c: Channel) => c.id === channelId)
 
   if (!isLoading && !bunch) {
-    return <h1>Bunch not found</h1>;
+    return <h1>Bunch not found</h1>
   }
 
   return (
     <MainLayout>
-      <div className="flex flex-col pt-2 h-full">
+      <div className="flex h-full flex-col pt-2">
         <header
-          className="border-b border-border p-4 bg-gradient-to-r from-[var(--bunch-primary-color)]/35 to-25% to-transparent rounded-md"
+          className="border-border rounded-md border-b bg-gradient-to-r from-[var(--bunch-primary-color)]/35 to-transparent to-25% p-4"
           style={
             {
               "--bunch-primary-color": bunch?.primary_color,
@@ -95,7 +95,7 @@ export default function ChannelPage() {
           ) : (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-2 min-w-[250px]">
+                <div className="flex min-w-[250px] items-center space-x-2">
                   <Avatar className="h-12 w-12">
                     {bunch?.icon ? (
                       <AvatarImage src={bunch.icon} alt={bunch.name} />
@@ -107,7 +107,7 @@ export default function ChannelPage() {
                   </Avatar>
                   <div>
                     <h1 className="text-xl font-bold">{bunch?.name}</h1>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       {bunch?.description || "No description"}
                     </p>
                   </div>
@@ -119,7 +119,7 @@ export default function ChannelPage() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Info className="h-4 w-4 text-muted-foreground" />
+                          <Info className="text-muted-foreground h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -128,18 +128,18 @@ export default function ChannelPage() {
                     </Tooltip>
                   </TooltipProvider>
                 )}
-                <Separator orientation="vertical" className="h-6 mx-2" />
-                <span className="text-sm text-muted-foreground">
+                <Separator orientation="vertical" className="mx-2 h-6" />
+                <span className="text-muted-foreground text-sm">
                   {channel?.type === "text"
                     ? "Text Channel"
                     : channel?.type === "voice"
-                    ? "Voice Channel"
-                    : "Announcement Channel"}
+                      ? "Voice Channel"
+                      : "Announcement Channel"}
                 </span>
               </div>
               <div className="flex items-center">
                 <Button variant="ghost" size="sm">
-                  <Users className="h-4 w-4 mr-2" />
+                  <Users className="mr-2 h-4 w-4" />
                   Members
                 </Button>
               </div>
@@ -148,7 +148,7 @@ export default function ChannelPage() {
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          <div className="w-64 border-r border-border overflow-y-auto">
+          <div className="border-border w-64 overflow-y-auto border-r">
             <ChannelsList
               type={
                 (channel?.type as "text" | "voice" | "announcement") || "text"
@@ -156,11 +156,11 @@ export default function ChannelPage() {
             />
           </div>
 
-          <div className="flex-1 flex flex-col">
+          <div className="flex flex-1 flex-col">
             <MessageList />
           </div>
         </div>
       </div>
     </MainLayout>
-  );
+  )
 }

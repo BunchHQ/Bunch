@@ -1,58 +1,58 @@
-"use client";
+"use client"
 
-import { ChannelsList } from "@/components/channel/ChannelsList";
-import { CreateChannelDialog } from "@/components/channel/CreateChannelDialog";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { ChannelsList } from "@/components/channel/ChannelsList"
+import { CreateChannelDialog } from "@/components/channel/CreateChannelDialog"
+import { MainLayout } from "@/components/layout/MainLayout"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { useBunch } from "@/lib/hooks";
-import { Hash, Loader2, Plus, Settings, Users } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+} from "@/components/ui/card"
+import { useBunch } from "@/lib/hooks"
+import { Hash, Loader2, Plus, Settings, Users } from "lucide-react"
+import { useParams, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 export default function BunchPage() {
-  const params = useParams();
-  const router = useRouter();
-  const bunchId = params?.bunchId as string;
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const params = useParams()
+  const router = useRouter()
+  const bunchId = params?.bunchId as string
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
 
-  const { bunch, loading: isLoading, error, fetchBunch } = useBunch(bunchId);
+  const { bunch, loading: isLoading, error, fetchBunch } = useBunch(bunchId)
 
   useEffect(() => {
     if (bunchId) {
-      fetchBunch();
+      fetchBunch()
     }
-  }, [bunchId, fetchBunch]);
+  }, [bunchId, fetchBunch])
 
   useEffect(() => {
     if (error) {
-      console.error("Failed to fetch bunch:", error);
-      router.push("/");
+      console.error("Failed to fetch bunch:", error)
+      router.push("/")
     }
-  }, [error, router]);
+  }, [error, router])
 
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="flex items-center justify-center h-full">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex h-full items-center justify-center">
+          <Loader2 className="text-primary h-8 w-8 animate-spin" />
         </div>
       </MainLayout>
-    );
+    )
   }
 
   if (!bunch) {
     return (
       <MainLayout>
-        <div className="flex flex-col items-center justify-center h-full p-8">
-          <h1 className="text-2xl font-bold mb-4">Bunch not found</h1>
+        <div className="flex h-full flex-col items-center justify-center p-8">
+          <h1 className="mb-4 text-2xl font-bold">Bunch not found</h1>
           <p className="text-muted-foreground mb-6">
             The bunch you're looking for doesn't exist or you don't have access
             to it.
@@ -60,14 +60,14 @@ export default function BunchPage() {
           <Button onClick={() => router.push("/")}>Go Home</Button>
         </div>
       </MainLayout>
-    );
+    )
   }
 
   return (
     <MainLayout>
-      <div className="flex flex-col h-full py-2">
+      <div className="flex h-full flex-col py-2">
         <header
-          className="border-b border-border p-4 bg-gradient-to-r from-[var(--bunch-primary-color)]/35 to-25% to-transparent rounded-md"
+          className="border-border rounded-md border-b bg-gradient-to-r from-[var(--bunch-primary-color)]/35 to-transparent to-25% p-4"
           style={
             {
               "--bunch-primary-color": bunch?.primary_color,
@@ -87,7 +87,7 @@ export default function BunchPage() {
               </Avatar>
               <div>
                 <h1 className="text-xl font-bold">{bunch.name}</h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   {bunch.description || "No description"}
                 </p>
               </div>
@@ -98,7 +98,7 @@ export default function BunchPage() {
                 size="sm"
                 onClick={() => router.push(`/bunch/${bunchId}/members`)}
               >
-                <Users className="h-4 w-4 mr-2" />
+                <Users className="mr-2 h-4 w-4" />
                 Members
               </Button>
               <Button
@@ -106,7 +106,7 @@ export default function BunchPage() {
                 size="sm"
                 onClick={() => router.push(`/bunch/${bunchId}/settings`)}
               >
-                <Settings className="h-4 w-4 mr-2" />
+                <Settings className="mr-2 h-4 w-4" />
                 Settings
               </Button>
             </div>
@@ -114,15 +114,15 @@ export default function BunchPage() {
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          <div className="w-64 border-r border-border overflow-y-auto">
+          <div className="border-border w-64 overflow-y-auto border-r">
             {/* Channels sidebar */}
-            <div className="flex flex-col h-full">
+            <div className="flex h-full flex-col">
               <ChannelsList type="text" />
             </div>
           </div>
 
-          <div className="flex-1 p-8 flex flex-col items-center justify-center">
-            <Card className="max-w-md w-full">
+          <div className="flex flex-1 flex-col items-center justify-center p-8">
+            <Card className="w-full max-w-md">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Hash className="mr-2 h-5 w-5" />
@@ -153,5 +153,5 @@ export default function BunchPage() {
         bunchId={bunchId}
       />
     </MainLayout>
-  );
+  )
 }

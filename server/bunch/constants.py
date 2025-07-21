@@ -1,6 +1,7 @@
 from enum import StrEnum
 
 
+# must be kept in sync with apps/web/bunch/lib/types.ts
 class WSMessageTypeClient(StrEnum):
     """
     Message types that websocket client sends, server receives.
@@ -9,8 +10,14 @@ class WSMessageTypeClient(StrEnum):
     PING = "ping"
     SUBSCRIBE = "subscribe"
     UNSUBSCRIBE = "unsubscribe"
-    SEND_MESSAGE = "send_message"
+    # message
+    MESSAGE_NEW = "message.new"
+    MESSAGE_UPDATE = "message.update"
+    MESSAGE_DELETE = "message.delete"
+    # reactions
     REACTION = "reaction"
+    REACTION_NEW = "reaction.new"
+    REACTION_DELETE = "reaction.delete"
     REACTION_TOGGLE = "reaction.toggle"
 
 
@@ -20,13 +27,11 @@ class WSMessageTypeServer(StrEnum):
     """
 
     PONG = "pong"
+    ERROR = "error"
     SUBSCRIBED = "subscribed"
     UNSUBSCRIBED = "unsubscribed"
-    ERROR = "error"
-    CHAT_MESSAGE_SENT = "chat.message"
-    REACTION_ADDED = "reaction_added"
-    REACTION_REMOVED = "reaction_removed"
-    # Why ???
     CHAT_MESSAGE = "chat.message"
     REACTION_NEW = "reaction.new"
     REACTION_DELETE = "reaction.delete"
+    REACTION_ADDED = "reaction_added"
+    REACTION_REMOVED = "reaction_removed"

@@ -1,17 +1,5 @@
-"use client";
+"use client"
 
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { useWebSocket } from "@/lib/WebSocketProvider";
-import { useMessages } from "@/lib/hooks";
-import type { Message } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import {
   Apple,
   Hand,
@@ -24,16 +12,28 @@ import {
   Smile,
   SmileIcon,
   Trophy,
-} from "lucide-react";
-import { useRef, useState } from "react";
-import { ReplyComposerHeader } from "./ReplyComposerHeader";
+} from "lucide-react"
+import { useRef, useState } from "react"
+import { Button } from "@/components/ui/button"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { useMessages } from "@/lib/hooks"
+import type { Message } from "@/lib/types"
+import { cn } from "@/lib/utils"
+import { useWebSocket } from "@/lib/WebSocketProvider"
+import { ReplyComposerHeader } from "./ReplyComposerHeader"
 
 interface MessageComposerProps {
-  bunchId: string;
-  channelId: string;
-  replyingTo?: Message;
-  onCancelReply?: () => void;
-  onJumpToMessage?: (messageId: string) => void;
+  bunchId: string
+  channelId: string
+  replyingTo?: Message
+  onCancelReply?: () => void
+  onJumpToMessage?: (messageId: string) => void
 }
 
 const EMOJI_CATEGORIES = {
@@ -373,7 +373,7 @@ const EMOJI_CATEGORIES = {
       "🧭",
     ],
   },
-};
+}
 
 export function MessageComposer({
   bunchId,
@@ -382,79 +382,79 @@ export function MessageComposer({
   onCancelReply,
   onJumpToMessage,
 }: MessageComposerProps) {
-  const [message, setMessage] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
-  const [hoverEmoji, setHoverEmoji] = useState("😊");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [message, setMessage] = useState("")
+  const [isFocused, setIsFocused] = useState(false)
+  const [hoverEmoji, setHoverEmoji] = useState("😊")
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const { sendMessage: sendWebSocketMessage, isConnected } = useWebSocket();
-  const { sendMessage: sendAPIMessage } = useMessages(bunchId, channelId);
+  const { sendMessage: sendWebSocketMessage, isConnected } = useWebSocket()
+  const { sendMessage: sendAPIMessage } = useMessages(bunchId, channelId)
 
-  const hoverEmojis = ["😊", "😄", "😉", "😎", "🥰", "🤩", "😋", "🤗"];
+  const hoverEmojis = ["😊", "😄", "😉", "😎", "🥰", "🤩", "😋", "🤗"]
 
   const handleEmojiHover = () => {
-    const randomIndex = Math.floor(Math.random() * hoverEmojis.length);
-    setHoverEmoji(hoverEmojis[randomIndex]);
-  };
+    const randomIndex = Math.floor(Math.random() * hoverEmojis.length)
+    setHoverEmoji(hoverEmojis[randomIndex])
+  }
 
   const handleEmojiLeave = () => {
-    setHoverEmoji("😊");
-  };
+    setHoverEmoji("😊")
+  }
 
   const handleSendMessage = async () => {
-    const trimmedMessage = message.trim();
+    const trimmedMessage = message.trim()
 
     if (trimmedMessage && isConnected) {
       try {
         if (replyingTo) {
           // For replies, use the API directly to include reply_to_id
-          await sendAPIMessage(trimmedMessage, replyingTo.id);
-          onCancelReply?.(); // Clear the reply state after sending
+          await sendAPIMessage(trimmedMessage, replyingTo.id)
+          onCancelReply?.() // Clear the reply state after sending
         } else {
           // For regular messages, use WebSocket as before
-          await sendWebSocketMessage(trimmedMessage);
+          await sendWebSocketMessage(bunchId, channelId, trimmedMessage)
         }
 
-        setMessage("");
+        setMessage("")
 
         if (textareaRef.current) {
-          textareaRef.current.focus();
+          textareaRef.current.focus()
         }
       } catch (error) {
-        console.error("Error sending message:", error);
+        console.error("Error sending message:", error)
       }
     }
-  };
+  }
 
   const handleKeyDown = async (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      await handleSendMessage();
+      e.preventDefault()
+      await handleSendMessage()
     }
-  };
+  }
 
   const handleOnJumpToReply = () => {
     if (replyingTo) {
-      onJumpToMessage?.(replyingTo.id);
+      onJumpToMessage?.(replyingTo.id)
     }
-  };
+  }
 
   const insertEmoji = (emoji: string) => {
-    const cursorPosition = textareaRef.current?.selectionStart || 0;
-    const textBeforeCursor = message.substring(0, cursorPosition);
-    const textAfterCursor = message.substring(cursorPosition);
+    const cursorPosition = textareaRef.current?.selectionStart || 0
+    const textBeforeCursor = message.substring(0, cursorPosition)
+    const textAfterCursor = message.substring(cursorPosition)
 
-    setMessage(textBeforeCursor + emoji + textAfterCursor);
+    setMessage(textBeforeCursor + emoji + textAfterCursor)
 
     // Set cursor position after the inserted emoji
     setTimeout(() => {
       if (textareaRef.current) {
-        const newPosition = cursorPosition + emoji.length;
-        textareaRef.current.setSelectionRange(newPosition, newPosition);
-        textareaRef.current.focus();
+        const newPosition = cursorPosition + emoji.length
+        textareaRef.current.setSelectionRange(newPosition, newPosition)
+        textareaRef.current.focus()
       }
-    }, 0);
-  };
+    }, 0)
+  }
 
   return (
     <div>
@@ -462,6 +462,7 @@ export function MessageComposer({
       {replyingTo && (
         <ReplyComposerHeader
           replyingTo={replyingTo}
+          // biome-ignore lint/style/noNonNullAssertion: Will fix later
           onCancel={onCancelReply!}
           onJumpToReply={handleOnJumpToReply}
         />
@@ -469,9 +470,9 @@ export function MessageComposer({
 
       <div
         className={cn(
-          "border-t border-border p-4 transition-all",
+          "border-border border-t p-4 transition-all",
           isFocused && "bg-accent/10",
-          replyingTo && "border-t-0 rounded-b-md",
+          replyingTo && "rounded-b-md border-t-0",
         )}
       >
         <div className="flex items-end space-x-2">
@@ -487,12 +488,12 @@ export function MessageComposer({
             <Textarea
               ref={textareaRef}
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={e => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               placeholder={`Message #${channelId}`}
-              className="min-h-[40px] max-h-[200px] pr-10 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-background"
+              className="bg-background max-h-[200px] min-h-[40px] resize-none border-0 pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
             <div className="absolute right-2 bottom-1">
               <Popover>
@@ -501,12 +502,12 @@ export function MessageComposer({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 rounded-full relative group flex items-center justify-center"
+                    className="group relative flex h-8 w-8 items-center justify-center rounded-full"
                     onMouseEnter={handleEmojiHover}
                     onMouseLeave={handleEmojiLeave}
                   >
                     <span className="absolute inset-0 flex items-center justify-center text-2xl transition-opacity duration-200 group-hover:opacity-0">
-                      <SmileIcon className="h-8 w-8 " />
+                      <SmileIcon className="h-8 w-8" />
                     </span>
                     <span className="absolute inset-0 flex items-center justify-center text-2xl opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                       {hoverEmoji}
@@ -515,7 +516,7 @@ export function MessageComposer({
                 </PopoverTrigger>
                 <PopoverContent className="w-[400px] p-0" align="end">
                   <Tabs defaultValue="faces" className="w-full">
-                    <TabsList className="w-full justify-start h-9 px-2 overflow-x-auto [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
+                    <TabsList className="[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 h-9 w-full justify-start overflow-x-auto px-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
                       {Object.entries(EMOJI_CATEGORIES).map(
                         ([key, { icon: Icon }]) => (
                           <TabsTrigger
@@ -536,12 +537,14 @@ export function MessageComposer({
                             value={key}
                             className="mt-0 h-full"
                           >
-                            <div className="grid grid-cols-8 gap-1 p-2 h-full overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
+                            <div className="[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 grid h-full grid-cols-8 gap-1 overflow-y-auto p-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
                               {emojis.map((emoji, index) => (
                                 <button
+                                  type="button"
+                                  // biome-ignore lint/suspicious/noArrayIndexKey: Will fix later
                                   key={index}
                                   onClick={() => insertEmoji(emoji)}
-                                  className="hover:bg-accent p-2 rounded-md transition-colors text-lg"
+                                  className="hover:bg-accent rounded-md p-2 text-lg transition-colors"
                                 >
                                   {emoji}
                                 </button>
@@ -562,7 +565,7 @@ export function MessageComposer({
             className={cn(
               "flex-shrink-0 rounded-full transition-opacity",
               (!message.trim() || !isConnected) &&
-                "opacity-50 cursor-not-allowed",
+                "cursor-not-allowed opacity-50",
             )}
             onClick={handleSendMessage}
             disabled={!message.trim() || !isConnected}
@@ -572,5 +575,5 @@ export function MessageComposer({
         </div>
       </div>
     </div>
-  );
+  )
 }

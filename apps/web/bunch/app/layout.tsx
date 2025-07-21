@@ -1,12 +1,12 @@
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { WebSocketProvider } from "@/lib/WebSocketProvider";
-import { ClerkProvider } from "@clerk/nextjs";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { Toaster } from "sonner";
-import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import { Toaster } from "sonner"
+import { ThemeProvider } from "@/components/theme/ThemeProvider"
+import { WebSocketProvider } from "@/lib/WebSocketProvider"
+import "./globals.css"
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Bunch - Modern Chat App",
@@ -21,12 +21,12 @@ export const metadata: Metadata = {
   ],
   creator: "Bunch HQ",
   keywords: ["Messaging", "Cross Platform", "Bunch"],
-};
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <ClerkProvider>
@@ -41,5 +41,5 @@ export default function RootLayout({
         </body>
       </html>
     </ClerkProvider>
-  );
+  )
 }

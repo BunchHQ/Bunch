@@ -518,7 +518,7 @@ class MessageViewSet(viewsets.ModelViewSet):
             async_to_sync(channel_layer.group_send)(
                 room_group_name,
                 {
-                    "type": WSMessageTypeServer.CHAT_MESSAGE_SENT,
+                    "type": WSMessageTypeServer.CHAT_MESSAGE,
                     "message": message_data,
                 },
             )

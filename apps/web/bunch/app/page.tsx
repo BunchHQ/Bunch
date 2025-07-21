@@ -1,25 +1,25 @@
-"use client";
+"use client"
 
-import { CreateBunchDialog } from "@/components/bunch/CreateBunchDialog";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { Button } from "@/components/ui/button";
+// import { useUser } from "@clerk/nextjs";
+import { Hash, MessageCircle, Settings, Users } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { CreateBunchDialog } from "@/components/bunch/CreateBunchDialog"
+import { MainLayout } from "@/components/layout/MainLayout"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-// import { useUser } from "@clerk/nextjs";
-import { Hash, MessageCircle, Settings, Users } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+} from "@/components/ui/card"
 
 export default function Home() {
   // const { isLoaded, isSignedIn } = useUser();
-  const router = useRouter();
+  const router = useRouter()
 
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
 
   // useEffect(() => {
   //   if (isLoaded && !isSignedIn) {
@@ -33,20 +33,20 @@ export default function Home() {
 
   return (
     <MainLayout>
-      <div className="flex flex-col items-center justify-center h-full p-8">
-        <div className="max-w-4xl w-full text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4">Welcome to Bunch</h1>
+      <div className="flex h-full flex-col items-center justify-center p-8">
+        <div className="mb-8 w-full max-w-4xl text-center">
+          <h1 className="mb-4 text-4xl font-bold">Welcome to Bunch</h1>
           <p className="text-muted-foreground text-lg">
             Chat platform for any kind of groups. Join bunches, create channels,
             and chat in real-time.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
+        <div className="grid w-full max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card className="transition-all hover:shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center">
-                <MessageCircle className="mr-2 h-5 w-5 text-primary" />
+                <MessageCircle className="text-primary mr-2 h-5 w-5" />
                 Start Chatting
               </CardTitle>
               <CardDescription>
@@ -63,7 +63,7 @@ export default function Home() {
           <Card className="transition-all hover:shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center">
-                <Users className="mr-2 h-5 w-5 text-primary" />
+                <Users className="text-primary mr-2 h-5 w-5" />
                 Create a Bunch
               </CardTitle>
               <CardDescription>
@@ -84,7 +84,7 @@ export default function Home() {
           <Card className="transition-all hover:shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center">
-                <Hash className="mr-2 h-5 w-5 text-primary" />
+                <Hash className="text-primary mr-2 h-5 w-5" />
                 Join with Code
               </CardTitle>
               <CardDescription>
@@ -116,5 +116,5 @@ export default function Home() {
         onOpenChange={setCreateDialogOpen}
       />
     </MainLayout>
-  );
+  )
 }
