@@ -2,19 +2,8 @@
 
 import { useAuth } from "@clerk/nextjs"
 import type React from "react"
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react"
-import {
-  type WebSocketMessage,
-  WSMessageTypeClient,
-  WSMessageTypeServer,
-} from "@/lib/types"
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
+import { type WebSocketMessage, WSMessageTypeClient, WSMessageTypeServer } from "@/lib/types"
 
 // WebSocket connection states
 enum ConnectionState {
@@ -29,17 +18,8 @@ interface WebSocketContextType {
   disconnectWebSocket: () => void
   subscribe: (bunchId: string, channelId: string) => void
   unsubscribe: (bunchId: string, channelId: string) => void
-  sendMessage: (
-    bunchId: string,
-    channelId: string,
-    content: string,
-  ) => Promise<void>
-  sendReaction: (
-    bunchId: string,
-    channelId: string,
-    messageId: string,
-    emoji: string,
-  ) => void
+  sendMessage: (bunchId: string, channelId: string, content: string) => Promise<void>
+  sendReaction: (bunchId: string, channelId: string, messageId: string, emoji: string) => void
   messages: WebSocketMessage[]
   isConnected: boolean
   connectionState: ConnectionState
@@ -59,9 +39,16 @@ const WebSocketContext = createContext<WebSocketContextType>({
 
 export const useWebSocket = () => useContext(WebSocketContext)
 
-export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+const getSubscriptionKey = (bunchId: string, channelId: string) => {
+  return JSON.stringify({ bunchId, channelId })
+}
+
+const getSubscriptionFromKey = (sKey: string) => {
+  const sub: { bunchId: string; channelId: string } = JSON.parse(sKey)
+  return sub
+}
+
+export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [messages, setMessages] = useState<WebSocketMessage[]>([])
   const [isConnected, setIsConnected] = useState(false)
   const [connectionState, setConnectionState] = useState<ConnectionState>(
@@ -84,10 +71,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
       : crypto.randomUUID(),
   )
 
-  // const currentChannelRef = useRef<{
-  //   bunchId: string
-  //   channelId: string
-  // } | null>(null)
+  const subscriptionsRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -97,27 +81,15 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const connectWebSocket = useCallback(async () => {
     // Prevent multiple connection attempts
-    if (
-      isConnectingRef.current ||
-      socketRef.current?.readyState === WebSocket.OPEN
-    ) {
+    if (isConnectingRef.current || socketRef.current?.readyState === WebSocket.OPEN) {
       console.log("Already connecting or connected")
       return
     }
 
     setConnectionState(
-      reconnectAttempts.current > 0
-        ? ConnectionState.RECONNECTING
-        : ConnectionState.CONNECTING,
+      reconnectAttempts.current > 0 ? ConnectionState.RECONNECTING : ConnectionState.CONNECTING,
     )
-
     try {
-      // If we're already connected to the requested channel, don't reconnect
-      if (socketRef.current?.readyState === WebSocket.OPEN) {
-        console.log("Already connected")
-        return
-      }
-
       isConnectingRef.current = true
 
       if (socketRef.current) {
@@ -167,9 +139,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 now - lastPingTime.current > 20000
               ) {
                 // No pong received for over 20 seconds after our last ping
-                console.warn(
-                  "No pong received after last ping, connection may be dead",
-                )
+                console.warn("No pong received after last ping, connection may be dead")
                 socket.close(4000, "Heartbeat timeout")
                 return
               }
@@ -210,6 +180,21 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         lastPongTime.current = 0
         // Start the ping interval to keep the connection alive
         startPingInterval()
+
+        if (subscriptionsRef.current.size > 0) {
+          // subscribe to all subscriptions
+          console.log("Subscribing to all subscriptions")
+          for (const sub of subscriptionsRef.current) {
+            const { bunchId, channelId } = getSubscriptionFromKey(sub)
+            const payload = {
+              type: WSMessageTypeClient.SUBSCRIBE,
+              bunch_id: bunchId,
+              channel_id: channelId,
+            }
+            console.log("Sending subscribe:", payload)
+            socket.send(JSON.stringify(payload))
+          }
+        }
       }
 
       socket.onmessage = event => {
@@ -253,11 +238,17 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
             // no need to update state separately
             setMessages(prev => [...prev, data])
 
-            // Handle subscription events
+            // Handle subscription event
           } else if (data.type === WSMessageTypeServer.SUBSCRIBED) {
             console.log("Subscribed to:", data.message)
+            subscriptionsRef.current.add(getSubscriptionKey(data.bunch_id, data.channel_id))
+
+            // Handle unsubscription event
           } else if (data.type === WSMessageTypeServer.UNSUBSCRIBED) {
             console.log("Unsubscribed from:", data.message)
+            subscriptionsRef.current.delete(getSubscriptionKey(data.bunch_id, data.channel_id))
+
+            // Handle error event
           } else if (data.type === WSMessageTypeServer.ERROR) {
             console.error("Error:", data.message)
           } else {
@@ -287,9 +278,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
           //reconnect only if we have a current channel and user didn't cause the closing
           // don't reconnect on auth errors (4001-4005)
           const isAuthError = event.code >= 4001 && event.code <= 4005
-          const isUserDisconnect =
-            event.code === 1000 && event.reason.includes("User disconnected")
-          const shouldReconnect = !isAuthError && !isUserDisconnect
+          const isUserDisconnect = event.code === 1000 && event.reason.includes("User disconnected")
+          const shouldReconnect =
+            subscriptionsRef.current.size > 0 && !isAuthError && !isUserDisconnect
 
           if (shouldReconnect) {
             setConnectionState(ConnectionState.RECONNECTING)
@@ -299,20 +290,16 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
               30000,
             )
             console.log(
-              `Scheduling reconnect in ${backoffTime}ms (attempt ${
-                reconnectAttempts.current + 1
-              })`,
+              `Scheduling reconnect in ${backoffTime}ms (attempt ${reconnectAttempts.current + 1})`,
             )
 
             reconnectTimeoutRef.current = setTimeout(() => {
               reconnectAttempts.current += 1
-              console.log(
-                `Attempting to reconnect... (attempt ${reconnectAttempts.current})`,
-              )
+              console.log(`Attempting to reconnect... (attempt ${reconnectAttempts.current})`)
               connectWebSocket()
             }, backoffTime)
           } else {
-            // currentChannelRef.current = null
+            subscriptionsRef.current.clear()
           }
         }
       }
@@ -339,6 +326,21 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     if (socketRef.current) {
+      // unsubscribe from all subscriptions
+      if (subscriptionsRef.current.size > 0) {
+        console.log("Unsubscribing from all subscriptions")
+        for (const sub of subscriptionsRef.current) {
+          const { bunchId, channelId } = getSubscriptionFromKey(sub)
+          const payload = {
+            type: WSMessageTypeClient.UNSUBSCRIBE,
+            bunch_id: bunchId,
+            channel_id: channelId,
+          }
+          console.log("Sending unsubscribe:", payload)
+          socketRef.current.send(JSON.stringify(payload))
+        }
+      }
+
       socketRef.current.close(1000, "User disconnected")
       socketRef.current = null
     }
@@ -358,6 +360,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const subscribe = useCallback((bunchId: string, channelId: string) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
+      if (subscriptionsRef.current.has(getSubscriptionKey(bunchId, channelId))) {
+        console.log("Already subscribed to:", bunchId, channelId)
+        return
+      }
+
       try {
         const payload = {
           type: WSMessageTypeClient.SUBSCRIBE,
@@ -382,6 +389,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const unsubscribe = useCallback((bunchId: string, channelId: string) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
+      if (!subscriptionsRef.current.has(getSubscriptionKey(bunchId, channelId))) {
+        console.error("Not subscribed to", bunchId, channelId)
+        return
+      }
+
       try {
         const payload = {
           type: WSMessageTypeClient.UNSUBSCRIBE,
@@ -404,33 +416,30 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [])
 
-  const sendMessage = useCallback(
-    async (bunchId: string, channelId: string, content: string) => {
-      if (socketRef.current?.readyState === WebSocket.OPEN) {
-        try {
-          const message = {
-            type: WSMessageTypeClient.MESSAGE_NEW,
-            bunch_id: bunchId,
-            channel_id: channelId,
-            content: content.trim(),
-          }
-          console.log("Sending message:", message)
-          socketRef.current.send(JSON.stringify(message))
-        } catch (error) {
-          console.error("Error sending message:", error)
-          // Attempt to reconnect if sending fails
-          if (socketRef.current) {
-            socketRef.current.close()
-            socketRef.current = null
-            setIsConnected(false)
-          }
+  const sendMessage = useCallback(async (bunchId: string, channelId: string, content: string) => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      try {
+        const message = {
+          type: WSMessageTypeClient.MESSAGE_NEW,
+          bunch_id: bunchId,
+          channel_id: channelId,
+          content: content.trim(),
         }
-      } else {
-        console.error("WebSocket not connected")
+        console.log("Sending message:", message)
+        socketRef.current.send(JSON.stringify(message))
+      } catch (error) {
+        console.error("Error sending message:", error)
+        // Attempt to reconnect if sending fails
+        if (socketRef.current) {
+          socketRef.current.close()
+          socketRef.current = null
+          setIsConnected(false)
+        }
       }
-    },
-    [],
-  )
+    } else {
+      console.error("WebSocket not connected")
+    }
+  }, [])
 
   const sendReaction = useCallback(
     (bunchId: string, channelId: string, messageId: string, emoji: string) => {
