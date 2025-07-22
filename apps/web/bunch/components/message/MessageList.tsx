@@ -16,12 +16,7 @@ export function MessageList() {
   const bunchId = params?.bunchId as string
   const channelId = params?.channelId as string
 
-  const {
-    messages: wsMessages,
-    subscribe,
-    unsubscribe,
-    isConnected,
-  } = useWebSocket()
+  const { messages: wsMessages, subscribe, unsubscribe, isConnected } = useWebSocket()
 
   const {
     messages,
@@ -33,9 +28,7 @@ export function MessageList() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const processedMessageIds = useRef<Set<string>>(new Set())
   const processedReactionIds = useRef<Set<string>>(new Set())
-  const prevChannelRef = useRef<{ bunchId: string; channelId: string } | null>(
-    null,
-  )
+  const prevChannelRef = useRef<{ bunchId: string; channelId: string } | null>(null)
 
   // Reply state
   const [replyingTo, setReplyingTo] = useState<Message | undefined>(undefined)
@@ -50,9 +43,7 @@ export function MessageList() {
     setReplyingTo(message)
     // Focus the composer textarea when starting a reply
     setTimeout(() => {
-      const textarea = document.querySelector(
-        'textarea[placeholder*="Message"]',
-      )
+      const textarea = document.querySelector('textarea[placeholder*="Message"]')
       if (textarea) {
         ;(textarea as HTMLTextAreaElement).focus()
       }
@@ -65,9 +56,7 @@ export function MessageList() {
 
   const handleJumpToMessage = useCallback((messageId: string) => {
     // Find the message element and scroll to it
-    const messageElement = document.querySelector(
-      `[data-message-id="${messageId}"]`,
-    )
+    const messageElement = document.querySelector(`[data-message-id="${messageId}"]`)
     if (messageElement) {
       messageElement.scrollIntoView({ behavior: "smooth", block: "center" })
       // Add a brief highlight effect
@@ -112,38 +101,14 @@ export function MessageList() {
           unsubscribe(bunchId, channelId)
         }
 
+        console.log(`Subscribing to channel: ${bunchId}/${channelId}`)
         subscribe(bunchId, channelId)
         prevChannelRef.current = currentChannel
-        console.log(`Subscribing to channel: ${bunchId}/${channelId}`)
 
         fetchInitialMessages()
       }
     }
-  }, [
-    bunchId,
-    channelId,
-    subscribe,
-    unsubscribe,
-    fetchMessages,
-    messages,
-    scrollToBottom,
-  ])
-
-  // Handle reconnection when connection is lost
-  // useEffect(() => {
-  //   if (!isConnected && bunchId && channelId) {
-  //     const currentChannel = { bunchId, channelId }
-  //     if (
-  //       !prevChannelRef.current ||
-  //       (prevChannelRef.current.bunchId === bunchId &&
-  //         prevChannelRef.current.channelId === channelId)
-  //     ) {
-  //       console.log("Connection lost, attempting to reconnect...")
-  //       connectWebSocket(bunchId, channelId)
-  //       prevChannelRef.current = currentChannel
-  //     }
-  //   }
-  // }, [isConnected, bunchId, channelId, connectWebSocket])
+  }, [bunchId, channelId, subscribe, unsubscribe, fetchMessages, messages, scrollToBottom])
 
   // Process new WebSocket messages
   useEffect(() => {
@@ -151,10 +116,7 @@ export function MessageList() {
       console.log("Received WebSocket messages:", wsMessages)
       for (const wsMessage of wsMessages) {
         // Handle new message events
-        if (
-          wsMessage.message?.id &&
-          !processedMessageIds.current.has(wsMessage.message.id)
-        ) {
+        if (wsMessage.message?.id && !processedMessageIds.current.has(wsMessage.message.id)) {
           processedMessageIds.current.add(wsMessage.message.id)
 
           setMessages((prev: Message[]) => {
@@ -185,9 +147,7 @@ export function MessageList() {
           // unique identifier for this reaction event
           const reactionEventId = `${wsMessage.type}-${reaction.id}-${reaction.message_id}-${reaction.emoji}-${reaction.user?.id}`
           if (processedReactionIds.current.has(reactionEventId)) {
-            console.log(
-              `Reaction event ${reactionEventId} already processed, skipping`,
-            )
+            console.log(`Reaction event ${reactionEventId} already processed, skipping`)
             continue
           }
           processedReactionIds.current.add(reactionEventId)
@@ -198,9 +158,7 @@ export function MessageList() {
             console.log("Current messages before reaction update:", prev)
             const updatedMessages = prev.map(msg => {
               if (msg.id === reaction.message_id) {
-                console.log(
-                  `Found matching message ${reaction.message_id}, updating reactions`,
-                )
+                console.log(`Found matching message ${reaction.message_id}, updating reactions`)
                 let updatedReactions = [...(msg.reactions || [])]
                 const updatedCounts = { ...(msg.reaction_counts || {}) }
 
@@ -208,14 +166,11 @@ export function MessageList() {
                   console.log("Adding reaction:", reaction)
                   // Add the new reaction
                   updatedReactions.push(reaction)
-                  updatedCounts[reaction.emoji] =
-                    (updatedCounts[reaction.emoji] || 0) + 1
+                  updatedCounts[reaction.emoji] = (updatedCounts[reaction.emoji] || 0) + 1
                 } else if (wsMessage.type === "reaction.delete") {
                   console.log("Removing reaction:", reaction)
                   // Remove the reaction
-                  updatedReactions = updatedReactions.filter(
-                    r => r.id !== reaction.id,
-                  )
+                  updatedReactions = updatedReactions.filter(r => r.id !== reaction.id)
                   updatedCounts[reaction.emoji] = Math.max(
                     (updatedCounts[reaction.emoji] || 1) - 1,
                     0,
@@ -226,13 +181,10 @@ export function MessageList() {
                   }
                 }
 
-                console.log(
-                  `Updated message ${reaction.message_id} reactions:`,
-                  {
-                    reactions: updatedReactions,
-                    counts: updatedCounts,
-                  },
-                )
+                console.log(`Updated message ${reaction.message_id} reactions:`, {
+                  reactions: updatedReactions,
+                  counts: updatedCounts,
+                })
 
                 return {
                   ...msg,
