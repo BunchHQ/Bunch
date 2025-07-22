@@ -25,17 +25,16 @@ export function MessageList() {
     setMessages,
   } = useMessages(bunchId, channelId)
 
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const messagesEnd = useRef<HTMLDivElement>(null)
   const processedMessageIds = useRef<Set<string>>(new Set())
   const processedReactionIds = useRef<Set<string>>(new Set())
   const prevChannelRef = useRef<{ bunchId: string; channelId: string } | null>(null)
 
   // Reply state
   const [replyingTo, setReplyingTo] = useState<Message | undefined>(undefined)
+
   const scrollToBottom = useCallback(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
+    messagesEnd.current?.scrollIntoView({ behavior: "smooth" })
   }, [])
 
   // Reply handlers
@@ -84,6 +83,7 @@ export function MessageList() {
           })
         }
 
+        // scroll to bottom on initial load
         setTimeout(scrollToBottom, 100)
       }
     }
@@ -201,7 +201,17 @@ export function MessageList() {
         }
       }
 
-      setTimeout(scrollToBottom, 100)
+      // only scroll to bottom on new message if user was at the bottom
+      const rect = messagesEnd.current?.getBoundingClientRect()
+      if (
+        rect &&
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+      ) {
+        setTimeout(scrollToBottom, 100)
+      }
     }
   }, [wsMessages, setMessages, scrollToBottom])
 
@@ -261,7 +271,7 @@ export function MessageList() {
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <ConnectionStatus />
-      <ScrollArea ref={scrollRef} className="flex-1 overflow-y-auto p-4">
+      <ScrollArea className="flex-1 overflow-y-auto p-4">
         {messages?.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center py-20">
             <div className="bg-muted mb-4 rounded-full p-4">
@@ -304,6 +314,8 @@ export function MessageList() {
             ))}
           </div>
         )}
+        {/* for scrolling to bottom */}
+        <div ref={messagesEnd}></div>
       </ScrollArea>{" "}
       <div>
         <MessageComposer
