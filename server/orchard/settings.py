@@ -29,7 +29,9 @@ SECRET_KEY = (
 DEBUG = True
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "")
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", FRONTEND_URL]
+ALLOWED_ORIGINS = os.getenv("ALLOWED_HOSTS", "").split(",")
+
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", *ALLOWED_ORIGINS]
 
 
 # Application definition
@@ -152,7 +154,7 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = ALLOWED_HOSTS
+CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
 
 CORS_ALLOW_CREDENTIALS = True
 
