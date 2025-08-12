@@ -36,6 +36,9 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "server/uv.lock"
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -45,6 +48,9 @@ jobs:
       - name: Install server dependencies and run migrations
         env:
           CLERK_FRONTEND_API_URL: ${{ secrets.CLERK_FRONTEND_API_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: ${{ vars.DEBUG }}
+
         run: |
           cd server
           uv sync --locked --all-extras --dev
