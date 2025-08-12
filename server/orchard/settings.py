@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,15 +21,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure--5w&3a(1fx^@6kyom_09zaxujt7=vlvb-1tg8w@r^(m$mx&w&v"
+SECRET_KEY = (
+    "django-insecure--5w&3a(1fx^@6kyom_09zaxujt7=vlvb-1tg8w@r^(m$mx&w&v"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-]
+FRONTEND_URL = os.getenv("FRONTEND_URL", "")
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", FRONTEND_URL]
 
 
 # Application definition
@@ -151,10 +152,7 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Next.js development server
-    "http://127.0.0.1:3000",
-]
+CORS_ALLOWED_ORIGINS = ALLOWED_HOSTS
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -183,7 +181,7 @@ CORS_ALLOW_HEADERS = [
 ASGI_APPLICATION = "orchard.asgi.application"
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
 }
 
