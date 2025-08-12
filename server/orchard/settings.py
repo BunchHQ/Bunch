@@ -20,16 +20,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = (
-    "django-insecure--5w&3a(1fx^@6kyom_09zaxujt7=vlvb-1tg8w@r^(m$mx&w&v"
-)
+SECRET_KEY = os.getenv("SECRET_KEY", None)
+
+if SECRET_KEY is None:
+    raise ValueError("SECRET_KEY environment variable is not set")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "")
-ALLOWED_ORIGINS = os.getenv("ALLOWED_HOSTS", "").split(",")
+# FIX THIS NAMING
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", *ALLOWED_ORIGINS]
 
@@ -154,7 +154,11 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
+# For coors
+FRONTEND_URLS = os.getenv(
+    "FRONTEND_URLS", "http://localhost:3000,http://127.0.0.1:3000"
+).split(",")
+CORS_ALLOWED_ORIGINS = FRONTEND_URLS
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -178,6 +182,8 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
+
+CSRF_COOKIE_SECURE = True
 
 # Channels
 ASGI_APPLICATION = "orchard.asgi.application"
