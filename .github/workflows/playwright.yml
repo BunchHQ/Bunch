@@ -5,10 +5,12 @@ on:
     branches: ["main"]
     paths:
       - "apps/web/**"
+      - ".github/workflows/playwright.yml"
   pull_request:
     branches: ["main"]
     paths:
       - "apps/web/**"
+      - ".github/workflows/playwright.yml"
 
 jobs:
   test:

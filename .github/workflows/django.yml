@@ -5,10 +5,12 @@ on:
     branches: ["main"]
     paths:
       - "server/**"
+      - ".github/workflows/django.yml"
   pull_request:
     branches: ["main"]
     paths:
       - "server/**"
+      - ".github/workflows/django.yml"
 
 jobs:
   build:
