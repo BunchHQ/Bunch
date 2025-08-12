@@ -1,10 +1,12 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -12,35 +14,33 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import { useBunches } from "@/lib/hooks";
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
+import { useBunches } from "@/lib/hooks"
 
 const formSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   description: z.string().optional(),
-  is_private: z.boolean().default(false),
-});
+  is_private: z.boolean(),
+})
 
-type FormData = z.infer<typeof formSchema>;
+type FormData = z.infer<typeof formSchema>
 
 interface CreateBunchDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 export function CreateBunchDialog({
   open,
   onOpenChange,
 }: CreateBunchDialogProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-  const { createBunch } = useBunches();
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+  const { createBunch } = useBunches()
 
   const {
     register,
@@ -56,33 +56,33 @@ export function CreateBunchDialog({
       description: "",
       is_private: false,
     },
-  });
+  })
 
-  const isPrivate = watch("is_private");
+  const isPrivate = watch("is_private")
 
   const onSubmit = async (data: FormData) => {
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
-      const bunch = await createBunch(data);
+      const bunch = await createBunch(data)
       toast("Success", {
         description: "Bunch created successfully!",
-      });
+      })
 
-      reset();
-      onOpenChange(false);
+      reset()
+      onOpenChange(false)
 
       // to the new bunch
-      router.push(`/bunch/${bunch.id}`);
+      router.push(`/bunch/${bunch.id}`)
     } catch (error) {
       toast("Error", {
         description:
           error instanceof Error ? error.message : "Failed to create bunch",
-      });
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -121,7 +121,7 @@ export function CreateBunchDialog({
             <Switch
               id="is_private"
               checked={isPrivate}
-              onCheckedChange={(checked) => setValue("is_private", checked)}
+              onCheckedChange={checked => setValue("is_private", checked)}
             />
           </div>
 
@@ -146,5 +146,5 @@ export function CreateBunchDialog({
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
