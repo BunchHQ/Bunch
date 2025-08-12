@@ -41,6 +41,8 @@ jobs:
         env:
           CLERK_FRONTEND_API_URL: ${{ secrets.CLERK_FRONTEND_API_URL }}
           MANAGE_PY_PATH: "./manage.py"
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: ${{ vars.DEBUG }}
         run: |
           cd server
           uv run python manage.py test
