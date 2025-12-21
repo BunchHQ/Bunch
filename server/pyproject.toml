@@ -3,7 +3,7 @@ name = "orchard"
 version = "0.1.0"
 description = "Server for bunch. Written in django."
 readme = "README.md"
-requires-python = ">=3.12.11"
+requires-python = ">=3.12.5"
 dependencies = [
     "channels>=4.2.2",
     "channels-redis>=4.2.1",
