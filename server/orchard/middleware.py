@@ -1,94 +1,151 @@
-import os
+import logging
+from urllib.parse import parse_qs
 
-import jwt
-import requests
-from django.core.cache import cache
-from dotenv import load_dotenv
-from rest_framework import authentication, exceptions
+from channels.db import database_sync_to_async
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import AnonymousUser
+from django.http.request import HttpRequest
+from django.utils.deprecation import MiddlewareMixin
+from supabase import AuthError
 
+from orchard.services import SupabaseService
 from users.models import User
 
-load_dotenv()
-
-CLERK_FRONTEND_API_URL = os.getenv(
-    "CLERK_FRONTEND_API_URL", None
-)
-
-if not CLERK_FRONTEND_API_URL:
-    raise ValueError(
-        "Clerk frontend API URL variable is not set."
-    )
+logger = logging.getLogger(__name__)
 
 
-class ClerkJWTAuthentication(
-    authentication.BaseAuthentication
-):
-    def authenticate(self, request):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith(
-            "Bearer "
-        ):
-            return None
+class SupabaseAuthMiddleware:
+    """
+    Middleware to handle Supabase authentication.
+
+    Tries to get the current user from Bearer JWT token, if valid, or creates a new shadow user.
+    """
+
+    def __init__(self, get_response):
+        logger.debug("SupabaseAuthMiddleware")
+
+        self.get_response = get_response
+        self.supabase = SupabaseService()
+
+    def __call__(self, request: HttpRequest):
+        # Skip middleware if user is already authenticated
+        if request.user.is_authenticated:
+            logger.debug("user is authenticated")
+            return self.get_response(request)
+
+        # # Get the JWT token from the session or cookie
+        # token = request.session.get("supabase_token") or request.COOKIES.get(
+        #     "supabase_token"
+        # )
+
+        auth_header = request.META.get("HTTP_AUTHORIZATION")
+
+        if not auth_header or not auth_header.startswith("Bearer "):
+            logger.debug("No valid JWT token provided")
+            return self.get_response(request)
 
         token = auth_header.split(" ")[1]
-        try:
-            jwks = self.get_jwks()
-            # print(jwks)
+        logger.debug(f"token is {token[:20]}...")
 
-            public_keys = {
-                key[
-                    "kid"
-                ]: jwt.algorithms.RSAAlgorithm.from_jwk(key)
-                for key in jwks["keys"]
-            }
-            unverified_header = jwt.get_unverified_header(
-                token
-            )
-            key = public_keys[unverified_header["kid"]]
-            payload = jwt.decode(
-                token,
-                key=key,
-                algorithms=["RS256"],
-                options={"verify_signature": True},
-            )
+        if token:
+            try:
+                # Verify the token
+                token_user = self.supabase.get_user(token)
 
-        except Exception as e:
-            raise exceptions.AuthenticationFailed(
-                f"Invalid Clerk JWT : {e}"
-            )
+                # Get or create the user
+                if (
+                    token_user
+                    and (user_id := token_user.user.id)
+                    and (email := token_user.user.email)
+                ):
+                    try:
+                        logger.debug(f"user_id is {user_id}")
+                        user = User.objects.get(id=user_id)
+                    except User.DoesNotExist:
+                        logger.debug("user does not exist, creating")
+                        # Create a new user if they don't exist
+                        user = User.objects.create(
+                            id=user_id,
+                            username="",
+                            email=email,
+                            password=make_password(None),
+                        )
 
-        # sub (subject) - The user's unique identifier
-        # iat (issued at) - When the token was issued
-        # exp (expiration) - When the token expires
-        # iss (issuer) - The Clerk instance that issued the token
-        # nbf (not before) - When the token becomes valid
+                    request.user = user
+                    request.session["supabase_token"] = token
 
-        clerk_id = payload["sub"]
-        email = payload.get("email_address", None)
-        # print(email)
-        if email is None:
-            raise exceptions.AuthenticationFailed(
-                f"received payload without email bruh: {payload}"
-            )
-        user, _ = User.objects.get_or_create(
-            username=clerk_id, defaults={"email": email}
-        )
-        return (user, None)
+                    return self.get_response(request)
+                else:
+                    logger.debug("user with token not found or email not found")
 
-    def get_jwks(self):
-        jwks_data = cache.get("jwks_data")
-        if not jwks_data:
-            response = requests.get(
-                f"{CLERK_FRONTEND_API_URL}/.well-known/jwks.json"
-            )
-            if response.status_code == 200:
-                jwks_data = response.json()
-                cache.set(
-                    "jwks_data", jwks_data
-                )  # cache indefinitely -.- weeeeeeuuuu
+            except AuthError as e:
+                logger.debug(f"AuthError: {e.message}")
+
+        logger.debug("user is anonymous")
+        request.user = AnonymousUser()
+
+        return self.get_response(request)
+
+
+class SupabaseSessionMiddleware(MiddlewareMixin):
+    """
+    Middleware to handle Supabase session management.
+    """
+
+    def process_request(self, request: HttpRequest):
+        if request.user.is_authenticated:
+            # print(request.session.items())
+            session = request.session.get("supabase_session")
+            logger.debug(f"session={session}")
+            if session:
+                request.supabase = SupabaseService(session)
             else:
-                raise exceptions.AuthenticationFailed(
-                    "Failed to fetch JWKS."
-                )
+                request.supabase = SupabaseService()
+        else:
+            logger.debug(
+                "SupabaseSessionMiddleware.process_request: user is not authenticated"
+            )
+            request.supabase = SupabaseService()
 
-        return jwks_data
+
+@database_sync_to_async
+def get_supabase_user(user_id):
+    user = User.objects.get(id=user_id)
+    return user
+
+
+class SupabaseChannelsAuthMiddleware:
+    """
+    Middleware to handle Supabase authentication for channels.
+
+    Tries to get the current user from Bearer JWT token, if valid.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        # Extract token from query string: ws://.../?token=XYZ
+        query_string = scope.get("query_string", b"").decode()
+        query_params = parse_qs(query_string)
+        token = query_params.get("token", [None])[0]
+
+        if token:
+            try:
+                # Verify the token
+                token_user = self.supabase.get_user(token)
+
+                # Get or create the user
+                if (
+                    token_user
+                    and (user_id := token_user.user.id)
+                    and token_user.user.email
+                ):
+                    # Fetch/Create the Shadow User in the DB
+                    scope["user"] = await get_supabase_user(user_id)
+            except Exception:
+                scope["user"] = AnonymousUser()
+        else:
+            scope["user"] = AnonymousUser()
+
+        return await self.app(scope, receive, send)

@@ -9,9 +9,10 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 
 import os
 
-from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
+
+from orchard.middleware import SupabaseChannelsAuthMiddleware
 
 from .routing import websocket_urlpatterns
 
@@ -20,7 +21,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "orchard.settings")
 application = ProtocolTypeRouter(
     {
         "http": get_asgi_application(),
-        "websocket": AuthMiddlewareStack(
+        "websocket": SupabaseChannelsAuthMiddleware(
             URLRouter(websocket_urlpatterns)
         ),
     }
