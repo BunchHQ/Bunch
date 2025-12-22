@@ -1,6 +1,5 @@
-import os
+import logging
 from typing import override
-from unittest.mock import patch
 
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
@@ -12,7 +11,10 @@ from bunch.models import (
     Member,
     RoleChoices,
 )
+from bunch.test_common import OTHER_TOKEN, ROOT_TOKEN, USER_TOKEN, get_mocks
 from users.models import User
+
+logger = logging.getLogger(__name__)
 
 
 class ChannelsTest(APITestCase):
@@ -25,9 +27,9 @@ class ChannelsTest(APITestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.root_token = "root_token"
-        cls.user_token = "user_token"
-        cls.other_token = "other_token"
+        cls.root_token = ROOT_TOKEN
+        cls.user_token = USER_TOKEN
+        cls.other_token = OTHER_TOKEN
 
         # Create test users
         cls.root_user = User.objects.create_superuser(
@@ -54,42 +56,30 @@ class ChannelsTest(APITestCase):
             last_name="User",
         )
 
-        # Patch ClerkJWTAuthentication.authenticate
-        def mock_authenticate(self, request):
-            token = request.headers.get(
-                "Authorization", ""
-            ).replace("Bearer ", "")
-            user_map = {
-                cls.root_token: cls.root_user,
-                cls.user_token: cls.user,
-                cls.other_token: cls.other_user,
-            }
-            if token not in user_map:
-                return (None, None)
-            return (user_map[token], None)
-
-        cls.auth_patch = patch(
-            "orchard.middleware.ClerkJWTAuthentication.authenticate",
-            new=mock_authenticate,
+        auth_patch, auth_middleware_path, session_middleware_patch = get_mocks(
+            logger, cls
         )
+        cls.auth_patch = auth_patch
+        cls.auth_middleware_patch = auth_middleware_path
+        cls.session_middleware_patch = session_middleware_patch
+
+        logger.debug("Mocking SupabaseJWTAuthentication.authenticate")
         cls.auth_patch.start()
+        logger.debug("Mocking SupabaseAuthMiddleware.__call__")
+        cls.auth_middleware_patch.start()
+        logger.debug("Mocking SupabaseSessionMiddleware.process_request")
+        cls.session_middleware_patch.start()
 
     @classmethod
     def tearDownClass(cls):
         cls.auth_patch.stop()
+        cls.auth_middleware_patch.stop()
+        cls.session_middleware_patch.stop()
         super().tearDownClass()
 
-    def authenticate_user(self, user_type="test"):
+    def authenticate_user(self, token):
         """Helper method to authenticate with mock token"""
-        token_map = {
-            "test": self.user_token,
-            "root": self.root_token,
-            "other": self.other_token,
-        }
-        token = token_map[user_type]
-        self.client.credentials(
-            HTTP_AUTHORIZATION=f"Bearer {token}"
-        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
     @override
     def setUp(self):
@@ -97,35 +87,27 @@ class ChannelsTest(APITestCase):
         self.root_user = self.root_user
         self.other_user = self.other_user
 
-        self.bunch = Bunch.objects.create(
-            name="Test Bunch", owner=self.owner
-        )
+        self.bunch = Bunch.objects.create(name="Test Bunch", owner=self.owner)
         # admin member
-        Member.objects.filter(
-            bunch=self.bunch, user=self.root_user
-        ).delete()
+        Member.objects.filter(bunch=self.bunch, user=self.root_user).delete()
         self.admin_member = Member.objects.create(
             bunch=self.bunch,
             user=self.root_user,
             role=RoleChoices.ADMIN,
         )
         # regular member
-        Member.objects.filter(
-            bunch=self.bunch, user=self.other_user
-        ).delete()
+        Member.objects.filter(bunch=self.bunch, user=self.other_user).delete()
         self.member = Member.objects.create(
             bunch=self.bunch,
             user=self.other_user,
             role=RoleChoices.MEMBER,
         )
 
-        self.channels_url = (
-            f"/api/v1/bunch/{self.bunch.id}/channels/"
-        )
+        self.channels_url = f"/api/v1/bunch/{self.bunch.id}/channels/"
 
     def test_create_channel_with_owner_auth(self):
         """Test creating a channel with owner authentication"""
-        self.authenticate_user(user_type="test")
+        self.authenticate_user(self.user_token)
         channel_data = {
             "name": "Test Channel",
             "type": ChannelTypes.TEXT,
@@ -133,17 +115,13 @@ class ChannelsTest(APITestCase):
             "is_private": False,
             "position": 1,
         }
-        response = self.client.post(
-            self.channels_url, channel_data
-        )
+        response = self.client.post(self.channels_url, channel_data)
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED,
             "Channel creation should succeed",
         )
-        channel = Channel.objects.get(
-            bunch=self.bunch, name="Test Channel"
-        )
+        channel = Channel.objects.get(bunch=self.bunch, name="Test Channel")
         self.assertEqual(
             channel.type,
             ChannelTypes.TEXT,
@@ -153,7 +131,7 @@ class ChannelsTest(APITestCase):
 
     def test_create_channel_with_admin_auth(self):
         """Test creating a channel with admin authentication"""
-        self.authenticate_user(user_type="root")
+        self.authenticate_user(self.root_token)
         channel_data = {
             "name": "Admin Channel",
             "type": ChannelTypes.TEXT,
@@ -161,9 +139,7 @@ class ChannelsTest(APITestCase):
             "is_private": False,
             "position": 1,
         }
-        response = self.client.post(
-            self.channels_url, channel_data
-        )
+        response = self.client.post(self.channels_url, channel_data)
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED,
@@ -178,7 +154,7 @@ class ChannelsTest(APITestCase):
 
     def test_create_channel_with_member_auth_fail(self):
         """Test that members cannot create channels"""
-        self.authenticate_user(user_type="other")
+        self.authenticate_user(self.other_token)
         channel_data = {
             "name": "Member Channel",
             "type": ChannelTypes.TEXT,
@@ -186,9 +162,7 @@ class ChannelsTest(APITestCase):
             "is_private": False,
             "position": 1,
         }
-        response = self.client.post(
-            self.channels_url, channel_data
-        )
+        response = self.client.post(self.channels_url, channel_data)
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN,
@@ -217,7 +191,7 @@ class ChannelsTest(APITestCase):
             position=2,
         )
 
-        self.authenticate_user(user_type="other")
+        self.authenticate_user(self.other_token)
         response = self.client.get(self.channels_url)
         self.assertEqual(
             response.status_code,

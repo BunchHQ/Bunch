@@ -1,12 +1,14 @@
-import os
+import logging
 from typing import override
-from unittest.mock import patch
 
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
 from bunch.models import Bunch, Member, RoleChoices
+from bunch.test_common import OTHER_TOKEN, ROOT_TOKEN, USER_TOKEN, get_mocks
 from users.models import User
+
+logger = logging.getLogger(__name__)
 
 
 class MembersTest(APITestCase):
@@ -19,9 +21,9 @@ class MembersTest(APITestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.root_token = "root_token"
-        cls.user_token = "user_token"
-        cls.other_token = "other_token"
+        cls.root_token = ROOT_TOKEN
+        cls.user_token = USER_TOKEN
+        cls.other_token = OTHER_TOKEN
 
         # Create test users
         cls.root_user = User.objects.create_superuser(
@@ -48,42 +50,30 @@ class MembersTest(APITestCase):
             last_name="User",
         )
 
-        # Patch ClerkJWTAuthentication.authenticate
-        def mock_authenticate(self, request):
-            token = request.headers.get(
-                "Authorization", ""
-            ).replace("Bearer ", "")
-            user_map = {
-                cls.root_token: cls.root_user,
-                cls.user_token: cls.user,
-                cls.other_token: cls.other_user,
-            }
-            if token not in user_map:
-                return (None, None)
-            return (user_map[token], None)
-
-        cls.auth_patch = patch(
-            "orchard.middleware.ClerkJWTAuthentication.authenticate",
-            new=mock_authenticate,
+        auth_patch, auth_middleware_path, session_middleware_patch = get_mocks(
+            logger, cls
         )
+        cls.auth_patch = auth_patch
+        cls.auth_middleware_patch = auth_middleware_path
+        cls.session_middleware_patch = session_middleware_patch
+
+        logger.debug("Mocking SupabaseJWTAuthentication.authenticate")
         cls.auth_patch.start()
+        logger.debug("Mocking SupabaseAuthMiddleware.__call__")
+        cls.auth_middleware_patch.start()
+        logger.debug("Mocking SupabaseSessionMiddleware.process_request")
+        cls.session_middleware_patch.start()
 
     @classmethod
     def tearDownClass(cls):
         cls.auth_patch.stop()
+        cls.auth_middleware_patch.stop()
+        cls.session_middleware_patch.stop()
         super().tearDownClass()
 
-    def authenticate_user(self, user_type="test"):
+    def authenticate_user(self, token):
         """Helper method to authenticate with mock token"""
-        token_map = {
-            "test": self.user_token,
-            "root": self.root_token,
-            "other": self.other_token,
-        }
-        token = token_map[user_type]
-        self.client.credentials(
-            HTTP_AUTHORIZATION=f"Bearer {token}"
-        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
     @override
     def setUp(self):
@@ -91,18 +81,14 @@ class MembersTest(APITestCase):
         self.root_user = self.root_user
         self.other_user = self.other_user
 
-        self.bunch = Bunch.objects.create(
-            name="Test Bunch", owner=self.owner
-        )
+        self.bunch = Bunch.objects.create(name="Test Bunch", owner=self.owner)
 
         # URL for member operations
-        self.members_url = (
-            f"/api/v1/bunch/{self.bunch.id}/members/"
-        )
+        self.members_url = f"/api/v1/bunch/{self.bunch.id}/members/"
 
     def test_add_member_with_owner(self):
         """Test adding a member with owner authentication"""
-        self.authenticate_user(user_type="test")
+        self.authenticate_user(self.user_token)
         self.assertFalse(
             Member.objects.filter(
                 bunch=self.bunch, user=self.other_user
@@ -123,9 +109,7 @@ class MembersTest(APITestCase):
             status.HTTP_201_CREATED,
             "Member creation should succeed",
         )
-        member = Member.objects.get(
-            bunch=self.bunch, user=self.other_user
-        )
+        member = Member.objects.get(bunch=self.bunch, user=self.other_user)
         self.assertEqual(
             member.nickname,
             "TestNick",
@@ -134,7 +118,7 @@ class MembersTest(APITestCase):
 
     def test_add_member_with_member_auth_403(self):
         """Test adding a member with member authentication"""
-        self.authenticate_user(user_type="other")
+        self.authenticate_user(self.other_token)
         response = self.client.post(
             self.members_url,
             {
@@ -156,11 +140,9 @@ class MembersTest(APITestCase):
             role=RoleChoices.MEMBER,
         )
 
-        self.authenticate_user(user_type="other")
+        self.authenticate_user(self.other_token)
         # Use DRF's URL pattern for detail actions
-        update_role_url = (
-            f"{self.members_url}{member.id}/update_role/"
-        )
+        update_role_url = f"{self.members_url}{member.id}/update_role/"
         response = self.client.post(
             update_role_url, {"role": RoleChoices.ADMIN}
         )
@@ -178,11 +160,9 @@ class MembersTest(APITestCase):
             role=RoleChoices.MEMBER,
         )
 
-        self.authenticate_user(user_type="test")
+        self.authenticate_user(self.user_token)
         # Use DRF's URL pattern for detail actions
-        update_role_url = (
-            f"{self.members_url}{member.id}/update_role/"
-        )
+        update_role_url = f"{self.members_url}{member.id}/update_role/"
         response = self.client.post(
             update_role_url, {"role": RoleChoices.ADMIN}
         )
