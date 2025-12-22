@@ -5,9 +5,7 @@ from bunch.models import Bunch, Member, RoleChoices
 
 
 @receiver(post_save, sender=Bunch)
-def create_owner_member(
-    sender, instance: Bunch, created, **kwargs
-):
+def create_owner_member(sender, instance: Bunch, created, **kwargs):
     if not created:
         return
 

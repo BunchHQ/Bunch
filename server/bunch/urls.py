@@ -14,9 +14,7 @@ bunch_router.register(
     views.ChannelViewSet,
     basename="bunch-channel",
 )
-bunch_router.register(
-    r"members", views.MemberViewSet, basename="bunch-member"
-)
+bunch_router.register(r"members", views.MemberViewSet, basename="bunch-member")
 bunch_router.register(
     r"messages",
     views.MessageViewSet,

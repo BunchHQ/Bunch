@@ -47,7 +47,7 @@ class BunchViewSet(viewsets.ModelViewSet):
         if self.request.user and self.request.user.is_superuser:
             return Bunch.objects.all()
 
-        if self.action in ("list", "destroy"):
+        if self.action in ("list", "destroy", "retrieve"):
             # return all bunches the user is in
             queryset = Bunch.objects.filter(members__user=self.request.user)
         elif self.action == "join" or self.action == "leave":

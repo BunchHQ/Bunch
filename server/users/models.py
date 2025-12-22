@@ -60,9 +60,7 @@ class User(AbstractUser):
     Adds additional properties like avatar, status, bio etc..
     """
 
-    id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
     avatar = models.ImageField(
         upload_to="avatars/",
@@ -76,9 +74,7 @@ class User(AbstractUser):
         max_length=30,
         help_text="User's status",
     )
-    bio = models.TextField(
-        blank=True, null=True, help_text="User's bio"
-    )
+    bio = models.TextField(blank=True, null=True, help_text="User's bio")
 
     theme_preference = models.CharField(
         max_length=6,

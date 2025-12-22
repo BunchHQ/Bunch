@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import (
     UserAdmin as BaseUserAdmin,
 )
+from django.contrib.auth.models import Group
 
 from users.models import User
 
@@ -14,7 +15,14 @@ class UserAdmin(BaseUserAdmin):
             name,
             {
                 "fields": data["fields"]
-                + ("avatar", "status", "bio")  # type: ignore
+                + (
+                    "avatar",
+                    "status",
+                    "bio",
+                    "theme_preference",
+                    "color",
+                    "pronoun",
+                )  # type: ignore
             },
         )
         for name, data in BaseUserAdmin.fieldsets or []
@@ -41,3 +49,4 @@ class UserAdmin(BaseUserAdmin):
 
 # Register your models here.
 admin.site.register(User, UserAdmin)
+admin.site.unregister(Group)

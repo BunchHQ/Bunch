@@ -32,9 +32,7 @@ class IsBunchOwner(permissions.BasePermission):
     """
 
     @override
-    def has_permission(
-        self, request: AuthedHttpRequest, view
-    ) -> bool:
+    def has_permission(self, request: AuthedHttpRequest, view) -> bool:
         if not request.user.is_authenticated:
             return False
 
@@ -44,9 +42,7 @@ class IsBunchOwner(permissions.BasePermission):
             bunch_id = view.kwargs.get("id")
 
         if bunch_id:
-            return request.user.owned_bunches.filter(
-                id=bunch_id
-            ).exists()
+            return request.user.owned_bunches.filter(id=bunch_id).exists()
         return False
 
     @override
@@ -65,9 +61,7 @@ class IsBunchMember(permissions.BasePermission):
     """
 
     @override
-    def has_object_permission(
-        self, request: AuthedHttpRequest, view, obj
-    ):
+    def has_object_permission(self, request: AuthedHttpRequest, view, obj):
         if hasattr(obj, "author"):
             # for Message
             return request.user.bunch_memberships.filter(
@@ -80,9 +74,7 @@ class IsBunchMember(permissions.BasePermission):
             ).exists()
         elif type(obj).__name__ == "Bunch":
             # for Bunch
-            return request.user.bunch_memberships.filter(
-                bunch=obj
-            ).exists()
+            return request.user.bunch_memberships.filter(bunch=obj).exists()
 
         return False
 
@@ -93,9 +85,7 @@ class IsBunchAdmin(permissions.BasePermission):
     """
 
     @override
-    def has_permission(
-        self, request: AuthedHttpRequest, view
-    ):
+    def has_permission(self, request: AuthedHttpRequest, view):
         if not request.user.is_authenticated:
             return False
 
@@ -115,9 +105,7 @@ class IsBunchAdmin(permissions.BasePermission):
         return False
 
     @override
-    def has_object_permission(
-        self, request: AuthedHttpRequest, view, obj
-    ):
+    def has_object_permission(self, request: AuthedHttpRequest, view, obj):
         return request.user.bunch_memberships.filter(
             bunch=obj.bunch, role__in=["owner", "admin"]
         ).exists()
