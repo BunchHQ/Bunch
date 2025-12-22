@@ -41,7 +41,14 @@ jobs:
           uv sync --locked --all-extras --dev
       - name: Run Tests
         env:
-          CLERK_FRONTEND_API_URL: ${{ secrets.CLERK_FRONTEND_API_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
           MANAGE_PY_PATH: "./manage.py"
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DEBUG: ${{ vars.DEBUG }}
