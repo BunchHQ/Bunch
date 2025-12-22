@@ -44,8 +44,8 @@ if SUPABASE_URL is None:
 if SUPABASE_SECRET_KEY is None:
     raise ValueError("SUPABASE_SECRET_KEY environment variable is not set")
 
-if SUPABASE_JWT_KEY is None:
-    raise ValueError("SUPABASE_JWT_KEY environment variable is not set")
+# if SUPABASE_JWT_KEY is None:
+#     raise ValueError("SUPABASE_JWT_KEY environment variable is not set")
 
 # Application definition
 
