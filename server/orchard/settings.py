@@ -75,6 +75,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "orchard.middleware.SupabaseAuthMiddleware",
+    "orchard.middleware.SupabaseSessionMiddleware",
 ]
 
 ROOT_URLCONF = "orchard.urls"
@@ -168,6 +170,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
 
+# Disable django's built in auth
+AUTHENTICATION_BACKENDS = [
+    "orchard.authentication.SupabaseAuth",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
 # DRF
 
 REST_FRAMEWORK = {
@@ -175,9 +183,9 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "orchard.middleware.ClerkJWTAuthentication",
-        "rest_framework.authentication.BasicAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
+        "orchard.authentication.SupabaseJWTAuthentication",
+        # "rest_framework.authentication.BasicAuthentication",
+        # "rest_framework.authentication.SessionAuthentication",
     ],
 }
 

@@ -1,6 +1,7 @@
 import json
 import logging
 import time
+import typing
 import urllib.parse
 
 from channels.db import database_sync_to_async
@@ -13,7 +14,10 @@ from django.http import HttpRequest
 
 from bunch.constants import WSMessageTypeClient, WSMessageTypeServer
 from bunch.models import Bunch, Channel, Message, Reaction
-from orchard.middleware import ClerkJWTAuthentication
+from orchard.authentication import SupabaseJWTAuthentication
+
+if typing.TYPE_CHECKING:
+    from users.models import User as CustomUserModel
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -29,7 +33,7 @@ active_connections: dict[
 class ChatConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.user: User | None = None
+        self.user: "CustomUserModel | None" = None
         self._is_connected = False
         self.connection_id: str | None = None
         self.connection_time: float | None = None
@@ -69,7 +73,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             # Authenticate user
             try:
-                auth = ClerkJWTAuthentication()
+                auth = SupabaseJWTAuthentication()
                 request = HttpRequest()
                 request.META["HTTP_AUTHORIZATION"] = f"Bearer {token}"
                 result = await database_sync_to_async(auth.authenticate)(
@@ -111,7 +115,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         "connection_id": self.connection_id,
                         "is_keepalive": self.is_keepalive,
                         "server_time": time.time() * 1000,
-                        "message": "Successfully connected. Use subscribe/unsubscribe messages to join channels",
+                        "message": "Successfully connected.\
+                            Use subscribe/unsubscribe messages to join channels",
                     }
                 )
             )
@@ -122,7 +127,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.close(code=4000)
 
     async def _manage_active_connections(
-        self, user: User, connection_id: str, connection_time: float
+        self,
+        user: "CustomUserModel",
+        connection_id: str,
+        connection_time: float,
     ):
         self.last_ping_time = time.time()
 
@@ -256,7 +264,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             msg_type = data.get("type")
 
             logger.info(
-                f"Received data: {msg_type}, from user: {self.user.username if self.user else 'Anonymous'}"
+                f"Received data: {msg_type},\
+                from user: {self.user.username if self.user else 'Anonymous'}"
             )
 
             if msg_type == WSMessageTypeClient.PING:
@@ -446,7 +455,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
 
     def _save_message(
-        self, user: User, bunch_id: str, channel_id: str, content: str
+        self,
+        user: "CustomUserModel",
+        bunch_id: str,
+        channel_id: str,
+        content: str,
     ):
         bunch = Bunch.objects.get(id=bunch_id)
         channel = Channel.objects.get(id=channel_id, bunch=bunch)
@@ -499,7 +512,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             has_access = await self.check_user_access(bunch_id, channel_id)
             if not has_access:
                 logger.warning(
-                    f"User {self.user.username} denied reaction access to bunch {bunch_id} channel {channel_id}"
+                    f"User {self.user.username} denied reaction access to\
+                    bunch {bunch_id} channel {channel_id}"
                 )
                 return
 
@@ -584,7 +598,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             logger.error(f"Error handling reaction: {str(e)}")
 
     def _add_reaction(
-        self, user: User, bunch_id: str, message_id: str, emoji: str
+        self,
+        user: "CustomUserModel",
+        bunch_id: str,
+        message_id: str,
+        emoji: str,
     ):
         """Add a reaction to a message."""
         try:
@@ -638,7 +656,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return None
 
     def _remove_reaction(
-        self, user: User, bunch_id: str, message_id: str, emoji: str
+        self,
+        user: "CustomUserModel",
+        bunch_id: str,
+        message_id: str,
+        emoji: str,
     ):
         """Remove a reaction from a message."""
         try:
