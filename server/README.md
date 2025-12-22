@@ -6,24 +6,30 @@ This is the backend server for Bunch, a cross-platform chat application. It's bu
 ## Getting Started
 
 1.  **Navigate to the backend directory:**
+
     ```bash
     cd server
     ```
-2.  **Set up a Python virtual environment:**
-    `uv venv` (This creates a `.venv` directory in the current folder. Activate it with `source .venv/bin/activate` on macOS/Linux or `.venv\Scriptsctivate` on Windows)
-3.  **Install dependencies:**
+
+2.  **Sync the project (create venv and install deps):**
+
     ```bash
-    uv pip install -r requirements.txt
+    uv sync
     ```
-4.  **Apply database migrations:**
+
+3.  **Apply database migrations:**
+
     ```bash
-    uv run python manage.py migrate
+    uv run --env-file .env python manage.py migrate
     ```
-5.  **Run the development server:**
+
+4.  **Run the development server (both http and ws hotreload):**
+
     ```bash
-    uv run python run_daphne.py
+    uv run --env-file .env python manage.py runserver
     ```
-6.  The API will be available at [http://localhost:8000](http://localhost:8000).
+
+5.  The API will be available at [http://localhost:8000](http://localhost:8000).
 
 ## Docs
 

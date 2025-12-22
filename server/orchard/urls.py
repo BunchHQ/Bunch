@@ -37,9 +37,7 @@ urlpatterns = [
                 ),
                 path(
                     "bunch/",
-                    include(
-                        "bunch.urls", namespace="bunch"
-                    ),
+                    include("bunch.urls", namespace="bunch"),
                 ),
             ]
         ),

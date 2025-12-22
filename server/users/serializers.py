@@ -38,9 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
         if request is None:
             return None
         return request.build_absolute_uri(
-            reverse(
-                "user:user-detail", kwargs={"pk": obj.id}
-            )
+            reverse("user:user-detail", kwargs={"pk": obj.id})
         )
 
     @override
@@ -69,7 +67,5 @@ class GroupSerializer(serializers.ModelSerializer):
         if request is None:
             return None
         return request.build_absolute_uri(
-            reverse(
-                "user:group-detail", kwargs={"pk": obj.id}
-            )
+            reverse("user:group-detail", kwargs={"pk": obj.id})
         )

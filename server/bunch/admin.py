@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 
 from bunch.models import Bunch, Channel, Member, Message, Reaction
 
@@ -92,22 +92,32 @@ class BunchAdmin(admin.ModelAdmin):
     show_icon.short_description = "Icon"
 
     def show_channels(self, obj):
-        return format_html(
-            "<br>".join(
-                f"{channel.name} ({channel.type})"
-                for channel in obj.channels.all()
+        if obj.channels.exists():
+            return format_html_join(
+                "\n",
+                "<li>{} ({})</li>",
+                (
+                    (channel.name, channel.type)
+                    for channel in obj.channels.all()
+                ),
             )
-        )
+
+        return "No channels"
 
     show_channels.short_description = "Channels"
 
     def show_members(self, obj):
-        return format_html(
-            "<br>".join(
-                f"{member.user.username} ({member.role})"
-                for member in obj.members.all()
+        if obj.members.exists():
+            return format_html_join(
+                "\n",
+                "<li>{} ({})</li>",
+                (
+                    (member.user.username, member.role)
+                    for member in obj.members.all()
+                ),
             )
-        )
+
+        return "No members"
 
     show_members.short_description = "Members"
 
@@ -163,20 +173,27 @@ class MemberAdmin(admin.ModelAdmin):
     )
 
     def bunch_memberships(self, obj: Member):
-        return format_html(
-            "<br>".join(
-                f"{membership.bunch.name}"
-                for membership in obj.user.bunch_memberships.all()
+        if obj.user.bunch_memberships.exists():
+            return format_html_join(
+                "\n",
+                "<li>{}</li>",
+                (
+                    (membership.bunch.name,)
+                    for membership in obj.user.bunch_memberships.all()
+                ),
             )
-        )
+
+        return "No memberships"
 
     def owned_bunches(self, obj: Member):
-        return format_html(
-            "<br>".join(
-                f"{bunch.name}"
-                for bunch in obj.user.owned_bunches.all()
+        if obj.user.owned_bunches.exists():
+            return format_html_join(
+                "\n",
+                "<li>{}</li>",
+                ((bunch.name,) for bunch in obj.user.owned_bunches.all()),
             )
-        )
+
+        return "No owned bunches"
 
 
 @admin.register(Channel)
@@ -331,13 +348,15 @@ class ReactionAdmin(admin.ModelAdmin):
                 preview += "..."
             return preview
         return "-"
-    
+
     message_content_preview.short_description = "Message Preview"
 
     def message_channel(self, obj):
         """Display the channel name and bunch name."""
         if obj.message and obj.message.channel:
-            return f"{obj.message.channel.name} ({obj.message.channel.bunch.name})"
+            return (
+                f"{obj.message.channel.name} ({obj.message.channel.bunch.name})"
+            )
         return "-"
-    
+
     message_channel.short_description = "Channel"
