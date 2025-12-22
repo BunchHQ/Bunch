@@ -27,9 +27,7 @@ class UserModelTest(TestCase):
 
     def test_creation(self):
         user = User.objects.get(email="test@bunch.io")
-        self.assertEqual(
-            user.username, "test", "Username is not correct"
-        )
+        self.assertEqual(user.username, "test", "Username is not correct")
         self.assertEqual(
             user.email,
             "test@bunch.io",
@@ -54,9 +52,7 @@ class UserModelTest(TestCase):
             )
 
     def test_creation_with_invalid_email(self):
-        with self.assertRaises(
-            ValidationError, msg="Email is required."
-        ):
+        with self.assertRaises(ValidationError, msg="Email is required."):
             User.objects.create_user(
                 username="test2",
                 email="",
@@ -80,12 +76,8 @@ class UserModelTest(TestCase):
             )
 
     def test_email_is_required(self):
-        with self.assertRaises(
-            ValidationError, msg="Email is required."
-        ):
-            User.objects.create_user(
-                username="test", password="testpassword"
-            )
+        with self.assertRaises(ValidationError, msg="Email is required."):
+            User.objects.create_user(username="test", password="testpassword")
 
     def test_default_theme_preference_is_system(self):
         user = User.objects.get(email="test@bunch.io")
@@ -101,30 +93,18 @@ class UserModelTest(TestCase):
 
     def test_default_color_for_superuser_is_silver(self):
         user = User.objects.get(email="root@bunch.io")
-        self.assertEqual(
-            user.color, ColorChoices.SILVER.value
-        )
+        self.assertEqual(user.color, ColorChoices.SILVER.value)
 
     def test_all_attributes(self):
         user = User.objects.get(email="test@bunch.io")
-        self.assertTrue(
-            user.is_active, "User is not active"
-        )
+        self.assertTrue(user.is_active, "User is not active")
         self.assertFalse(user.is_staff, "User is staff")
-        self.assertFalse(
-            user.is_superuser, "User is superuser"
-        )
+        self.assertFalse(user.is_superuser, "User is superuser")
 
         root = User.objects.get(email="root@bunch.io")
-        self.assertTrue(
-            root.is_active, "Root user is not active"
-        )
-        self.assertTrue(
-            root.is_staff, "Root user is not staff"
-        )
-        self.assertTrue(
-            root.is_superuser, "Root user is not superuser"
-        )
+        self.assertTrue(root.is_active, "Root user is not active")
+        self.assertTrue(root.is_staff, "Root user is not staff")
+        self.assertTrue(root.is_superuser, "Root user is not superuser")
 
         self.assertTrue(
             hasattr(user, "id"),

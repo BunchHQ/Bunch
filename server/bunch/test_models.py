@@ -410,9 +410,7 @@ class ChannelModelTest(TestCase):
             bunch=self.bunch, name="Channel 2", position=2
         )
 
-        channels = Channel.objects.filter(
-            bunch=self.bunch
-        ).order_by("position")
+        channels = Channel.objects.filter(bunch=self.bunch).order_by("position")
         self.assertEqual(
             channels[0],
             channel1,
@@ -447,9 +445,7 @@ class ChannelModelTest(TestCase):
         bunch_id = self.bunch.id
         self.bunch.delete()
         self.assertEqual(
-            Channel.objects.filter(
-                bunch_id=bunch_id
-            ).count(),
+            Channel.objects.filter(bunch_id=bunch_id).count(),
             0,
             "Channels should be deleted when bunch is deleted",
         )
@@ -558,9 +554,7 @@ class MessageModelTest(TestCase):
         channel_id = self.channel_other.id
         self.channel_other.delete()
         self.assertEqual(
-            Message.objects.filter(
-                channel_id=channel_id
-            ).count(),
+            Message.objects.filter(channel_id=channel_id).count(),
             0,
             "Messages should be deleted when channel is deleted",
         )
@@ -583,9 +577,7 @@ class MessageModelTest(TestCase):
         bunch_id = self.bunch.id
         self.bunch.delete()
         self.assertEqual(
-            Message.objects.filter(
-                channel__bunch_id=bunch_id
-            ).count(),
+            Message.objects.filter(channel__bunch_id=bunch_id).count(),
             0,
             "Messages should be deleted when bunch is deleted",
         )
