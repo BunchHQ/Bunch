@@ -1,23 +1,21 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { type NextRequest } from "next/server"
+import { updateSession } from "@/lib/supabase/proxy"
 
-const isPublicRoute = createRouteMatcher([
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/browse",
-  "/",
-]);
-
-export const proxy = clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
-    await auth.protect();
-  }
-});
+export async function proxy(request: NextRequest) {
+  return await updateSession(request)
+}
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - Common static file extensions
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js|woff2?|ttf|ico|csv|docx?|xlsx?|zip|webmanifest)$).*)",
     // Always run for API routes
     "/(api|trpc)(.*)",
   ],
-};
+}
