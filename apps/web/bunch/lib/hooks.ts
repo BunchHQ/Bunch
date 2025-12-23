@@ -1,76 +1,89 @@
-import { useAuth } from "@clerk/nextjs"
+"use client"
+
 import { useCallback, useState } from "react"
 import * as api from "./api"
 import type { Bunch, Channel, Message, User } from "./types"
+import { createClient } from "./supabase/client"
 
 // User hooks
 export const useCurrentUser = () => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const { getToken } = useAuth()
+  const supabase = createClient()
 
   const fetchUser = useCallback(async () => {
     try {
       setLoading(true)
-      const token = await getToken({ template: "Django" })
-      if (!token) {
-        throw new Error("No authentication token available")
+      const {
+        data: { user: authUser },
+        error: authError,
+      } = await supabase.auth.getUser()
+      if (authError || !authUser) {
+        throw authError
       }
-      const data = await api.getCurrentUser(token)
-      setUser(data)
+
+      const userData = await api.getCurrentUser(authUser.id)
+      setUser(userData)
       setError(null)
     } catch (err) {
       setError(err as Error)
     } finally {
       setLoading(false)
     }
-  }, [getToken])
+  }, [supabase])
 
   return { user, loading, error, fetchUser }
 }
 
 // Bunch hooks
-export const useBunches = (fetchPublic?: boolean) => {
+export const useBunches = (fetchPublic: boolean = false) => {
   const [bunches, setBunches] = useState<Bunch[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const { getToken } = useAuth()
+  const supabase = createClient()
 
   const fetchBunches = useCallback(async () => {
     try {
       setLoading(true)
-      const token = await getToken({ template: "Django" })
-      let data = null
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+      let bunchData = null
 
       if (fetchPublic) {
         // no auth for public bunches
-        data = await api.getPublicBunches(token || undefined)
+        bunchData = await api.getPublicBunches(session?.access_token || undefined)
       } else {
-        if (!token) {
-          throw new Error("No authentication token available")
+        if (sessionError || !session) {
+          throw sessionError || new Error("No authentication token available")
         }
 
-        data = await api.getBunches(token)
+        bunchData = await api.getBunches(session.access_token)
       }
 
-      setBunches(data)
+      setBunches(bunchData)
       setError(null)
     } catch (err) {
       setError(err as Error)
     } finally {
       setLoading(false)
     }
-  }, [getToken, fetchPublic])
+  }, [supabase, fetchPublic])
 
   const createBunch = useCallback(
     async (data: Partial<Bunch>) => {
       try {
-        const token = await getToken({ template: "Django" })
-        if (!token) {
-          throw new Error("No authentication token available")
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession()
+        if (sessionError || !session) {
+          throw sessionError || new Error("No authentication token available")
         }
-        const newBunch = await api.createBunch(data, token)
+
+        const newBunch = await api.createBunch(data, session.access_token)
         setBunches(prev => [...prev, newBunch])
         return newBunch
       } catch (err) {
@@ -78,7 +91,7 @@ export const useBunches = (fetchPublic?: boolean) => {
         throw err
       }
     },
-    [getToken],
+    [supabase],
   )
 
   return { bunches, loading, error, fetchBunches, createBunch }
@@ -89,33 +102,41 @@ export const useChannels = (bunchId: string) => {
   const [channels, setChannels] = useState<Channel[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const { getToken } = useAuth()
+  const supabase = createClient()
 
   const fetchChannels = useCallback(async () => {
     try {
       setLoading(true)
-      const token = await getToken({ template: "Django" })
-      if (!token) {
-        throw new Error("No authentication token available")
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        throw sessionError || new Error("No authentication token available")
       }
-      const data = await api.getChannels(bunchId, token)
-      setChannels(data)
+
+      const channelsData = await api.getChannels(bunchId, session.access_token)
+      setChannels(channelsData)
       setError(null)
     } catch (err) {
       setError(err as Error)
     } finally {
       setLoading(false)
     }
-  }, [bunchId, getToken])
+  }, [bunchId, supabase])
 
   const createChannel = useCallback(
     async (data: Partial<Channel>) => {
       try {
-        const token = await getToken({ template: "Django" })
-        if (!token) {
-          throw new Error("No authentication token available")
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession()
+        if (sessionError || !session) {
+          throw sessionError || new Error("No authentication token available")
         }
-        const newChannel = await api.createChannel(bunchId, data, token)
+
+        const newChannel = await api.createChannel(bunchId, data, session.access_token)
         setChannels(prev => [...prev, newChannel])
         return newChannel
       } catch (err) {
@@ -123,7 +144,7 @@ export const useChannels = (bunchId: string) => {
         throw err
       }
     },
-    [bunchId, getToken],
+    [bunchId, supabase],
   )
 
   return { channels, loading, error, fetchChannels, createChannel }
@@ -134,17 +155,21 @@ export function useMessages(bunchId: string, channelId: string) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-  const { getToken } = useAuth()
+  const supabase = createClient()
 
   const fetchMessages = async () => {
     try {
       setLoading(true)
-      const token = await getToken({ template: "Django" })
-      if (!token) {
-        throw new Error("No authentication token available")
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        throw sessionError || new Error("No authentication token available")
       }
-      const data = await api.getMessages(bunchId, channelId, token)
-      setMessages(data)
+
+      const messagesData = await api.getMessages(bunchId, channelId, session.access_token)
+      setMessages(messagesData)
       setError(null)
     } catch (err) {
       setError(err as Error)
@@ -154,19 +179,23 @@ export function useMessages(bunchId: string, channelId: string) {
   }
   const sendMessage = async (content: string, replyToId?: string) => {
     try {
-      const token = await getToken({ template: "Django" })
-      if (!token) {
-        throw new Error("No authentication token available")
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        throw sessionError || new Error("No authentication token available")
       }
-      const data = await api.createMessage(
+
+      const newMessage = await api.createMessage(
         bunchId,
         channelId,
         content,
         replyToId,
-        token,
+        session.access_token,
       )
-      setMessages(prev => [...prev, data])
-      return data
+      setMessages(prev => [...prev, newMessage])
+      return newMessage
     } catch (err) {
       setError(err as Error)
       throw err
@@ -175,13 +204,22 @@ export function useMessages(bunchId: string, channelId: string) {
 
   const updateMessage = async (messageId: string, content: string) => {
     try {
-      const token = await getToken({ template: "Django" })
-      if (!token) {
-        throw new Error("No authentication token available")
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        throw sessionError || new Error("No authentication token available")
       }
-      const data = await api.updateMessage(bunchId, messageId, content, token)
-      setMessages(prev => prev.map(msg => (msg.id === messageId ? data : msg)))
-      return data
+
+      const updatedMessage = await api.updateMessage(
+        bunchId,
+        messageId,
+        content,
+        session.access_token,
+      )
+      setMessages(prev => prev.map(msg => (msg.id === messageId ? updatedMessage : msg)))
+      return updatedMessage
     } catch (err) {
       setError(err as Error)
       throw err
@@ -190,11 +228,15 @@ export function useMessages(bunchId: string, channelId: string) {
 
   const deleteMessage = async (messageId: string) => {
     try {
-      const token = await getToken({ template: "Django" })
-      if (!token) {
-        throw new Error("No authentication token available")
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        throw sessionError || new Error("No authentication token available")
       }
-      await api.deleteMessage(bunchId, messageId, token)
+
+      await api.deleteMessage(bunchId, messageId, session.access_token)
       setMessages(prev => prev.filter(msg => msg.id !== messageId))
     } catch (err) {
       setError(err as Error)
@@ -213,22 +255,26 @@ export function useMessages(bunchId: string, channelId: string) {
   }
 }
 
-// reaction hooks (useless)
+// reaction hooks (unused)
 export function useReactions(bunchId: string) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-  const { getToken } = useAuth()
+  const supabase = createClient()
 
   const toggleReaction = async (messageId: string, emoji: string) => {
     try {
       setLoading(true)
-      const token = await getToken({ template: "Django" })
-      if (!token) {
-        throw new Error("No authentication token available")
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        throw sessionError || new Error("No authentication token available")
       }
-      const data = await api.toggleReaction(bunchId, messageId, emoji, token)
+
+      const reactionData = await api.toggleReaction(bunchId, messageId, emoji, session.access_token)
       setError(null)
-      return data
+      return reactionData
     } catch (err) {
       setError(err as Error)
       throw err
@@ -240,13 +286,17 @@ export function useReactions(bunchId: string) {
   const createReaction = async (messageId: string, emoji: string) => {
     try {
       setLoading(true)
-      const token = await getToken({ template: "Django" })
-      if (!token) {
-        throw new Error("No authentication token available")
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        throw sessionError || new Error("No authentication token available")
       }
-      const data = await api.createReaction(bunchId, messageId, emoji, token)
+
+      const reactionData = await api.createReaction(bunchId, messageId, emoji, session.access_token)
       setError(null)
-      return data
+      return reactionData
     } catch (err) {
       setError(err as Error)
       throw err
@@ -258,11 +308,15 @@ export function useReactions(bunchId: string) {
   const deleteReaction = async (reactionId: string) => {
     try {
       setLoading(true)
-      const token = await getToken({ template: "Django" })
-      if (!token) {
-        throw new Error("No authentication token available")
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        throw sessionError || new Error("No authentication token available")
       }
-      await api.deleteReaction(bunchId, reactionId, token)
+
+      await api.deleteReaction(bunchId, reactionId, session.access_token)
       setError(null)
     } catch (err) {
       setError(err as Error)
@@ -291,12 +345,7 @@ export function useWebSocketReactions() {
     channelId: string,
     messageId: string,
     emoji: string,
-    sendReaction: (
-      bunchId: string,
-      channelId: string,
-      messageId: string,
-      emoji: string,
-    ) => void,
+    sendReaction: (bunchId: string, channelId: string, messageId: string, emoji: string) => void,
   ) => {
     try {
       setLoading(true)
@@ -321,24 +370,28 @@ export const useBunch = (bunchId: string) => {
   const [bunch, setBunch] = useState<Bunch | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const { getToken } = useAuth()
+  const supabase = createClient()
 
   const fetchBunch = useCallback(async () => {
     try {
       setLoading(true)
-      const token = await getToken({ template: "Django" })
-      if (!token) {
-        throw new Error("No authentication token available")
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        throw sessionError || new Error("No authentication token available")
       }
-      const data = await api.getBunch(bunchId, token)
-      setBunch(data)
+
+      const bunchData = await api.getBunch(bunchId, session.access_token)
+      setBunch(bunchData)
       setError(null)
     } catch (err) {
       setError(err as Error)
     } finally {
       setLoading(false)
     }
-  }, [bunchId, getToken])
+  }, [bunchId, supabase])
 
   return { bunch, loading, error, fetchBunch }
 }
