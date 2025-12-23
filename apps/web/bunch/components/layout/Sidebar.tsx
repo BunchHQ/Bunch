@@ -1,48 +1,39 @@
-"use client";
+"use client"
 
-import { CreateBunchDialog } from "@/components/bunch/CreateBunchDialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import type { Bunch } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { UserButton } from "@clerk/nextjs";
-import {
-  Globe2Icon,
-  Menu,
-  MessageCircle,
-  Plus,
-  Settings,
-  X,
-} from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-import { ThemeToggle } from "../theme/ThemeToggle";
+import { CreateBunchDialog } from "@/components/bunch/CreateBunchDialog"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useBunches } from "@/lib/hooks"
+import { cn } from "@/lib/utils"
+import { UserButton } from "@clerk/nextjs"
+import { Globe2Icon, Menu, MessageCircle, Plus, Settings, X } from "lucide-react"
+import Link from "next/link"
+import { useParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import { ThemeToggle } from "../theme/ThemeToggle"
 
-interface SidebarProps {
-  bunches: Bunch[];
-}
+export function Sidebar() {
+  const { bunches, loading, fetchBunches, error } = useBunches()
 
-export function Sidebar({ bunches }: SidebarProps) {
-  const params = useParams();
-  // const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  useEffect(() => {
+    fetchBunches()
+  }, [fetchBunches])
 
-  const currentBunchId = params?.bunchId as string;
+  if (loading || error) return null
+
+  const params = useParams()
+  const [isOpen, setIsOpen] = useState(false)
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+
+  const currentBunchId = params?.bunchId as string
 
   // Get the current bunch if there's an ID in the params
-  const currentBunch = bunches?.find((bunch) => bunch.id === currentBunchId);
+  const currentBunch = bunches?.find(bunch => bunch.id === currentBunchId)
 
   const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
+    setIsOpen(!isOpen)
+  }
 
   return (
     <>
@@ -55,23 +46,23 @@ export function Sidebar({ bunches }: SidebarProps) {
       </div>
       <nav
         className={cn(
-          "fixed inset-y-0 left-0 z-30 flex flex-col bg-card border-1 border-border transition-transform duration-300 ease-in-out",
-          "w-15 rounded-lg m-2",
-          isOpen ? "translate-x-0" : "translate-x-[-100%]",
+          "bg-card border-border fixed inset-y-0 left-0 z-30 flex flex-col border transition-transform duration-300 ease-in-out",
+          "m-2 w-15 rounded-lg",
+          isOpen ? "translate-x-0" : "-translate-x-full",
           "md:relative md:translate-x-0 md:items-center",
-          "flex flex-col h-[calc(100vh-1rem)]" // Ensure it takes full height minus margin
+          "flex h-[calc(100vh-1rem)] flex-col", // Ensure it takes full height minus margin
         )}
       >
-        <div className="flex-grow overflow-hidden">
-          <div className="h-full overflow-y-auto scrollbar-hide p-2 flex flex-col items-center">
-            <div className="flex flex-col items-center space-y-2 flex-grow">
-              {bunches.map((bunch) => (
+        <div className="grow overflow-hidden">
+          <div className="scrollbar-hide flex h-full flex-col items-center overflow-y-auto p-2">
+            <div className="flex grow flex-col items-center space-y-2">
+              {bunches.map(bunch => (
                 <TooltipProvider key={bunch.id}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Link
                         href={`/bunch/${bunch.id}`}
-                        className="w-12 h-12 rounded-[100px] flex items-center justify-center bg-[var(--bunch-primary-color)]/20  hover:rounded-[15px] transition-all"
+                        className="flex h-12 w-12 items-center justify-center rounded-[100px] bg-(--bunch-primary-color)/20 transition-all hover:rounded-[15px]"
                         style={
                           {
                             "--bunch-primary-color": bunch?.primary_color,
@@ -84,8 +75,8 @@ export function Sidebar({ bunches }: SidebarProps) {
                           ) : (
                             <AvatarFallback
                               className={cn(
-                                "bg-transparent text-[var(--bunch-primary-color)] text-lg",
-                                currentBunchId === bunch.id && "text-primary"
+                                "bg-transparent text-lg text-(--bunch-primary-color)",
+                                currentBunchId === bunch.id && "text-primary",
                               )}
                               style={
                                 {
@@ -107,21 +98,21 @@ export function Sidebar({ bunches }: SidebarProps) {
               ))}
             </div>
 
-            <div className="flex flex-col items-center gap-2 mt-4">
+            <div className="mt-4 flex flex-col items-center gap-2">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
                     <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center"
+                      className="flex h-12 w-12 items-center justify-center rounded-full"
                       onClick={() => setCreateDialogOpen(true)}
                     >
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-full h-full p-0 bg-primary/10 opacity-60 rounded-[100px] hover:!bg-primary/20 hover:rounded-[15px] transition-all"
+                        className="bg-primary/10 hover:bg-primary/20! h-full w-full rounded-[100px] p-0 opacity-60 transition-all hover:rounded-[15px]"
                       >
-                        <Plus className="!h-6 !w-6" />
+                        <Plus className="h-6! w-6!" />
                         <span className="sr-only">Create Bunch</span>
                       </Button>
                     </div>
@@ -136,14 +127,14 @@ export function Sidebar({ bunches }: SidebarProps) {
                   <TooltipTrigger asChild>
                     <Link
                       href="/browse"
-                      className="w-12 h-12 rounded-full flex items-center justify-center"
+                      className="flex h-12 w-12 items-center justify-center rounded-full"
                     >
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-full h-full p-0 bg-primary/10 opacity-60 rounded-[100px] hover:!bg-primary/20 hover:rounded-[15px] transition-all"
+                        className="bg-primary/10 hover:bg-primary/20! h-full w-full rounded-[100px] p-0 opacity-60 transition-all hover:rounded-[15px]"
                       >
-                        <Globe2Icon className="!h-5 !w-5" />
+                        <Globe2Icon className="h-5! w-5!" />
                       </Button>
                     </Link>
                   </TooltipTrigger>
@@ -155,7 +146,7 @@ export function Sidebar({ bunches }: SidebarProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="w-12 h-12 flex items-center justify-center">
+                    <div className="flex h-12 w-12 items-center justify-center">
                       <ThemeToggle />
                     </div>
                   </TooltipTrigger>
@@ -169,14 +160,14 @@ export function Sidebar({ bunches }: SidebarProps) {
                   <TooltipTrigger asChild>
                     <Link
                       href="/messages"
-                      className="w-12 h-12 rounded-full flex items-center justify-center"
+                      className="flex h-12 w-12 items-center justify-center rounded-full"
                     >
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-full h-full p-0 bg-primary/10 opacity-60 rounded-[100px] hover:!bg-primary/20 hover:rounded-[15px] transition-all"
+                        className="bg-primary/10 hover:bg-primary/20! h-full w-full rounded-[100px] p-0 opacity-60 transition-all hover:rounded-[15px]"
                       >
-                        <MessageCircle className="!h-5 !w-5" />
+                        <MessageCircle className="h-5! w-5!" />
                       </Button>
                     </Link>
                   </TooltipTrigger>
@@ -190,14 +181,14 @@ export function Sidebar({ bunches }: SidebarProps) {
                   <TooltipTrigger asChild>
                     <Link
                       href="/settings"
-                      className="w-12 h-12 rounded-full flex items-center justify-center"
+                      className="flex h-12 w-12 items-center justify-center rounded-full"
                     >
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-full h-full p-0 bg-primary/10 opacity-60 rounded-[100px] hover:!bg-primary/20 hover:rounded-[15px] transition-all"
+                        className="bg-primary/10 hover:bg-primary/20! h-full w-full rounded-[100px] p-0 opacity-60 transition-all hover:rounded-[15px]"
                       >
-                        <Settings className="!h-5 !w-5" />
+                        <Settings className="h-5! w-5!" />
                       </Button>
                     </Link>
                   </TooltipTrigger>
@@ -209,7 +200,7 @@ export function Sidebar({ bunches }: SidebarProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-primary/5 hover:bg-primary/60 transition-colors">
+                    <div className="bg-primary/5 hover:bg-primary/60 flex h-12 w-12 items-center justify-center rounded-full transition-colors">
                       <UserButton
                         appearance={{
                           elements: {
@@ -228,10 +219,7 @@ export function Sidebar({ bunches }: SidebarProps) {
           </div>
         </div>
       </nav>
-      <CreateBunchDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-      />
+      <CreateBunchDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
     </>
-  );
+  )
 }

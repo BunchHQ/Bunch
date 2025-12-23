@@ -1,6 +1,6 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { MessageCircle, Users, Zap, ArrowRight } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowRight, MessageCircle, Users, Zap } from "lucide-react"
 import Link from "next/link"
 
 // The Public "Home" page
@@ -41,10 +41,10 @@ export default function Home() {
             <CardDescription>Join a bunch and start a conversation</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-muted-foreground text-sm">Sign in to browse and join bunches</p>
+            <p className="text-muted-foreground text-sm">Sign in to join bunches</p>
             <Link href="/auth/sign-in">
               <Button variant="ghost" size="sm" className="w-full">
-                Browse Bunches
+                Get Started
               </Button>
             </Link>
           </CardContent>
@@ -72,15 +72,15 @@ export default function Home() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center text-xl">
               <Zap className="text-primary mr-2 h-6 w-6" />
-              Real-time Chat
+              Browse Bunches
             </CardTitle>
-            <CardDescription>Connect with your community instantly</CardDescription>
+            <CardDescription>Discover public bunches and communities</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-muted-foreground text-sm">Fast, reliable messaging for everyone</p>
-            <Link href="/auth/sign-up">
+            <p className="text-muted-foreground text-sm">Explore public bunches</p>
+            <Link href="/browse">
               <Button variant="ghost" size="sm" className="w-full">
-                Join Now
+                Browse Bunches
               </Button>
             </Link>
           </CardContent>

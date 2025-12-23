@@ -1,8 +1,9 @@
+import "@/app/globals.css"
+import { ThemeProvider } from "@/components/theme/ThemeProvider"
+import { ThemeToggle } from "@/components/theme/ThemeToggle"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Toaster } from "sonner"
-import { ThemeProvider } from "@/components/theme/ThemeProvider"
-import "@/app/globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,7 +27,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <main>{children}</main>
+          <div className="flex min-h-screen flex-col">
+            <div className="fixed top-4 right-4 z-50">
+              <ThemeToggle />
+            </div>
+            <main className="flex flex-1 items-center justify-center p-4">{children}</main>
+          </div>
           <Toaster />
         </ThemeProvider>
       </body>

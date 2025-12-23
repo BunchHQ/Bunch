@@ -1,56 +1,24 @@
-"use client";
-
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { useBunches } from "@/lib/hooks";
-import { useUser } from "@clerk/nextjs";
-import { Loader2 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { Sidebar } from "./Sidebar";
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
+import { Sidebar } from "./Sidebar"
 
 interface MainLayoutProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
-export function MainLayout({ children }: MainLayoutProps) {
-  const { isLoaded, isSignedIn } = useUser();
-  const { bunches, loading, fetchBunches } = useBunches();
-  const router = useRouter();
-  const pathname = usePathname();
+// MainLayout is supposed to be used in (authenticated) routes only
+export async function MainLayout({ children }: MainLayoutProps) {
+  const supabase = await createClient()
 
-  useEffect(() => {
-    if (isSignedIn) {
-      fetchBunches();
-    }
-  }, [isSignedIn, fetchBunches]);
+  const { error } = await supabase.auth.getClaims()
+  const isSignedIn = error === null
 
-  // Public routes don't need the sidebar
-  if (pathname === "/sign-in" || pathname === "/sign-up") {
-    return (
-      <div className="flex min-h-screen flex-col">
-        <div className="fixed top-4 right-4 z-50">
-          <ThemeToggle />
-        </div>
-        <main className="flex-1 flex items-center justify-center p-4">
-          {children}
-        </main>
-      </div>
-    );
-  }
+  if (!isSignedIn) redirect("/auth/sign-in")
 
-  if (!isLoaded || (isSignedIn && loading)) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // authenticated routes, show sidebar
   return (
     <div className="flex h-screen overflow-hidden">
-      {isSignedIn && <Sidebar bunches={bunches} />}
+      <Sidebar />
       <main className="flex-1 overflow-auto">{children}</main>
     </div>
-  );
+  )
 }
