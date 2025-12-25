@@ -1,13 +1,14 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
-import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useWebSocketReactions } from "@/lib/hooks"
 import type { Reaction } from "@/lib/types"
 import { useWebSocket } from "@/lib/WebSocketProvider"
+import { Plus } from "lucide-react"
 import { EmojiPicker } from "./EmojiPicker"
 import { ReactionButton } from "./ReactionButton"
+import { createClient } from "@/lib/supabase/client"
+import { useEffect } from "react"
 
 interface MessageReactionsProps {
   bunchId: string
@@ -24,14 +25,22 @@ export function MessageReactions({
   reactions,
   reactionCounts,
 }: MessageReactionsProps) {
-  const { userId } = useAuth()
+  const supabase = createClient()
   const { sendReaction, isConnected } = useWebSocket()
   const { toggleReaction } = useWebSocketReactions()
 
+  let userId: string | undefined
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const { data } = await supabase.auth.getClaims()
+      userId = data?.claims.sub
+    }
+
+    fetchUserId()
+  }, [supabase])
+
   // Get unique emojis that have reactions
-  const emojiList = Object.keys(reactionCounts).filter(
-    emoji => reactionCounts[emoji] > 0,
-  )
+  const emojiList = Object.keys(reactionCounts).filter(emoji => reactionCounts[emoji] > 0)
 
   const handleEmojiSelect = async (emoji: string) => {
     if (!isConnected) {

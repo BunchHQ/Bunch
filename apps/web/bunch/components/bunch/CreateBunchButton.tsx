@@ -77,7 +77,7 @@ export function CreateBunchButton({ className, children }: CreateBunchButtonProp
       setDialogOpen(false)
 
       // to the new bunch
-      router.push(`/bunch/${bunch.id}`)
+      router.push(`/app/bunch/${bunch.id}`)
     } catch (error) {
       toast("Error", {
         description: error instanceof Error ? error.message : "Failed to create bunch",

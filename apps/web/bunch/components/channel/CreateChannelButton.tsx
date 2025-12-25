@@ -100,7 +100,7 @@ export function CreateChannelButton({
       setDialogOpen(false)
 
       // to the new channel
-      router.push(`/bunch/${bunchId}/channel/${channel.id}`)
+      router.push(`/app/bunch/${bunchId}/channel/${channel.id}`)
     } catch (error) {
       toast("Error", {
         description: error instanceof Error ? error.message : "Failed to create channel",

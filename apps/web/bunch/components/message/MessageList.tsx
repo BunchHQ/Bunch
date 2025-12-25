@@ -1,13 +1,13 @@
 "use client"
 
-import { Loader2 } from "lucide-react"
-import { useParams } from "next/navigation"
-import { useCallback, useEffect, useRef, useState } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useMessages } from "@/lib/hooks"
 import { type Message, WSMessageTypeClient } from "@/lib/types"
 import { useWebSocket } from "@/lib/WebSocketProvider"
+import { Loader2 } from "lucide-react"
+import { useParams } from "next/navigation"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { MessageComposer } from "./MessageComposer"
 import { MessageItem } from "./MessageItem"
 

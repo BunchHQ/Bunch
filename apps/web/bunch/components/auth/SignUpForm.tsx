@@ -23,6 +23,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
+
     const supabase = createClient()
     setIsLoading(true)
     setError(null)
@@ -38,10 +39,11 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/app`,
+          emailRedirectTo: `/onboarding`,
           data: {
             display_name: displayName,
             username: username,
+            onboarded: false,
           },
         },
       })
@@ -77,11 +79,11 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="displayname">DisplayName</Label>
+                <Label htmlFor="displayname">Display Name</Label>
                 <Input
                   id="displayname"
                   type="displayname"
-                  placeholder="Loid Forger"
+                  placeholder="Loid Forger (optional)"
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}
                 />

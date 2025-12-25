@@ -26,7 +26,7 @@ export default function BunchPage() {
   useEffect(() => {
     if (error) {
       console.error("Failed to fetch bunch:", error)
-      router.push("/")
+      router.push("/app")
     }
   }, [error, router])
 
@@ -45,7 +45,7 @@ export default function BunchPage() {
         <p className="text-muted-foreground mb-6">
           The bunch you're looking for doesn't exist or you don't have access to it.
         </p>
-        <Button onClick={() => router.push("/")}>Go Home</Button>
+        <Button onClick={() => router.push("/app")}>Go Home</Button>
       </div>
     )
   }
@@ -82,7 +82,7 @@ export default function BunchPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.push(`/bunch/${bunchId}/members`)}
+              onClick={() => router.push(`/app/bunch/${bunchId}/members`)}
             >
               <Users className="mr-2 h-4 w-4" />
               Members
@@ -90,7 +90,7 @@ export default function BunchPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.push(`/bunch/${bunchId}/settings`)}
+              onClick={() => router.push(`/app/bunch/${bunchId}/settings`)}
             >
               <Settings className="mr-2 h-4 w-4" />
               Settings

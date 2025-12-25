@@ -1,17 +1,13 @@
-"use client";
+"use client"
 
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Smile } from "lucide-react";
-import { useState } from "react";
+import { Button } from "@/components/ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Smile } from "lucide-react"
+import { useState } from "react"
 
 interface EmojiPickerProps {
-  onEmojiSelect: (emoji: string) => void;
-  trigger?: React.ReactNode;
+  onEmojiSelect: (emoji: string) => void
+  trigger?: React.ReactNode
 }
 
 const COMMON_EMOJIS = [
@@ -35,15 +31,15 @@ const COMMON_EMOJIS = [
   "⭐",
   "🚀",
   "🎯",
-];
+]
 
 export function EmojiPicker({ onEmojiSelect, trigger }: EmojiPickerProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   const handleEmojiClick = (emoji: string) => {
-    onEmojiSelect(emoji);
-    setOpen(false);
-  };
+    onEmojiSelect(emoji)
+    setOpen(false)
+  }
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -58,18 +54,14 @@ export function EmojiPicker({ onEmojiSelect, trigger }: EmojiPickerProps) {
           </Button>
         )}
       </PopoverTrigger>
-      <PopoverContent
-        className="w-80 p-4"
-        align="start"
-        data-testid="emoji-picker-content"
-      >
+      <PopoverContent className="w-80 p-4" align="start" data-testid="emoji-picker-content">
         <div className="grid grid-cols-8 gap-2">
-          {COMMON_EMOJIS.map((emoji) => (
+          {COMMON_EMOJIS.map(emoji => (
             <Button
               key={emoji}
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-lg hover:bg-accent"
+              className="hover:bg-accent h-8 w-8 p-0 text-lg"
               onClick={() => handleEmojiClick(emoji)}
             >
               {emoji}
@@ -78,5 +70,5 @@ export function EmojiPicker({ onEmojiSelect, trigger }: EmojiPickerProps) {
         </div>
       </PopoverContent>
     </Popover>
-  );
+  )
 }

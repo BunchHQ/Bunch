@@ -34,7 +34,7 @@ export default function BrowsePage() {
         <p className="text-muted-foreground mb-6">
           An error occurred while fetching public bunches. Please try again later.
         </p>
-        <Button onClick={() => router.push("/")}>Go Home</Button>
+        <Button onClick={() => router.push("/app")}>Go Home</Button>
       </div>
     )
   }
@@ -46,7 +46,7 @@ export default function BrowsePage() {
         <p className="text-muted-foreground mb-6">
           There are no public Bunch made yet. Create your own public Bunch
         </p>
-        <Button onClick={() => router.push("/")}>Go Home</Button>
+        <Button onClick={() => router.push("/app")}>Go Home</Button>
       </div>
     )
   }
@@ -60,7 +60,7 @@ export default function BrowsePage() {
 
       <div className="my-4 grid grid-cols-3 gap-6 px-8">
         {bunches.map(bunch => (
-          <Link href={`/bunch/${bunch.id}`} key={bunch.id}>
+          <Link href={`/app/bunch/${bunch.id}`} key={bunch.id}>
             <BunchCard bunch={bunch} />
           </Link>
         ))}

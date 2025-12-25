@@ -1,9 +1,5 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
-import { formatDistanceToNow } from "date-fns"
-import { Edit, MoreHorizontal, Reply, Smile, Trash } from "lucide-react"
-import { useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,20 +9,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useMessages, useWebSocketReactions } from "@/lib/hooks"
 import type { Message } from "@/lib/types"
 import { useWebSocket } from "@/lib/WebSocketProvider"
+import { formatDistanceToNow } from "date-fns"
+import { Edit, MoreHorizontal, Reply, Smile, Trash } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
 import { EmojiPicker } from "./EmojiPicker"
 import { MessageEditor } from "./MessageEditor"
 import { MessageReactions } from "./MessageReactions"
 import { ReplyIndicator } from "./ReplyIndicator"
 import { ReplySpine } from "./ReplySpine"
+import { createClient } from "@/lib/supabase/client"
 
 interface MessageItemProps {
   message: Message
@@ -45,12 +40,22 @@ export function MessageItem({
   onReply,
   onJumpToMessage,
 }: MessageItemProps) {
-  const { userId } = useAuth()
+  const supabase = createClient()
   const { updateMessage, deleteMessage } = useMessages(bunchId, message.channel)
   const { sendReaction, isConnected } = useWebSocket()
   const { toggleReaction } = useWebSocketReactions()
   const [isEditing, setIsEditing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [userId, setUserId] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const { data } = await supabase.auth.getClaims()
+      setUserId(data?.claims.sub)
+    }
+
+    fetchUserId()
+  }, [supabase])
 
   // Format timestamp
   const timestamp = new Date(message.created_at)
@@ -61,7 +66,7 @@ export function MessageItem({
   const formattedDate = timestamp.toLocaleDateString()
   const timeAgo = formatDistanceToNow(timestamp, { addSuffix: true })
 
-  const isAuthor = userId === message.author.user.username // won't work clerk userId doesn't match user.id
+  const isAuthor = useMemo(() => userId === message.author.user.id, [userId, message])
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -135,9 +140,7 @@ export function MessageItem({
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="text-muted-foreground text-xs">
-                        {formattedTime}
-                      </span>
+                      <span className="text-muted-foreground text-xs">{formattedTime}</span>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>
@@ -150,9 +153,7 @@ export function MessageItem({
             </div>
           </div>
         )}
-        <div className="text-muted-foreground pl-10 text-sm italic">
-          This message was deleted
-        </div>
+        <div className="text-muted-foreground pl-10 text-sm italic">This message was deleted</div>
       </div>
     )
   }
@@ -192,9 +193,7 @@ export function MessageItem({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="text-muted-foreground text-xs">
-                      {formattedTime}
-                    </span>
+                    <span className="text-muted-foreground text-xs">{formattedTime}</span>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>
@@ -215,9 +214,7 @@ export function MessageItem({
                 <>
                   {message.content}
                   {message.edit_count > 0 && (
-                    <span className="text-muted-foreground ml-2 text-xs italic">
-                      (edited)
-                    </span>
+                    <span className="text-muted-foreground ml-2 text-xs italic">(edited)</span>
                   )}
                   {/* Reactions */}
                   {message.reactions && message.reaction_counts && (
@@ -261,9 +258,7 @@ export function MessageItem({
               <>
                 {message.content}
                 {message.edit_count > 0 && (
-                  <span className="text-muted-foreground ml-2 text-xs italic">
-                    (edited)
-                  </span>
+                  <span className="text-muted-foreground ml-2 text-xs italic">(edited)</span>
                 )}
                 {/* Reactions */}
                 {message.reactions && message.reaction_counts && (

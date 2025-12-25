@@ -15,15 +15,17 @@ export const useCurrentUser = () => {
   const fetchUser = useCallback(async () => {
     try {
       setLoading(true)
+      await supabase.auth.getUser()
+
       const {
-        data: { user: authUser },
-        error: authError,
-      } = await supabase.auth.getUser()
-      if (authError || !authUser) {
-        throw authError
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        throw sessionError
       }
 
-      const userData = await api.getCurrentUser(authUser.id)
+      const userData = await api.getCurrentUser(session.access_token)
       setUser(userData)
       setError(null)
     } catch (err) {
@@ -33,7 +35,31 @@ export const useCurrentUser = () => {
     }
   }, [supabase])
 
-  return { user, loading, error, fetchUser }
+  const onboardUser = useCallback(
+    async (data: Partial<User>) => {
+      try {
+        setLoading(true)
+
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession()
+        if (sessionError || !session) {
+          throw sessionError
+        }
+        const onboardData = await api.onboardUser(data, session?.access_token)
+        await fetchUser()
+        return onboardData
+      } catch (err) {
+        setError(err as Error)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [supabase],
+  )
+
+  return { user, loading, error, fetchUser, onboardUser }
 }
 
 // Bunch hooks

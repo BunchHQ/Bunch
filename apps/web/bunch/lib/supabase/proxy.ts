@@ -51,6 +51,19 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  if (
+    user &&
+    (user.user_metadata?.onboarded ?? false) == false &&
+    (request.nextUrl.pathname.startsWith("/app") ||
+      request.nextUrl.pathname === "/" ||
+      request.nextUrl.pathname.startsWith("/browse"))
+  ) {
+    // onboarding is not completed, redirect to onboarding first
+    const url = request.nextUrl.clone()
+    url.pathname = "/onboarding"
+    return NextResponse.redirect(url)
+  }
+
   if (user && (request.nextUrl.pathname.startsWith("/auth") || request.nextUrl.pathname === "/")) {
     // user is logged in, but trying to access auth or /
     const url = request.nextUrl.clone()
