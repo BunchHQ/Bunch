@@ -1,17 +1,17 @@
 "use client"
 
-import { CreateBunchDialog } from "@/components/bunch/CreateBunchDialog"
+import { UserButton } from "@/components/auth/UserButton"
+import { CreateBunchButton } from "@/components/bunch/CreateBunchButton"
+import { ThemeToggle } from "@/components/theme/ThemeToggle"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useBunches } from "@/lib/hooks"
 import { cn } from "@/lib/utils"
-import { UserButton } from "@clerk/nextjs"
 import { Globe2Icon, Menu, MessageCircle, Plus, Settings, X } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { ThemeToggle } from "../theme/ThemeToggle"
 
 export function Sidebar() {
   const { bunches, loading, fetchBunches, error } = useBunches()
@@ -20,11 +20,8 @@ export function Sidebar() {
     fetchBunches()
   }, [fetchBunches])
 
-  if (loading || error) return null
-
   const params = useParams()
   const [isOpen, setIsOpen] = useState(false)
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
 
   const currentBunchId = params?.bunchId as string
 
@@ -102,20 +99,18 @@ export function Sidebar() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
-                    <div
-                      className="flex h-12 w-12 items-center justify-center rounded-full"
-                      onClick={() => setCreateDialogOpen(true)}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="bg-primary/10 hover:bg-primary/20! h-full w-full rounded-[100px] p-0 opacity-60 transition-all hover:rounded-[15px]"
-                      >
-                        <Plus className="h-6! w-6!" />
-                        <span className="sr-only">Create Bunch</span>
-                      </Button>
-                    </div>
+                    <CreateBunchButton>
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="bg-primary/10 hover:bg-primary/20! h-full w-full rounded-[100px] p-0 opacity-60 transition-all hover:rounded-[15px]"
+                        >
+                          <Plus className="h-6! w-6!" />
+                          <span className="sr-only">Create Bunch</span>
+                        </Button>
+                      </div>
+                    </CreateBunchButton>
                   </TooltipTrigger>
                   <TooltipContent side="right">
                     <p>Start a new bunch</p>
@@ -201,13 +196,7 @@ export function Sidebar() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="bg-primary/5 hover:bg-primary/60 flex h-12 w-12 items-center justify-center rounded-full transition-colors">
-                      <UserButton
-                        appearance={{
-                          elements: {
-                            userButtonAvatarBox: "w-12 h-12 rounded-md",
-                          },
-                        }}
-                      />
+                      <UserButton />
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="right">
@@ -219,7 +208,6 @@ export function Sidebar() {
           </div>
         </div>
       </nav>
-      <CreateBunchDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
     </>
   )
 }

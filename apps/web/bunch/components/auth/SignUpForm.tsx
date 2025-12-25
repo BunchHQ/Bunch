@@ -1,11 +1,11 @@
 "use client"
 
-import { cn } from "@/lib/utils"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { createClient } from "@/lib/supabase/client"
+import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -40,7 +40,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
         options: {
           emailRedirectTo: `${window.location.origin}/app`,
           data: {
-            displayName: displayName,
+            display_name: displayName,
             username: username,
           },
         },
