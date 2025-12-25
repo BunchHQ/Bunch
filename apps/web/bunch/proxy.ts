@@ -12,9 +12,10 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - manifest.json (manifest file)
      * - Common static file extensions
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js|woff2?|ttf|ico|csv|docx?|xlsx?|zip|webmanifest)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js|woff2?|ttf|ico|csv|docx?|xlsx?|zip|webmanifest)$).*)",
     // Always run for API routes
     "/(api|trpc)(.*)",
   ],

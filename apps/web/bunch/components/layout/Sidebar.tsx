@@ -58,7 +58,7 @@ export function Sidebar() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Link
-                        href={`/bunch/${bunch.id}`}
+                        href={`/app/bunch/${bunch.id}`}
                         className="flex h-12 w-12 items-center justify-center rounded-[100px] bg-(--bunch-primary-color)/20 transition-all hover:rounded-[15px]"
                         style={
                           {
@@ -154,7 +154,7 @@ export function Sidebar() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Link
-                      href="/messages"
+                      href="/app/messages"
                       className="flex h-12 w-12 items-center justify-center rounded-full"
                     >
                       <Button
@@ -175,7 +175,7 @@ export function Sidebar() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Link
-                      href="/settings"
+                      href="/app/settings"
                       className="flex h-12 w-12 items-center justify-center rounded-full"
                     >
                       <Button

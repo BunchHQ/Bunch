@@ -1,5 +1,13 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { useMessages } from "@/lib/hooks"
+import type { Message } from "@/lib/types"
+import { cn } from "@/lib/utils"
+import { useWebSocket } from "@/lib/WebSocketProvider"
 import {
   Apple,
   Hand,
@@ -14,18 +22,6 @@ import {
   Trophy,
 } from "lucide-react"
 import { useRef, useState } from "react"
-import { Button } from "@/components/ui/button"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
-import { useMessages } from "@/lib/hooks"
-import type { Message } from "@/lib/types"
-import { cn } from "@/lib/utils"
-import { useWebSocket } from "@/lib/WebSocketProvider"
 import { ReplyComposerHeader } from "./ReplyComposerHeader"
 
 interface MessageComposerProps {
@@ -476,12 +472,7 @@ export function MessageComposer({
         )}
       >
         <div className="flex items-end space-x-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="flex-shrink-0 rounded-full"
-          >
+          <Button type="button" variant="ghost" size="icon" className="shrink-0 rounded-full">
             <PaperclipIcon className="h-5 w-5" />
           </Button>
           <div className="relative flex-1">
@@ -493,7 +484,7 @@ export function MessageComposer({
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               placeholder={`Message #${channelId}`}
-              className="bg-background max-h-[200px] min-h-[40px] resize-none border-0 pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="bg-background max-h-50 min-h-10 resize-none border-0 pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
             <div className="absolute right-2 bottom-1">
               <Popover>
@@ -514,45 +505,33 @@ export function MessageComposer({
                     </span>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0" align="end">
+                <PopoverContent className="w-100 p-0" align="end">
                   <Tabs defaultValue="faces" className="w-full">
                     <TabsList className="[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 h-9 w-full justify-start overflow-x-auto px-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
-                      {Object.entries(EMOJI_CATEGORIES).map(
-                        ([key, { icon: Icon }]) => (
-                          <TabsTrigger
-                            key={key}
-                            value={key}
-                            className="h-7 w-7 p-0"
-                          >
-                            <Icon className="h-4 w-4" />
-                          </TabsTrigger>
-                        ),
-                      )}
+                      {Object.entries(EMOJI_CATEGORIES).map(([key, { icon: Icon }]) => (
+                        <TabsTrigger key={key} value={key} className="h-7 w-7 p-0">
+                          <Icon className="h-4 w-4" />
+                        </TabsTrigger>
+                      ))}
                     </TabsList>
-                    <div className="h-[300px]">
-                      {Object.entries(EMOJI_CATEGORIES).map(
-                        ([key, { emojis }]) => (
-                          <TabsContent
-                            key={key}
-                            value={key}
-                            className="mt-0 h-full"
-                          >
-                            <div className="[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 grid h-full grid-cols-8 gap-1 overflow-y-auto p-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
-                              {emojis.map((emoji, index) => (
-                                <button
-                                  type="button"
-                                  // biome-ignore lint/suspicious/noArrayIndexKey: Will fix later
-                                  key={index}
-                                  onClick={() => insertEmoji(emoji)}
-                                  className="hover:bg-accent rounded-md p-2 text-lg transition-colors"
-                                >
-                                  {emoji}
-                                </button>
-                              ))}
-                            </div>
-                          </TabsContent>
-                        ),
-                      )}
+                    <div className="h-75">
+                      {Object.entries(EMOJI_CATEGORIES).map(([key, { emojis }]) => (
+                        <TabsContent key={key} value={key} className="mt-0 h-full">
+                          <div className="[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 grid h-full grid-cols-8 gap-1 overflow-y-auto p-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+                            {emojis.map((emoji, index) => (
+                              <button
+                                type="button"
+                                // biome-ignore lint/suspicious/noArrayIndexKey: Will fix later
+                                key={index}
+                                onClick={() => insertEmoji(emoji)}
+                                className="hover:bg-accent rounded-md p-2 text-lg transition-colors"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        </TabsContent>
+                      ))}
                     </div>
                   </Tabs>
                 </PopoverContent>
@@ -563,9 +542,8 @@ export function MessageComposer({
             type="button"
             size="icon"
             className={cn(
-              "flex-shrink-0 rounded-full transition-opacity",
-              (!message.trim() || !isConnected) &&
-                "cursor-not-allowed opacity-50",
+              "shrink-0 rounded-full transition-opacity",
+              (!message.trim() || !isConnected) && "cursor-not-allowed opacity-50",
             )}
             onClick={handleSendMessage}
             disabled={!message.trim() || !isConnected}

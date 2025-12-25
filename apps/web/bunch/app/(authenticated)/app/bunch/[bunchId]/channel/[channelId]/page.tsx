@@ -37,7 +37,7 @@ export default function ChannelPage() {
   useEffect(() => {
     if (bunchError || channelsError) {
       console.error("Failed to fetch data:", bunchError || channelsError)
-      router.push("/")
+      router.push("/app")
     }
   }, [bunchError, channelsError, router])
 

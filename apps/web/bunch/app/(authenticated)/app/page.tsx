@@ -61,7 +61,7 @@ export default function BunchApp() {
             {/*<Button
                 className="w-full"
                 variant="outline"
-                onClick={() => router.push("/bunch/join")}
+                onClick={() => router.push("/app/bunch/join")}
               >
                 Join Bunch
               </Button>*/}
