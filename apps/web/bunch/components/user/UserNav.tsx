@@ -1,11 +1,11 @@
-"use client";
+"use client"
 
-import { UserButton } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs"
 
 export function UserNav() {
   return (
     <div className="relative h-9 w-9 rounded-full">
-      <UserButton afterSignOutUrl="/sign-in" />
+      <UserButton afterSignOutUrl="/auth/sign-in" />
     </div>
-  );
+  )
 }

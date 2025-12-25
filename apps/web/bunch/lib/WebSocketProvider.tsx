@@ -1,9 +1,9 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
+import { type WebSocketMessage, WSMessageTypeClient, WSMessageTypeServer } from "@/lib/types"
 import type React from "react"
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
-import { type WebSocketMessage, WSMessageTypeClient, WSMessageTypeServer } from "@/lib/types"
+import { createClient } from "./supabase/client"
 
 // WebSocket connection states
 enum ConnectionState {
@@ -61,7 +61,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const lastPingTime = useRef<number>(0)
   const lastPongTime = useRef<number>(0)
 
-  const { getToken } = useAuth()
+  const supabase = createClient()
 
   const isConnectingRef = useRef(false)
   // Use a persistent connection ID that doesn't change between reconnects
@@ -103,8 +103,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         reconnectTimeoutRef.current = null
       }
 
-      const token = await getToken({ template: "Django" })
-      if (!token) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) {
         console.error("No authentication token available")
         return
       }
@@ -113,7 +115,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const wsUrl = `${
         process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000"
       }/ws/bunch/?token=${encodeURIComponent(
-        token,
+        session.access_token,
       )}&connection_id=${connectionIdRef.current}&keepalive=true` // Use the persistent connection ID with keepalive flag
 
       console.log("Connecting to WebSocket:", wsUrl)
@@ -317,7 +319,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsConnected(false)
       isConnectingRef.current = false
     }
-  }, [getToken])
+  }, [supabase])
 
   const disconnectWebSocket = useCallback(() => {
     if (reconnectTimeoutRef.current) {
