@@ -18,8 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
             "id",
             "email",
             "username",
-            "first_name",
-            "last_name",
+            "display_name",
             "password",
             "is_active",
             "is_staff",
@@ -30,6 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
             "theme_preference",
             "color",
             "pronoun",
+            "onboarded",
             "groups",
         ]
 

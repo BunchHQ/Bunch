@@ -61,6 +61,14 @@ class User(AbstractUser):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    display_name = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        editable=True,
+        help_text="User's display name",
+    )
     email = models.EmailField(unique=True)
     avatar = models.ImageField(
         upload_to="avatars/",
@@ -94,6 +102,11 @@ class User(AbstractUser):
         null=True,
         max_length=12,
         help_text="User's pronoun",
+    )
+
+    onboarded = models.BooleanField(
+        default=False,
+        help_text="User's onboarding status",
     )
 
     @override

@@ -5,13 +5,21 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
+from supabase_auth.types import UserResponse
 
-from users.models import User
+from orchard.services import SupabaseService
+from users.models import ColorChoices, User
 from users.serializers import (
     UserSerializer,
 )
 
 logger = logging.getLogger(__name__)
+
+
+class AuthenticatedRequest(Request):
+    user: User
+    supabase: SupabaseService
+    supabase_user: UserResponse
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -33,16 +41,16 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     @action(detail=False, methods=["GET"])
-    def me(self, request: Request):
+    def me(self, request: AuthenticatedRequest):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
     @action(detail=False, methods=["POST"])
-    def onboard(self, request: Request):
+    def onboard(self, request: AuthenticatedRequest):
         logger.info("Onboarding user")
         logger.debug(f"User: {request.user.__dict__}")
 
-        if request.user.username:
+        if request.user.onboarded:
             logger.info("Onboarding already completed")
             return Response(
                 {
@@ -54,9 +62,10 @@ class UserViewSet(viewsets.ModelViewSet):
         data = request.data
         logger.debug(f"Onboarding payload: {data}")
 
-        usr_username = data.get("username")
-        usr_first_name = data.get("first_name")
-        usr_last_name = data.get("last_name")
+        metadata = request.supabase_user.user.user_metadata.copy()
+        logger.debug(f"Current user metadata: {metadata}")
+        metadata["onboarded"] = True
+
         usr_avatar = data.get("avatar", "")
         usr_status = data.get("status", request.user.status)
         usr_bio = data.get("bio", request.user.bio)
@@ -66,37 +75,33 @@ class UserViewSet(viewsets.ModelViewSet):
         usr_color = data.get("color", request.user.color)
         usr_pronoun = data.get("pronoun", request.user.pronoun)
 
-        if not all(
-            [
-                usr_username,
-                usr_first_name,
-                usr_last_name,
-            ]
-        ):
-            logger.error("Missing required fields")
+        if usr_color not in ColorChoices.values:
+            logger.error("Invalid color choice")
             return Response(
-                {
-                    "message": "Missing required fields. username, first_name and last_name are required."  # noqa: E501
-                },
+                {"message": "Invalid color choice"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
+            request.supabase.update_user_admin(
+                str(request.user.id), {"user_metadata": metadata}
+            )
+            logger.debug(f"Updated user metadata: {metadata}")
+
             user = User.objects.get(id=request.user.id)
-            user.username = usr_username
-            user.first_name = usr_first_name
-            user.last_name = usr_last_name
             user.avatar = usr_avatar
             user.status = usr_status
             user.bio = usr_bio
             user.theme_preference = usr_theme_preference
             user.color = usr_color
             user.pronoun = usr_pronoun
+            user.onboarded = True
             user.save()
+            logger.debug(f"Updated user: {user}")
         except User.DoesNotExist:
             logger.error("User does not exist during onboarding")
             return Response(
-                {"message": "User does not exist"},
+                {"message": "User does not exist. Please complete onboarding."},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except Exception as e:
