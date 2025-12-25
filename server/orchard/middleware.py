@@ -33,11 +33,6 @@ class SupabaseAuthMiddleware:
             logger.debug("user is authenticated")
             return self.get_response(request)
 
-        # # Get the JWT token from the session or cookie
-        # token = request.session.get("supabase_token") or request.COOKIES.get(
-        #     "supabase_token"
-        # )
-
         auth_header = request.META.get("HTTP_AUTHORIZATION")
 
         if not auth_header or not auth_header.startswith("Bearer "):
@@ -63,15 +58,22 @@ class SupabaseAuthMiddleware:
                         user = User.objects.get(id=user_id)
                     except User.DoesNotExist:
                         logger.debug("user does not exist, creating")
-                        # Create a new user if they don't exist
+                        # Create a new user if they don't exist with fields we have already
                         user = User.objects.create(
                             id=user_id,
-                            username="",
+                            username=token_user.user.user_metadata.get(
+                                "username"
+                            ),
+                            display_name=token_user.user.user_metadata.get(
+                                "display_name"
+                            ),
                             email=email,
                             password=make_password(None),
                         )
+                        logger.debug(f"created user: {user}")
 
                     request.user = user
+                    request.supabase_user = token_user
                     request.session["supabase_token"] = token
 
                     return self.get_response(request)
@@ -110,7 +112,12 @@ class SupabaseSessionMiddleware(MiddlewareMixin):
 
 @database_sync_to_async
 def get_supabase_user(user_id):
-    user = User.objects.get(id=user_id)
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        logger.error(f"User with id {user_id} not found")
+        raise Exception("User not found. Please complete onboarding")
+
     return user
 
 

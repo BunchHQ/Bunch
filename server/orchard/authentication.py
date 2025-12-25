@@ -1,4 +1,5 @@
 import logging
+from typing import override
 
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import AbstractBaseUser
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 # probably unused for now, since we aren't using django's auth, so ignore implementation
 class SupabaseAuth(BaseBackend):
+    @override
     def authenticate(
         self,
         request: HttpRequest,
@@ -32,11 +34,16 @@ class SupabaseAuth(BaseBackend):
 
             session = result["session"]
             self.supabase_session = session
-            user, created = User.objects.get_or_create(
-                username=username, defaults={"email": username}
-            )
 
-            logger.debug(f"User created: {created}")
+            # We find a 'shadow' user in Django's DB
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                raise exceptions.AuthenticationFailed(
+                    "User not found. Please complete onboarding"
+                )
+
+            logger.debug(f"User found: {user}")
 
             return user
         except Exception:
@@ -46,6 +53,7 @@ class SupabaseAuth(BaseBackend):
 
             return None
 
+    @override
     def get_user(self, user_id) -> AbstractBaseUser | None:
         try:
             return User.objects.get(pk=user_id)
@@ -58,6 +66,7 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
     Verifies user JWT authentication using supabase for rest API and channels consumers
     """
 
+    @override
     def authenticate(self, request):
         logger.debug("Authenticating user via JWT")
 

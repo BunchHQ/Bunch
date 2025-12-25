@@ -2,7 +2,11 @@ import logging
 
 from django.conf import settings
 from supabase import Client, create_client
-from supabase_auth.types import UserResponse
+from supabase_auth.types import (
+    AdminUserAttributes,
+    UserAttributes,
+    UserResponse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -66,3 +70,23 @@ class SupabaseService:
     def get_user(self, jwt: str | None = None) -> UserResponse | None:
         """Get the current user's data."""
         return self.supabase.auth.get_user(jwt)
+
+    def update_user(self, data: UserAttributes):
+        """Update a user's data."""
+        try:
+            response = self.supabase.auth.update_user(data)
+            return response
+        except Exception as e:
+            logger.error(f"Error updating user: {str(e)}")
+            return None
+
+    def update_user_admin(self, user_id: str, data: AdminUserAttributes):
+        """Update a user's data via admin perms."""
+        try:
+            response = self.service_client.auth.admin.update_user_by_id(
+                user_id, data
+            )
+            return response
+        except Exception as e:
+            logger.error(f"Error updating user: {str(e)}")
+            return None
