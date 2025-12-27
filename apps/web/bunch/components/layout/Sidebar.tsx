@@ -8,13 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useBunches } from "@/lib/hooks"
 import { cn } from "@/lib/utils"
-import { Globe2Icon, Menu, MessageCircle, Plus, Settings, X } from "lucide-react"
+import { Globe2Icon, Menu, MessageCircle, Plus, Settings, X, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useEffect, useState } from "react"
 
 export function Sidebar() {
-  const { bunches, loading, fetchBunches, error } = useBunches()
+  const { bunches, loading, fetchBunches } = useBunches()
 
   useEffect(() => {
     fetchBunches()
@@ -53,46 +53,56 @@ export function Sidebar() {
         <div className="grow overflow-hidden">
           <div className="scrollbar-hide flex h-full flex-col items-center overflow-y-auto p-2">
             <div className="flex grow flex-col items-center space-y-2">
-              {bunches.map(bunch => (
-                <TooltipProvider key={bunch.id}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href={`/app/bunch/${bunch.id}`}
-                        className="flex h-12 w-12 items-center justify-center rounded-[100px] bg-(--bunch-primary-color)/20 transition-all hover:rounded-[15px]"
-                        style={
-                          {
-                            "--bunch-primary-color": bunch?.primary_color,
-                          } as React.CSSProperties
-                        }
-                      >
-                        <Avatar className="h-12 w-12">
-                          {bunch.icon ? (
-                            <AvatarImage src={bunch.icon} alt={bunch.name} />
-                          ) : (
-                            <AvatarFallback
-                              className={cn(
-                                "bg-transparent text-lg text-(--bunch-primary-color)",
-                                currentBunchId === bunch.id && "text-primary",
-                              )}
-                              style={
-                                {
-                                  "--bunch-primary-color": bunch?.primary_color,
-                                } as React.CSSProperties
-                              }
-                            >
-                              {bunch.name.substring(0, 2)}
-                            </AvatarFallback>
+              {loading ? (
+                <div className="flex h-12 w-12 items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin opacity-60" />
+                </div>
+              ) : (
+                bunches.map(bunch => (
+                  <TooltipProvider key={bunch.id}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link
+                          href={`/app/bunch/${bunch.id}`}
+                          className={cn(
+                            "flex h-12 w-12 items-center justify-center rounded-[100px] bg-(--bunch-primary-color)/20 transition-all hover:rounded-[15px]",
+                            currentBunch?.id === bunch.id &&
+                              "ring-primary bg-(--bunch-primary-color)/40 ring-2",
                           )}
-                        </Avatar>
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      <p>{bunch.name}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              ))}
+                          style={
+                            {
+                              "--bunch-primary-color": bunch?.primary_color,
+                            } as React.CSSProperties
+                          }
+                        >
+                          <Avatar className="h-12 w-12">
+                            {bunch.icon ? (
+                              <AvatarImage src={bunch.icon} alt={bunch.name} />
+                            ) : (
+                              <AvatarFallback
+                                className={cn(
+                                  "bg-transparent text-lg text-(--bunch-primary-color)",
+                                  currentBunch?.id === bunch.id && "text-primary",
+                                )}
+                                style={
+                                  {
+                                    "--bunch-primary-color": bunch?.primary_color,
+                                  } as React.CSSProperties
+                                }
+                              >
+                                {bunch.name.substring(0, 2)}
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>{bunch.name}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ))
+              )}
             </div>
 
             <div className="mt-4 flex flex-col items-center gap-2">

@@ -48,7 +48,8 @@ export const useCurrentUser = () => {
           throw sessionError
         }
         const onboardData = await api.onboardUser(data, session?.access_token)
-        await fetchUser()
+        await supabase.auth.refreshSession()
+
         return onboardData
       } catch (err) {
         setError(err as Error)
