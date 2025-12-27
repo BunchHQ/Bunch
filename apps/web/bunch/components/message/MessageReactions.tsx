@@ -8,7 +8,7 @@ import { Plus } from "lucide-react"
 import { EmojiPicker } from "./EmojiPicker"
 import { ReactionButton } from "./ReactionButton"
 import { createClient } from "@/lib/supabase/client"
-import { useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 interface MessageReactionsProps {
   bunchId: string
@@ -29,11 +29,12 @@ export function MessageReactions({
   const { sendReaction, isConnected } = useWebSocket()
   const { toggleReaction } = useWebSocketReactions()
 
-  let userId: string | undefined
+  let [userId, setUserId] = useState<string | undefined>()
+
   useEffect(() => {
     const fetchUserId = async () => {
       const { data } = await supabase.auth.getClaims()
-      userId = data?.claims.sub
+      setUserId(data?.claims.sub)
     }
 
     fetchUserId()
@@ -56,9 +57,12 @@ export function MessageReactions({
   }
 
   // Check if current user has reacted with specific emoji
-  const hasUserReacted = (emoji: string) => {
-    return reactions.some(r => r.emoji === emoji && r.user.username === userId)
-  }
+  const hasUserReacted = useMemo(
+    () => (emoji: string) => {
+      return reactions.some(r => r.emoji === emoji && r.user.id === userId)
+    },
+    [reactions, userId],
+  )
 
   if (emojiList.length === 0) {
     return null

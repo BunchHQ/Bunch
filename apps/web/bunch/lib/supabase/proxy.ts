@@ -38,34 +38,44 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims()
 
   const user = data?.claims
+  const pathname = request.nextUrl.pathname
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/auth") &&
-    !request.nextUrl.pathname.startsWith("/browse") &&
-    request.nextUrl.pathname !== "/"
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  const isAuthRoute = pathname.startsWith("/auth")
+  const isAppRoute = pathname.startsWith("/app")
+  const isBrowseRoute = pathname.startsWith("/browse")
+  const isOnboardingRoute = pathname === "/onboarding"
+  const isHomeRoute = pathname === "/"
+
+  const isPublicRoute = isHomeRoute || isBrowseRoute || isAuthRoute
+
+  if (!user && !isPublicRoute) {
+    console.debug(
+      "No user found, but tried to access a protected route, redirecting to /auth/sign-in",
+    )
     const url = request.nextUrl.clone()
     url.pathname = "/auth/sign-in"
     return NextResponse.redirect(url)
   }
 
-  if (
-    user &&
-    (user.user_metadata?.onboarded ?? false) == false &&
-    (request.nextUrl.pathname.startsWith("/app") ||
-      request.nextUrl.pathname === "/" ||
-      request.nextUrl.pathname.startsWith("/browse"))
-  ) {
+  if (user && (user.user_metadata?.onboarded ?? false) == false && !isOnboardingRoute) {
     // onboarding is not completed, redirect to onboarding first
+    console.debug("User is not onboarded, redirecting to /onboarding")
     const url = request.nextUrl.clone()
     url.pathname = "/onboarding"
     return NextResponse.redirect(url)
   }
 
-  if (user && (request.nextUrl.pathname.startsWith("/auth") || request.nextUrl.pathname === "/")) {
+  if (user && (user.user_metadata?.onboarded ?? false) == true && isOnboardingRoute) {
+    // onboarding is completed, redirect to app
+    console.debug("User is onboarded, redirecting to /app")
+    const url = request.nextUrl.clone()
+    url.pathname = "/app"
+    return NextResponse.redirect(url)
+  }
+
+  if (user && (isAuthRoute || isHomeRoute)) {
     // user is logged in, but trying to access auth or /
+    console.debug("User is logged in, but accessing unprotected routes, redirecting to /app")
     const url = request.nextUrl.clone()
     url.pathname = "/app"
     return NextResponse.redirect(url)
