@@ -47,6 +47,7 @@ jobs:
 
       - name: Install server dependencies and run migrations
         env:
+          # TODO: Update these since Supabase
           CLERK_FRONTEND_API_URL: ${{ secrets.CLERK_FRONTEND_API_URL }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DEBUG: ${{ vars.DEBUG }}
@@ -59,6 +60,7 @@ jobs:
 
       - name: Run Playwright tests
         env:
+          # Will fail for now
           CLERK_FRONTEND_API_URL: ${{ secrets.CLERK_FRONTEND_API_URL }}
           E2E_CLERK_USER_EMAIL: ${{ secrets.E2E_CLERK_USER_EMAIL }}
           E2E_CLERK_USER_PASSWORD: ${{ secrets.E2E_CLERK_USER_PASSWORD }}
