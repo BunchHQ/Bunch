@@ -11,7 +11,7 @@ Bunch is a cross-platform real-time group chat application.
 This project is a monorepo that includes a Next.js frontend and a Django backend.
 
 - **Frontend:** The frontend is built with Next.js. More information can be found in [apps/web/bunch/README](./apps/web/bunch/README.md).
-- **Backend:** The backend is built with Django. More information can be found in [server/README](./server/README.md).
+- **Backend:** The backend (orchard) is built with Django. More information can be found in [server/README](./server/README.md).
 
 ## Getting Started
 
