@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { CircleCheckIcon, CircleHelpIcon, CircleIcon } from "lucide-react"
+import { CheckCircle, Question, Circle } from "@phosphor-icons/react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
@@ -169,19 +169,19 @@ export function NavigationMenuDemo() {
                             <li>
                                 <NavigationMenuLink asChild>
                                     <Link href="#" className="flex-row items-center gap-2">
-                                        <CircleHelpIcon />
+                                        <Question />
                                         Backlog
                                     </Link>
                                 </NavigationMenuLink>
                                 <NavigationMenuLink asChild>
                                     <Link href="#" className="flex-row items-center gap-2">
-                                        <CircleIcon />
+                                        <Circle />
                                         To Do
                                     </Link>
                                 </NavigationMenuLink>
                                 <NavigationMenuLink asChild>
                                     <Link href="#" className="flex-row items-center gap-2">
-                                        <CircleCheckIcon />
+                                        <CheckCircle />
                                         Done
                                     </Link>
                                 </NavigationMenuLink>
