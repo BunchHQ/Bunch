@@ -120,6 +120,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -133,10 +134,13 @@
 .scrollbar-hide {
   /* Hide scrollbar for Chrome, Safari and Opera */
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Hide scrollbar for Webkit browsers */
+  display: none;
+  /* Hide scrollbar for Webkit browsers */
 }
