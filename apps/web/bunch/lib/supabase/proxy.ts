@@ -45,8 +45,9 @@ export async function updateSession(request: NextRequest) {
   const isBrowseRoute = pathname.startsWith("/browse")
   const isOnboardingRoute = pathname === "/onboarding"
   const isHomeRoute = pathname === "/"
+  const isLandingRoute = pathname === "/home"
 
-  const isPublicRoute = isHomeRoute || isBrowseRoute || isAuthRoute
+  const isPublicRoute = isHomeRoute || isBrowseRoute || isAuthRoute || isLandingRoute
 
   if (!user && !isPublicRoute) {
     console.debug(

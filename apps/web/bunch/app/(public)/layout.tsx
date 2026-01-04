@@ -39,7 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 {authData !== null && <SignOutButton />}
               </div>
             </div>
-            <main className="flex flex-1 items-center justify-center p-4">{children}</main>
+            <main className="flex flex-1 flex-col">{children}</main>
           </div>
           <Toaster />
         </ThemeProvider>
