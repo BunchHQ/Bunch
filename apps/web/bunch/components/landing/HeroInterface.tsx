@@ -4,7 +4,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-import { Hash, Mic, Phone, Plus, Search, Settings, Video, Volume2, Gamepad2, Headphones } from "lucide-react"
+import { Hash, Microphone, Phone, Plus, MagnifyingGlass, Gear, VideoCamera, SpeakerHigh, GameController, Headphones } from "@phosphor-icons/react"
+import { Command } from "lucide-react"
 
 export default function HeroInterface() {
     return (
@@ -15,7 +16,7 @@ export default function HeroInterface() {
                 // @ts-ignore
                 "--Sidebar-width": "260px",
                 width: "100%",
-                height: "900px"
+                height: "800px"
             }}
         >
             <div
@@ -37,7 +38,7 @@ export default function HeroInterface() {
                         border: "1px solid #1e1e1e",
                         borderRadius: "10px",
                         width: "1600px",
-                        height: "900px",
+                        height: "800px",
                         margin: "100px auto auto",
                         position: "absolute",
                         top: 0,
@@ -58,7 +59,7 @@ export default function HeroInterface() {
                         {/* Sidebar (Server List) */}
                         <div className="w-[72px] bg-muted/30 flex flex-col items-center py-4 gap-3 border-r hidden sm:flex">
                             <div className="w-12 h-12 rounded-[16px] bg-primary flex items-center justify-center text-primary-foreground transition-all hover:rounded-[12px] cursor-pointer shadow-lg shadow-primary/20">
-                                <Gamepad2 className="w-7 h-7" />
+                                <Command className="w-7 h-7" />
                             </div>
                             <Separator className="w-8 bg-border/50" />
                             {[1, 2, 3].map((i) => (
@@ -97,8 +98,8 @@ export default function HeroInterface() {
                                         <Plus className="w-3 h-3 opacity-0 group-hover:opacity-100 cursor-pointer" />
                                     </div>
                                     <div className="space-y-0.5">
-                                        <ChannelItem icon={Volume2} name="Lobby" type="voice" />
-                                        <ChannelItem icon={Volume2} name="Gaming" type="voice" />
+                                        <ChannelItem icon={SpeakerHigh} name="Lobby" type="voice" />
+                                        <ChannelItem icon={SpeakerHigh} name="Gaming" type="voice" />
                                     </div>
                                 </div>
                             </ScrollArea>
@@ -112,9 +113,9 @@ export default function HeroInterface() {
                                     <div className="text-xs text-muted-foreground truncate">#1234</div>
                                 </div>
                                 <div className="flex gap-1">
-                                    <Mic className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
+                                    <Microphone className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
                                     <Headphones className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
-                                    <Settings className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
+                                    <Gear className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
                                 </div>
                             </div>
                         </div>
@@ -130,7 +131,7 @@ export default function HeroInterface() {
                                 </div>
                                 <div className="flex items-center gap-4 text-muted-foreground">
                                     <Phone className="w-5 h-5 hover:text-foreground cursor-pointer" />
-                                    <Video className="w-5 h-5 hover:text-foreground cursor-pointer" />
+                                    <VideoCamera className="w-5 h-5 hover:text-foreground cursor-pointer" />
                                     <div className="w-64 bg-muted/40 h-7 rounded text-xs flex items-center px-2">
                                         Search
                                     </div>
@@ -197,8 +198,8 @@ export default function HeroInterface() {
                                         readOnly
                                     />
                                     <div className="flex gap-2 text-muted-foreground">
-                                        <Gamepad2 className="w-5 h-5 hover:text-foreground cursor-pointer" />
-                                        <Mic className="w-5 h-5 hover:text-foreground cursor-pointer" />
+                                        <GameController className="w-5 h-5 hover:text-foreground cursor-pointer" />
+                                        <Microphone className="w-5 h-5 hover:text-foreground cursor-pointer" />
                                     </div>
                                 </div>
                             </div>

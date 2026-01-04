@@ -1,7 +1,6 @@
 import "@/app/globals.css"
-import { SignOutButton } from "@/components/auth/SignOutButton"
+import { Navbar } from "@/components/landing/Navbar"
 import { ThemeProvider } from "@/components/theme/ThemeProvider"
-import { ThemeToggle } from "@/components/theme/ThemeToggle"
 import { createClient } from "@/lib/supabase/server"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
@@ -33,12 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <div className="flex min-h-screen flex-col">
-            <div className="fixed top-4 right-32 z-50">
-              <div className="flex flex-row items-center justify-center gap-4">
-                <ThemeToggle />
-                {authData !== null && <SignOutButton />}
-              </div>
-            </div>
+            <Navbar user={authData} />
             <main className="flex flex-1 flex-col">{children}</main>
           </div>
           <Toaster />

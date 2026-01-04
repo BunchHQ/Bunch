@@ -2,43 +2,28 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, MessageSquare, Shield, Zap, Globe, Users, Command, Sparkles } from "lucide-react"
+import { ArrowRight, Chat, Shield, Lightning, Globe, Users, Command } from "@phosphor-icons/react"
 import HeroInterface from "@/components/landing/HeroInterface"
-import { NavigationMenuDemo } from "@/components/landing/NavigationMenuDemo"
+import { SunIcon } from "lucide-react"
+import { GlitchText } from "@/components/landing/GlitchText"
 
 export default function HomePage() {
     return (
         <div className="flex flex-col min-h-screen">
-            {/* Navigation (Overlay) */}
-            <header className="fixed top-0 left-0 right-0 z-40 px-6 py-4 flex items-center justify-between pointer-events-none">
-                <div className="flex items-center gap-2 font-bold text-xl pointer-events-auto bg-background/80 backdrop-blur-md p-2 rounded-xl border shadow-sm">
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-                        <Command className="w-5 h-5" />
-                    </div>
-                    <span>Bunch</span>
-                </div>
-
-                <div className="pointer-events-auto hidden md:block">
-                    <NavigationMenuDemo />
-                </div>
-
-                <div className="w-[120px]" />
-            </header>
-
             <section className="relative pt-32 pb-20 px-6 text-center lg:pt-48 lg:pb-32 overflow-hidden">
 
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-primary/10 blur-[120px] rounded-full -z-10 opacity-50" />
-                <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-primary/5 blur-[100px] rounded-full -z-10" />
+                {/* <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-primary/5 blur-[100px] rounded-full -z-10" /> */}
 
                 <div className="mx-auto max-w-5xl space-y-8 relative z-10">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border backdrop-blur-sm text-sm font-medium mb-4 hover:bg-muted transition-colors cursor-default">
-                        <Sparkles className="w-4 h-4 text-yellow-500" />
-                        <span>v2.0 is now live</span>
+                        <SunIcon className="w-4 h-4 text-yellow-500" />
+                        <span>Public Beta Now Live!</span>
                     </div>
 
                     <h1 className="text-5xl md:text-6xl lg:text-8xl font-extrabold tracking-tight text-foreground">
-                        Connect & Collaborate <br />
-                        <span className="text-primary">Without Limits</span>
+                        Your <GlitchText text="Team" hoverText="Bunch" />💫<br />
+                        <span className="text-primary">Supercharged</span>
                     </h1>
 
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
@@ -75,7 +60,7 @@ export default function HomePage() {
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         <FeatureCard
-                            icon={Zap}
+                            icon={Lightning}
                             title="Real-time Speed"
                             description="Engineered for zero-latency messaging. Your team stays in sync, instantly."
                         />
@@ -90,7 +75,7 @@ export default function HomePage() {
                             description="Available on Web, iOS, and Android. Your conversations sync seamlessly across devices."
                         />
                         <FeatureCard
-                            icon={MessageSquare}
+                            icon={Chat}
                             title="Smart Threads"
                             description="Keep discussions focused. Reply in threads to declutter your main channel view."
                         />
