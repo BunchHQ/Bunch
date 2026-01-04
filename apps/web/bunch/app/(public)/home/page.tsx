@@ -8,6 +8,7 @@ import { SunIcon } from "lucide-react"
 import { GlitchText } from "@/components/landing/GlitchText"
 import { BentoGrid, BentoCard } from "@/components/landing/BentoGrid"
 import { SpeedVisual, SecurityVisual, UniversalVisual, ThreadsVisual, RolesVisual, KeyboardVisual, FilesVisual, IntegrationsVisual } from "@/components/landing/BentoGraphics"
+import { InteractiveGrid } from "@/components/landing/InteractiveGrid"
 
 export default function HomePage() {
     return (
@@ -29,8 +30,8 @@ export default function HomePage() {
                     </h1>
 
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                        The modern communication platform designed for teams that move fast.
-                        Real-time messaging, threads, and powerful integrations in one place.
+                        The modern communication platform designed for cool teams.
+                        Realtime messaging and powerful integrations in one place.
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
@@ -129,23 +130,16 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* Stats/Big Numbers Section */}
-            <section className="py-24 bg-primary text-primary-foreground">
-                <div className="mx-auto max-w-7xl px-6">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-center">
-                        <div>
-                            <div className="text-5xl font-bold mb-2">$0</div>
-                            <div className="text-primary-foreground/80">For Community</div>
-                        </div>
-                        <div>
-                            <div className="text-5xl font-bold mb-2">MIT</div>
-                            <div className="text-primary-foreground/80">Licensed</div>
-                        </div>
-                        <div>
-                            <div className="text-5xl font-bold mb-2">No</div>
-                            <div className="text-primary-foreground/80">Tracking</div>
-                        </div>
-                    </div>
+            {/* Interactive Grid Section */}
+            <section className="relative min-h-[40vh] flex items-center justify-center py-12 bg-primary text-primary-foreground overflow-hidden">
+                <div className="absolute inset-0 z-0">
+                    <InteractiveGrid cols={40} rows={15} />
+                </div>
+
+                <div className="relative z-10 text-center pointer-events-none select-none">
+                    <h2 className="text-[10vw] font-black tracking-tighter leading-none text-primary-foreground drop-shadow-2xl">
+                        Just. Bunch. Up.
+                    </h2>
                 </div>
             </section>
 
@@ -153,13 +147,13 @@ export default function HomePage() {
             <section className="py-32 px-6 text-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-muted/30 -z-10"></div>
                 <div className="max-w-4xl mx-auto space-y-8">
-                    <h2 className="text-4xl md:text-6xl font-bold">Ready to bunch up?</h2>
+                    <h2 className="text-4xl md:text-6xl font-bold">Ready to join?</h2>
                     <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
-                        Join thousands of forward-thinking teams using Bunch to communicate better and ship faster.
+                        Join cool teams using Bunch to communicate better and ship faster.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                         <Button size="lg" className="h-14 px-10 text-lg rounded-full" asChild>
-                            <Link href="/auth/sign-up">Start for Free</Link>
+                            <Link href="/auth/sign-up">Go To Bunch</Link>
                         </Button>
                         <Button size="lg" variant="ghost" className="h-14 px-10 text-lg rounded-full" asChild>
                             <Link href="/contact">Contact Sales</Link>
