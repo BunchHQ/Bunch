@@ -4,8 +4,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-import { Hash, Microphone, Phone, Plus, MagnifyingGlass, Gear, VideoCamera, SpeakerHigh, GameController, Headphones } from "@phosphor-icons/react"
+import { Hash, Microphone, Phone, Plus, MagnifyingGlass, Gear, VideoCamera, SpeakerHigh, GameController, Headphones, GearIcon, GearSixIcon, PlusIcon, GameControllerIcon, MicrophoneIcon, SmileyIcon } from "@phosphor-icons/react"
 import { Command } from "lucide-react"
+import { motion } from "framer-motion"
 
 export default function HeroInterface() {
     return (
@@ -29,7 +30,20 @@ export default function HeroInterface() {
                     position: "relative"
                 }}
             >
-                <div
+                <motion.div
+                    initial={{
+                        opacity: 0,
+                        transform: "translate(-10%, 0px) translate3d(0, 0, 0px) scale(1.2) rotateX(47deg) rotateY(20deg) rotate(324deg)",
+                    }}
+                    animate={{
+                        opacity: 1,
+                        transform: "translate(-10%, 0px) translate3d(0, 0, 0px) scale(1.2) rotateX(47deg) rotateY(31deg) rotate(324deg)",
+                    }}
+                    transition={{
+                        duration: 2.2,
+                        ease: [0.16, 1, 0.3, 1],
+                        delay: 0.1,
+                    }}
                     className="absolute overflow-hidden bg-gray-950 shadow-2xl"
                     style={{
                         background: "#030712", // var(--color-bg-primary)
@@ -45,7 +59,6 @@ export default function HeroInterface() {
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        transform: "translate(-10%) scale(1.2) rotateX(47deg) rotateY(31deg) rotate(324deg)",
                         boxShadow: "0 0 0 1px rgba(255,255,255,0.05), -20px 40px 100px -12px rgba(0, 0, 0, 0.8)",
                         WebkitFontSmoothing: "antialiased",
                         maskImage: "linear-gradient(to bottom, black 75%, transparent 100%), linear-gradient(to right, black 85%, transparent 98%)",
@@ -78,7 +91,7 @@ export default function HeroInterface() {
                         {/* Secondary Sidebar (Channels) */}
                         <div className="w-60 bg-muted/10 flex flex-col border-r hidden md:flex">
                             <div className="h-12 border-b flex items-center px-4 font-bold shadow-sm">
-                                Product Design <span className="ml-auto text-xs text-muted-foreground">v2.0</span>
+                                Bunch HQ <span className="ml-auto text-xs text-muted-foreground"><GearSixIcon className="w-5 h-5" /> </span>
                             </div>
                             <ScrollArea className="flex-1 p-3">
                                 <div className="mb-6">
@@ -87,11 +100,22 @@ export default function HeroInterface() {
                                         <Plus className="w-3 h-3 opacity-0 group-hover:opacity-100 cursor-pointer" />
                                     </div>
                                     <div className="space-y-0.5">
-                                        <ChannelItem active icon={Hash} name="general" />
+                                        <ChannelItem icon={Hash} name="news" />
                                         <ChannelItem icon={Hash} name="announcements" />
-                                        <ChannelItem icon={Hash} name="resources" />
                                     </div>
                                 </div>
+                                <div className="mb-6">
+                                    <div className="flex items-center justify-between px-2 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 group">
+                                        <span>Chat</span>
+                                        <Plus className="w-3 h-3 opacity-0 group-hover:opacity-100 cursor-pointer" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <ChannelItem active icon={Hash} name="general" />
+                                        <ChannelItem icon={Hash} name="bunch-dev" />
+                                        <ChannelItem icon={Hash} name="z-term" />
+                                    </div>
+                                </div>
+
                                 <div className="mb-6">
                                     <div className="flex items-center justify-between px-2 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 group">
                                         <span>Voice Channels</span>
@@ -106,13 +130,13 @@ export default function HeroInterface() {
                             <div className="h-14 bg-muted/20 flex items-center px-2 gap-2 border-t">
                                 <Avatar className="w-8 h-8">
                                     <AvatarImage src="/avatar-placeholder.png" />
-                                    <AvatarFallback className="bg-primary/20 text-primary text-xs">ME</AvatarFallback>
+                                    <AvatarFallback className="bg-primary/20 text-primary text-xs">T</AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-bold truncate">Current User</div>
-                                    <div className="text-xs text-muted-foreground truncate">#1234</div>
+                                    <div className="pl-1 text-sm text-left font-bold truncate">Tom</div>
+                                    <div className="pl-1 text-xs text-left text-muted-foreground truncate">@tom</div>
                                 </div>
-                                <div className="flex gap-1">
+                                <div className="flex gap-2">
                                     <Microphone className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
                                     <Headphones className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
                                     <Gear className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
@@ -190,16 +214,16 @@ export default function HeroInterface() {
                             <div className="p-4 pt-0 shrink-0">
                                 <div className="bg-muted/30 rounded-lg p-3 flex items-center gap-3 border shadow-inner">
                                     <div className="w-6 h-6 rounded-full bg-muted-foreground/30 flex items-center justify-center cursor-pointer hover:bg-muted-foreground/50 transition-colors">
-                                        <Plus className="w-4 h-4 text-background" />
+                                        <PlusIcon className="w-4 h-4 text-background" />
                                     </div>
                                     <input
                                         className="bg-transparent border-none outline-none flex-1 text-sm placeholder:text-muted-foreground/70"
                                         placeholder="Message #general"
                                         readOnly
                                     />
-                                    <div className="flex gap-2 text-muted-foreground">
-                                        <GameController className="w-5 h-5 hover:text-foreground cursor-pointer" />
-                                        <Microphone className="w-5 h-5 hover:text-foreground cursor-pointer" />
+                                    <div className="flex gap-4 text-muted-foreground">
+                                        <SmileyIcon className="w-5 h-5 hover:text-foreground cursor-pointer" />
+                                        <MicrophoneIcon className="w-5 h-5 hover:text-foreground cursor-pointer" />
                                     </div>
                                 </div>
                             </div>
@@ -207,7 +231,7 @@ export default function HeroInterface() {
 
                         {/* User List (Right Sidebar) */}
                         <div className="w-60 bg-muted/10 border-l hidden lg:flex flex-col p-3">
-                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 px-2">Online — 4</div>
+                            <div className="text-xs text-left font-bold text-muted-foreground uppercase tracking-wider mb-3 px-2">Online — 4</div>
                             <div className="space-y-1">
                                 <UserItem name="Justine Mod" color="text-yellow-400" status="online" badge="Admin" />
                                 <UserItem name="Alex Rivera" color="text-primary" status="dnd" />
@@ -217,7 +241,7 @@ export default function HeroInterface() {
                         </div>
 
                     </div>
-                </div>
+                </motion.div>
 
                 {/* <div className="fixed bottom-4 right-4 p-4 bg-background/90 backdrop-blur border rounded-lg shadow-xl z-50 w-80 space-y-4">
                 <div className="flex items-center justify-between">
@@ -337,7 +361,7 @@ function Message({ username, time, content, color, isReply, badge }: { username:
                     {badge && <span className="bg-primary/20 text-primary text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide">{badge}</span>}
                     <span className="text-[10px] text-muted-foreground/70">{time}</span>
                 </div>
-                <p className="text-[15px] leading-relaxed text-foreground/90">{content}</p>
+                <p className="text-[15px] leading-relaxed text-left text-foreground/90">{content}</p>
             </div>
         </div>
     )
@@ -366,7 +390,7 @@ function UserItem({ name, status, color, badge }: { name: string, status: 'onlin
                     <span className={cn("text-sm font-medium truncate", color)}>{name}</span>
                     {badge && <span className="bg-primary/20 text-primary text-[10px] w-4 h-4 flex items-center justify-center rounded font-bold">✓</span>}
                 </div>
-                <div className="text-xs text-muted-foreground truncate opacity-70">Playing VS Code</div>
+                <div className="text-xs text-muted-foreground text-left truncate opacity-70">Playing Z-Term</div>
             </div>
         </div>
     )
