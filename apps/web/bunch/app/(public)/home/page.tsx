@@ -22,7 +22,7 @@ export default function HomePage() {
                     </div>
 
                     <h1 className="text-5xl md:text-6xl lg:text-8xl font-extrabold tracking-tight text-foreground">
-                        Your <GlitchText text="Team" hoverText="Bunch" />💫<br />
+                        Your <GlitchText text="Team" hoverText="Bunch" /><br />
                         <span className="text-primary">Supercharged</span>
                     </h1>
 
