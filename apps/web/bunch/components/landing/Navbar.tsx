@@ -6,6 +6,7 @@ import { NavigationMenuDemo } from "@/components/landing/NavigationMenuDemo"
 import { ThemeToggle } from "@/components/theme/ThemeToggle"
 import { SignOutButton } from "@/components/auth/SignOutButton"
 import { Button } from "@/components/ui/button"
+import { GithubButton } from "@/components/landing/GithubButton"
 
 interface NavbarProps {
     user: any
@@ -30,6 +31,7 @@ export function Navbar({ user }: NavbarProps) {
 
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-2">
+                    <GithubButton />
                     <div className="w-8 h-8">
                         <ThemeToggle />
                     </div>
