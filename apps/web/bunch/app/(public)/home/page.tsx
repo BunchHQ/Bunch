@@ -6,6 +6,8 @@ import { ArrowRight, Chat, Shield, Lightning, Globe, Users, Command } from "@pho
 import HeroInterface from "@/components/landing/HeroInterface"
 import { SunIcon } from "lucide-react"
 import { GlitchText } from "@/components/landing/GlitchText"
+import { BentoGrid, BentoCard } from "@/components/landing/BentoGrid"
+import { SpeedVisual, SecurityVisual, UniversalVisual, ThreadsVisual, RolesVisual, KeyboardVisual, FilesVisual, IntegrationsVisual } from "@/components/landing/BentoGraphics"
 
 export default function HomePage() {
     return (
@@ -58,60 +60,90 @@ export default function HomePage() {
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <FeatureCard
-                            icon={Lightning}
-                            title="Real-time Speed"
+                    <BentoGrid className="lg:grid-rows-3">
+                        <BentoCard
+                            name="Real-time Speed"
+                            className="lg:col-span-1 lg:row-span-1"
+                            background={<div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 via-transparent to-transparent opacity-50" />}
+                            graphic={<SpeedVisual />}
                             description="Engineered for zero-latency messaging. Your team stays in sync, instantly."
+                            href="/"
+                            cta="Learn more"
                         />
-                        <FeatureCard
-                            icon={Shield}
-                            title="Secure Encrypted"
-                            description="Enterprise-grade security standards with end-to-end encryption for private channels."
+                        <BentoCard
+                            name="Secure Encrypted"
+                            className="lg:col-span-1 lg:row-span-1"
+                            background={<div className="absolute inset-0 bg-gradient-to-bl from-green-500/10 via-transparent to-transparent opacity-50" />}
+                            graphic={<SecurityVisual />}
+                            description="Enterprise-grade security standards with end-to-end encryption."
+                            href="/"
+                            cta="Learn more"
                         />
-                        <FeatureCard
-                            icon={Globe}
-                            title="Universal Access"
-                            description="Available on Web, iOS, and Android. Your conversations sync seamlessly across devices."
-                        />
-                        <FeatureCard
-                            icon={Chat}
-                            title="Smart Threads"
-                            description="Keep discussions focused. Reply in threads to declutter your main channel view."
-                        />
-                        <FeatureCard
-                            icon={Users}
-                            title="Team Roles"
+                        <BentoCard
+                            name="Team Roles"
+                            className="lg:col-span-1 lg:row-span-1"
+                            background={<div className="absolute inset-0 bg-gradient-to-t from-red-500/10 via-transparent to-transparent opacity-50" />}
+                            graphic={<RolesVisual />}
                             description="Granular permission controls for admins, moderators, and guests."
+                            href="/"
+                            cta="Learn more"
                         />
-                        <FeatureCard
-                            icon={Command}
-                            title="Keyboard First"
+                        <BentoCard
+                            name="Integrations & Bots"
+                            className="lg:col-span-1 lg:row-span-1"
+                            background={<div className="absolute inset-0 bg-gradient-to-t from-pink-500/10 via-transparent to-transparent opacity-50" />}
+                            graphic={<IntegrationsVisual />}
+                            description="Automations, moderation, AI agents and workflows."
+                            href="/"
+                            cta="Learn more"
+                        />
+
+                        <BentoCard
+                            name="Universal Access"
+                            className="lg:col-span-2 lg:row-span-1"
+                            background={<div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-transparent opacity-50" />}
+                            graphic={<UniversalVisual />}
+                            description="Available on Web, iOS, and Android. seamless sync."
+                            href="/"
+                            cta="Learn more"
+                        />
+                        <BentoCard
+                            name="Keyboard First"
+                            className="lg:col-span-2 lg:row-span-1"
+                            background={<div className="absolute inset-0 bg-gradient-to-b from-orange-500/10 via-transparent to-transparent opacity-50" />}
+                            graphic={<KeyboardVisual />}
                             description="Navigate the entire app without lifting your hands from the keyboard."
+                            href="/"
+                            cta="Learn more"
                         />
-                    </div>
+                        <BentoCard
+                            name="File Sharing"
+                            className="lg:col-span-1 lg:row-span-1"
+                            background={<div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 via-transparent to-transparent opacity-50" />}
+                            graphic={<FilesVisual />}
+                            description="Share documents, images, and huge files with drag-and-drop simplicity."
+                            href="/"
+                            cta="Learn more"
+                        />
+                    </BentoGrid>
                 </div>
             </section>
 
             {/* Stats/Big Numbers Section */}
             <section className="py-24 bg-primary text-primary-foreground">
                 <div className="mx-auto max-w-7xl px-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-center">
                         <div>
-                            <div className="text-5xl font-bold mb-2">10k+</div>
-                            <div className="text-primary-foreground/80">Active Users</div>
+                            <div className="text-5xl font-bold mb-2">$0</div>
+                            <div className="text-primary-foreground/80">For Community</div>
                         </div>
                         <div>
-                            <div className="text-5xl font-bold mb-2">50M+</div>
-                            <div className="text-primary-foreground/80">Messages Sent</div>
+                            <div className="text-5xl font-bold mb-2">MIT</div>
+                            <div className="text-primary-foreground/80">Licensed</div>
                         </div>
                         <div>
-                            <div className="text-5xl font-bold mb-2">99.9%</div>
-                            <div className="text-primary-foreground/80">Uptime</div>
-                        </div>
-                        <div>
-                            <div className="text-5xl font-bold mb-2">24/7</div>
-                            <div className="text-primary-foreground/80">Support</div>
+                            <div className="text-5xl font-bold mb-2">No</div>
+                            <div className="text-primary-foreground/80">Tracking</div>
                         </div>
                     </div>
                 </div>
@@ -180,14 +212,3 @@ export default function HomePage() {
     )
 }
 
-function FeatureCard({ icon: Icon, title, description }: { icon: any, title: string, description: string }) {
-    return (
-        <div className="group p-8 rounded-2xl bg-card border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
-            <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
-                <Icon className="w-7 h-7" />
-            </div>
-            <h3 className="text-xl font-bold mb-3">{title}</h3>
-            <p className="text-muted-foreground leading-relaxed">{description}</p>
-        </div>
-    )
-}
