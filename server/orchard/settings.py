@@ -31,7 +31,7 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", *ALLOWED_ORIGINS]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".vercel.app", *ALLOWED_ORIGINS]
 
 # supabase setup
 SUPABASE_URL = os.getenv("SUPABASE_URL", None)
