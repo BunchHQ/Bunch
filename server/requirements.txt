@@ -47,6 +47,7 @@ pillow==12.0.0
 postgrest==2.27.0
 propcache==0.4.1
 psycopg==3.3.2
+psycopg-binary==3.3.2
 psycopg-pool==3.3.0
 py-ubjson==0.16.1
 pyasn1==0.6.1
