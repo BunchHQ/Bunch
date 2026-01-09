@@ -12,11 +12,10 @@ import os
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
-from orchard.middleware import SupabaseChannelsAuthMiddleware
-
-from .routing import websocket_urlpatterns
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "orchard.settings")
+
+from orchard.middleware import SupabaseChannelsAuthMiddleware
+from orchard.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter(
     {
