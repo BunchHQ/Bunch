@@ -2,6 +2,7 @@
 
 import { ChannelsList } from "@/components/channel/ChannelsList"
 import { MessageList } from "@/components/message/MessageList"
+import { MembersPanel } from "@/components/bunch/MembersPanel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -11,13 +12,14 @@ import { useBunch, useChannels } from "@/lib/hooks"
 import type { Channel } from "@/lib/types"
 import { Bell, Hash, Info, Users, Volume2 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 export default function ChannelPage() {
   const params = useParams()
   const router = useRouter()
   const bunchId = params?.bunchId as string
   const channelId = params?.channelId as string
+  const [showMembers, setShowMembers] = useState(false)
 
   const { bunch, loading: isBunchLoading, error: bunchError, fetchBunch } = useBunch(bunchId)
   const {
@@ -126,7 +128,12 @@ export default function ChannelPage() {
               </span>
             </div>
             <div className="flex items-center">
-              <Button variant="ghost" size="sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowMembers(!showMembers)}
+                className={showMembers ? "bg-accent text-accent-foreground" : ""}
+              >
                 <Users className="mr-2 h-4 w-4" />
                 Members
               </Button>
@@ -143,6 +150,7 @@ export default function ChannelPage() {
         <div className="flex flex-1 flex-col">
           <MessageList />
         </div>
+        {showMembers && <MembersPanel bunchId={bunchId} />}
       </div>
     </div>
   )
