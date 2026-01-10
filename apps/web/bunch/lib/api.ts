@@ -208,7 +208,8 @@ export const deleteChannel = async (bunchId: string, channelId: string, token?: 
 export const getMembers = async (bunchId: string, token?: string) => {
   const response = await fetchWithAuth(`${API_URL}/api/v1/bunch/${bunchId}/members/`, {}, token)
   if (!response.ok) throw new Error("Failed to fetch members")
-  return response.json()
+  const data = await response.json()
+  return data.results
 }
 
 export const updateMemberRole = async (

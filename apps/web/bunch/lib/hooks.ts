@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react"
 import * as api from "./api"
-import type { Bunch, Channel, Message, User } from "./types"
+import type { Bunch, Channel, Member, Message, User } from "./types"
 import { createClient } from "./supabase/client"
 
 // User hooks
@@ -280,6 +280,37 @@ export function useMessages(bunchId: string, channelId: string) {
     deleteMessage,
     setMessages,
   }
+}
+
+// Member hooks
+export const useMembers = (bunchId: string) => {
+  const [members, setMembers] = useState<Member[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+  const supabase = createClient()
+
+  const fetchMembers = useCallback(async () => {
+    try {
+      setLoading(true)
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        throw sessionError || new Error("No authentication token available")
+      }
+
+      const membersData = await api.getMembers(bunchId, session.access_token)
+      setMembers(membersData)
+      setError(null)
+    } catch (err) {
+      setError(err as Error)
+    } finally {
+      setLoading(false)
+    }
+  }, [bunchId, supabase])
+
+  return { members, loading, error, fetchMembers }
 }
 
 // reaction hooks (unused)
