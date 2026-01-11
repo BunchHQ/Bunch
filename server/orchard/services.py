@@ -2,6 +2,7 @@ import logging
 
 from django.conf import settings
 from supabase import Client, create_client
+from supabase_auth import ClaimsResponse
 from supabase_auth.types import (
     AdminUserAttributes,
     UserAttributes,
@@ -70,6 +71,10 @@ class SupabaseService:
     def get_user(self, jwt: str | None = None) -> UserResponse | None:
         """Get the current user's data."""
         return self.supabase.auth.get_user(jwt)
+
+    def get_claims(self, jwt: str | None = None) -> ClaimsResponse | None:
+        """Get the current user's claims."""
+        return self.supabase.auth.get_claims(jwt)
 
     def update_user(self, data: UserAttributes):
         """Update a user's data."""

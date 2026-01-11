@@ -62,7 +62,7 @@ class UserViewSet(viewsets.ModelViewSet):
         data = request.data
         logger.debug(f"Onboarding payload: {data}")
 
-        metadata = request.supabase_user.user.user_metadata.copy()
+        metadata = request.supabase_user_metadata.copy()
         logger.debug(f"Current user metadata: {metadata}")
         metadata["onboarded"] = True
 
