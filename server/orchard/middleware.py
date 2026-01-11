@@ -45,14 +45,17 @@ class SupabaseAuthMiddleware:
         if token:
             try:
                 # Verify the token
-                token_user = self.supabase.get_user(token)
+                token_claims = self.supabase.get_claims(token)
 
                 # Get or create the user
                 if (
-                    token_user
-                    and (user_id := token_user.user.id)
-                    and (email := token_user.user.email)
+                    token_claims
+                    and (user_id := token_claims.get("claims").get("sub"))
+                    and (email := token_claims.get("claims").get("email"))
                 ):
+                    metadata = token_claims.get("claims").get(
+                        "user_metadata", {}
+                    )
                     try:
                         logger.debug(f"user_id is {user_id}")
                         user = User.objects.get(id=user_id)
@@ -61,19 +64,15 @@ class SupabaseAuthMiddleware:
                         # Create a new user if they don't exist with fields we have already
                         user = User.objects.create(
                             id=user_id,
-                            username=token_user.user.user_metadata.get(
-                                "username"
-                            ),
-                            display_name=token_user.user.user_metadata.get(
-                                "display_name"
-                            ),
+                            username=metadata.get("username"),
+                            display_name=metadata.get("display_name"),
                             email=email,
                             password=make_password(None),
                         )
                         logger.debug(f"created user: {user}")
 
                     request.user = user
-                    request.supabase_user = token_user
+                    request.supabase_user_metadata = metadata
                     request.session["supabase_token"] = token
 
                     return self.get_response(request)
@@ -140,13 +139,11 @@ class SupabaseChannelsAuthMiddleware:
         if token:
             try:
                 # Verify the token
-                token_user = self.supabase.get_user(token)
+                token_claims = self.supabase.get_claims(token)
 
                 # Get or create the user
-                if (
-                    token_user
-                    and (user_id := token_user.user.id)
-                    and token_user.user.email
+                if token_claims and (
+                    user_id := token_claims.get("claims").get("sub")
                 ):
                     # Fetch/Create the Shadow User in the DB
                     scope["user"] = await get_supabase_user(user_id)

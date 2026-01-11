@@ -81,16 +81,16 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
 
         supabase = SupabaseService()
         try:
-            token_user = supabase.get_user(token)
+            token_claims = supabase.get_claims(token)
         except AuthError as e:
             logger.debug(f"Token error: {e}")
             raise exceptions.AuthenticationFailed("Token error")
 
-        if not token_user:
+        if not token_claims:
             raise exceptions.AuthenticationFailed("Token user not found")
 
-        user_id = token_user.user.id
-        email = token_user.user.email
+        user_id = token_claims.get("claims").get("sub")
+        email = token_claims.get("claims").get("email")
 
         logger.debug(f"User ID: {user_id}")
         logger.debug(f"Email: {email}")
